@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <ApplicationIcon />
+        <AssemblyName>Meshmakers.Octo.Backend.PlatformServices</AssemblyName>
+        <Description>Platform Services of Octo Mesh - serves tenant-scoped configuration discovery (the _configuration endpoint) for external clients (Refinery Studio, Office Integration, PowerBI, Power Query). Phase 1 of the octo-platform-services initiative; later phases add CK / blueprint / seeding management.</Description>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <IsPackable>false</IsPackable>
+        <OutputType>Exe</OutputType>
+        <RootNamespace>Meshmakers.Octo.Backend.PlatformServices</RootNamespace>
+        <StartupObject />
+        <UserSecretsId>a4f2e9c1-7b3d-4e8a-9f01-2d4e5b6a7c81</UserSecretsId>
+        <Configurations>Debug;Release;DebugL</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <OutputPath>..\..\bin\$(Configuration)\</OutputPath>
+        <DocumentationFile>..\..\bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
+        <NoWarn>1701;1702;CS8002</NoWarn>
+        <CopyDocumentationFilesFromPackages>true</CopyDocumentationFilesFromPackages>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Meshmakers.Octo.Services.Observability" Version="$(OctoVersion)" />
+        <PackageReference Include="Meshmakers.Octo.Communication.Contracts" Version="$(OctoVersion)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="nlog.config">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,97 @@
+# Root-level CI pipeline for octo-platform-services, using shared templates
+# from octo-pipeline-templates@tpl-v0.2.1.
+#
+# Phase 1 scope (the only thing this service currently does): host the
+# tenant-scoped `_configuration` discovery endpoint that was previously
+# served by octo-frontend-admin-panel. Image: meshmakers/octo-mesh-platform-services.
+#
+# No NuGet output, no helm chart in this repo (chart lives in octo-helm-core),
+# no tests yet. The contract parity test (tests/ContractTests) compares the
+# DTO shape to the legacy admin-panel response — once the test suite is wired
+# up it will plug into the DotNetCoreCLI@2 test task.
+
+name: $(MajorVersion).$(MinorVersion).$(date:yyMM).$(DayOfMonth)$(rev:rrr)-$(Build.SourceBranchName)
+
+resources:
+  repositories:
+    - repository: pipelineTemplates
+      type: github
+      name: meshmakers/octo-pipeline-templates
+      endpoint: meshmakers-access-token
+      ref: refs/tags/tpl-v0.2.1
+
+trigger:
+  batch: true
+  branches:
+    include:
+      - dev/*
+      - test/*
+      - main
+  tags:
+    exclude:
+      - '*'
+
+variables:
+  - group: ApiKeys-mm-cloud
+  - group: OctoDefault
+  - name: solutionFile
+    value: 'Octo.PlatformServices.sln'
+  - name: artifactsFrameworkVersion
+    value: 'net10.0'
+  - name: buildConfiguration
+    value: 'Release'
+  - name: buildPlatform
+    value: 'Any CPU'
+  - name: isRelease
+    value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/tags/r') }}
+  - name: isMain
+    value: ${{ eq(variables['Build.SourceBranch'], 'refs/heads/main') }}
+  - name: isTest
+    value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/test') }}
+
+stages:
+  - stage: Build
+    jobs:
+      - job: buildPlatformServices
+        displayName: 'Build, test, push docker image'
+        pool:
+          name: meshmakers-ci-agents
+        steps:
+          - template: templates/steps/update-build-number.yml@pipelineTemplates
+          - checkout: self
+            clean: true
+          - template: templates/steps/set-version.yml@pipelineTemplates
+          - template: templates/steps/download-ca.yml@pipelineTemplates
+          - task: DotNetCoreCLI@2
+            displayName: 'Restore NuGet packages'
+            inputs:
+              command: 'restore'
+              projects: '$(solutionFile)'
+              restoreArguments: '--force /p:OctoNugetPrivateServer=$(nugetPrivateServer)'
+              noCache: true
+          - task: DotNetCoreCLI@2
+            displayName: 'Build'
+            inputs:
+              command: 'build'
+              projects: $(solutionFile)
+              arguments: '--no-restore --configuration $(buildConfiguration) /p:OctoNugetPrivateServer=$(nugetPrivateServer) /p:OctoPrivateGitHubApiKey=$(GitHubPAT) /p:OctoPublicGitHubApiKey=$(GitHubPAT)'
+              publishWebProjects: false
+              zipAfterPublish: false
+              modifyOutputPath: false
+          - task: DotNetCoreCLI@2
+            displayName: 'Test'
+            inputs:
+              command: 'test'
+              arguments: '--no-build --configuration $(buildConfiguration) /p:OctoNugetPrivateServer=$(nugetPrivateServer)'
+              projects: |
+                **/*Tests.csproj
+                !**/*SystemTests.csproj
+              testRunTitle: 'CI'
+          - template: templates/steps/build-and-push-docker.yml@pipelineTemplates
+            parameters:
+              publicRegistryServiceConnection: $(DockerRegistryPublicConnection)
+              privateRegistryName: $(DockerRegistryPrivateUri)
+              repository: meshmakers/octo-mesh-platform-services
+              dockerfile: src/PlatformServices/Dockerfile
+              enableMainLatestTag: true
+          - template: templates/steps/handle-artifacts.yml@pipelineTemplates
