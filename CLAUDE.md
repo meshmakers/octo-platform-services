@@ -98,4 +98,4 @@ Public URI per environment:
 
 ## CI / CD
 
-Root-level `azure-pipelines.yml` follows the Phase 4a Layer-2 pattern: pulls shared templates from `octo-pipeline-templates@tpl-v0.2.1`, builds + tests + pushes Docker image (private always, public on release tag), tags `:main-latest` on main. No NuGet output, no Helm chart (the chart lives in `octo-helm-core`).
+Root-level `azure-pipelines.yml` follows the Phase 4a Layer-2 pattern: pulls shared templates from `octo-pipeline-templates@tpl-v0.3.0`, builds + tests + pushes Docker image (private always, public on release tag), tags `:main-latest` on main. No NuGet output, no Helm chart (the chart lives in `octo-helm-core`).
