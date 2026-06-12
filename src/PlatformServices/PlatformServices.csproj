@@ -24,8 +24,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meshmakers.Octo.Services.Observability" Version="$(OctoVersion)" />
-        <PackageReference Include="Meshmakers.Octo.Communication.Contracts" Version="$(OctoVersion)" />
+        <PackageReference Include="Meshmakers.Octo.Services.Observability" Version="$(OctoCoreLibVersion)" />
+        <PackageReference Include="Meshmakers.Octo.Communication.Contracts" Version="$(OctoCoreLibVersion)" />
     </ItemGroup>
 
     <ItemGroup>
