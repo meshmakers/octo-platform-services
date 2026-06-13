@@ -1,5 +1,15 @@
+using System.IdentityModel.Tokens.Jwt;
+using Meshmakers.Common.Shared;
+using Meshmakers.Octo.Backend.PlatformServices;
 using Meshmakers.Octo.Backend.PlatformServices.Options;
+using Meshmakers.Octo.Backend.PlatformServices.Routing;
+using Meshmakers.Octo.Communication.Contracts;
+using Meshmakers.Octo.Runtime.Contracts.MongoDb.Configuration;
+using Meshmakers.Octo.Runtime.Contracts.MongoDb.Extensions;
+using Meshmakers.Octo.Runtime.Engine.Configuration.DependencyInjection;
+using Meshmakers.Octo.Services.Infrastructure;
 using Meshmakers.Octo.Services.Observability;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using NLog;
 using NLog.Web;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
@@ -18,6 +28,8 @@ try
 
     builder.Services.Configure<PlatformServiceUrlsOptions>(options =>
         builder.Configuration.GetSection("PlatformServices").Bind(options));
+    builder.Services.Configure<OctoSystemConfiguration>(options =>
+        builder.Configuration.GetSection("System").Bind(options));
 
     builder.Services.AddControllers();
 
@@ -26,9 +38,8 @@ try
     builder.Logging.SetMinimumLevel(LogLevel.Trace);
     builder.Host.UseNLog();
 
-    // additional providers here needed.
-    // allow environment variables to override values from other providers.
-    builder.Configuration.AddEnvironmentVariables("OCTO_").AddCommandLine(args).AddUserSecrets(typeof(Program).Assembly, true);
+    builder.Configuration.AddEnvironmentVariables("OCTO_").AddCommandLine(args)
+        .AddUserSecrets(typeof(Program).Assembly, true);
 
     // The _configuration endpoint is consumed by browser SPAs and Excel-hosted
     // add-ins from arbitrary origins. The response carries no credentials, so
@@ -41,6 +52,47 @@ try
             .AllowAnyMethod());
     });
 
+    // Tenant-id route constraint — required by every Phase-2 Step 6 endpoint that
+    // includes {tenantId} in its route, so the constraint name matches the rest of
+    // the OctoMesh services (asset-repo, bot, identity, ...).
+    builder.Services.Configure<RouteOptions>(options =>
+        options.ConstraintMap.Add("tenantId", typeof(TenantIdRouteConstraint)));
+
+    // MongoDB runtime engine — provides ISystemContext (tenant enumeration + per-tenant
+    // repository lookup) and IBlueprintService / ITenantBlueprintInstallations /
+    // ITenantBlueprintHistory used by the read-only observability endpoints.
+    builder.Services.AddRuntimeEngine()
+        .AddMongoDbRuntimeRepository()
+        .AddMongoBlueprintSupport();
+
+    // JWT Bearer authentication — tokens validated against the local Identity service.
+    // Browser-flow cookie / OIDC scheme is intentionally omitted; this is a backend
+    // admin API consumed by service accounts and the future Refinery Studio dashboard
+    // page (which holds its own bearer token from the front-end auth library).
+    JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            var authorityUrl = builder.Configuration["PlatformServices:AuthorityUrl"]?.EnsureEndsWith("/")
+                               ?? "https://localhost:5003/";
+            options.Authority = authorityUrl;
+            options.TokenValidationParameters.ValidateAudience = false;
+            // Pin ValidIssuer so validation does not need the OIDC discovery document
+            // mid-rolling-update; identity / asset-repo / bot all do the same.
+            options.TokenValidationParameters.ValidIssuer = authorityUrl;
+        });
+
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy(PlatformServicesConstants.PlatformServicesAdminPolicy, policy =>
+        {
+            policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+            policy.RequireAuthenticatedUser();
+            policy.RequireClaim(InfrastructureCommon.ClaimScope,
+                CommonConstants.OctoApiFullAccess);
+        });
+    });
+
     var app = builder.Build();
 
     app.MapObservability();
@@ -50,8 +102,9 @@ try
         app.UseHsts();
     }
     app.UseCors();
-
     app.UseRouting();
+    app.UseAuthentication();
+    app.UseAuthorization();
     app.MapControllers();
 
     app.Run();
