@@ -166,7 +166,7 @@ Order is loose; step 4 should land after step 6 so the observability surface can
 
 ## 6. Follow-ups out of scope for Phase 2
 
-- **Identity client seed as a blueprint.** Long-term, expressing Identity's roles + clients + scopes as a `System.Identity.Bootstrap-1.0.0` blueprint would make the refresh path symmetrical with every other service. This is invasive (touches IdentityServer's DI graph and the `EnsureIdentityDataInChildTenantAsync` write-through) and is more architecture decision than code. Capture as Phase 3 if and when needed.
+- **Identity client seed as a blueprint (Phase 3).** Long-term, expressing Identity's roles + clients + scopes + resources as a `System.Identity.Bootstrap-1.0.0` blueprint would make the refresh path symmetrical with every other service. The Phase 2 / Step 4 implementation chose option (b) (claims-backfill on `EnsureIdentityResourceAsync`) as a targeted fix for the refinery-studio symptom; option (c) — full blueprint extraction — is the architecturally clean follow-up, deferred because it touches IdentityServer's DI graph and the `EnsureIdentityDataInChildTenantAsync` write-through. Once Phase 3 lands, the Step 4 backfill in `EnsureIdentityResourceAsync` can collapse into a normal blueprint upsert.
 - **MACO standardization.** MACO's custom scope names (`SystemApi` / `TenantApi` instead of `OctoApiFullAccess`) are a fork in the OAuth pattern. Either rename or formalize — out of scope here.
 - **Workflow / approval gates** on blueprint apply (e.g. "production tenants require approval before a `Release` blueprint version bump is applied"). Real ask, real complexity, deferred.
 - **Cross-cluster blueprint promotion** (staging → prod). The observability API makes this visible; the workflow is a separate concept.
