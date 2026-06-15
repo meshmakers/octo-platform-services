@@ -1,8 +1,21 @@
 # Phase 3 — Identity tenant seed as a service-managed blueprint
 
-**Status:** Draft, 2026-06-13 — discussion basis, nothing implemented yet.
-**Author:** Gerald Lochner + Claude (concept skeleton).
+**Status:** ✅ **Shipped 2026-06-15.** All five PRs merged + one upstream engine fix discovered during burn-in.
+**Author:** Gerald Lochner + Claude (concept skeleton + cutover execution).
 **Scope:** `octo-identity-services` exclusively. The Phase 2 base-class hooks (`RefreshTenantStateAsync`, `ApplyServiceManagedBlueprintsAsync`, blueprint engine's `force: true` re-apply) are the inputs; this concept turns Identity into a consumer of them and removes the workaround code that Phase 2 §4.2 deferred.
+
+## Ship summary
+
+| PR | Repo | Commit | Subject |
+|---|---|---|---|
+| #25 | octo-common-services | `9e296c6` | Lift `ApplyServiceManagedBlueprintsAsync` from Standardized → Base (§4.1) |
+| #87 | octo-identity-services | `4141e31` | Add `System.Identity.Bootstrap-1.0.0` blueprint (§4.2) |
+| #88 | octo-identity-services | `5269a9e` | `IdentityBlueprintVariableProvider` + flagged `RefreshTenantStateAsync` override (§4.3) |
+| #191 | octo-construction-kit-engine | `8832520` | Fix `BlueprintVariableInterpolator` for list-valued attributes (burn-in finding) |
+| #89 | octo-identity-services | `826ed0c` | Cutover `SetupTenantAsync` → blueprint apply; `PreBlueprintCleanupMigration` (§4.4) |
+| #90 | octo-identity-services | `7f0d306` | Cleanup: delete feature flag + `IdentitySchemaVersionKey`/`Value` (§5 step 5) |
+
+The §4.4 "DefaultConfigurationCreatorService collapse" landed mostly as designed: 1063 → 368 LOC. Two surprises during burn-in evolved the design, both recorded below.
 
 ## 1. Why Phase 3
 
@@ -280,22 +293,33 @@ The 800 LOC of `EnsureXxxAsync` / `EnsureXxxInChildTenantAsync` / `CreateXxx` me
 
 Five PRs across two repos. Each independently revertable. Identity is the highest blast-radius backend; we sequence accordingly.
 
-| Step | Repo | What | Risk |
-|---|---|---|---|
-| 1 | octo-common-services | Lift `ApplyServiceManagedBlueprintsAsync` + the property + predicate + failure hook + ctor params from Standardized down to Base. Standardized inherits unchanged. | low — additive on Base; behavioral equivalence on Standardized (same code, different location) |
-| 2 | octo-identity-services | Add the `System.Identity.Bootstrap-1.0.0` blueprint folder under Persistence.IdentityCkModel. Wire the `BlueprintFolder` MSBuild item. Register `AddBlueprintSystemIdentityBootstrapV1()` in `Program.cs`. Do NOT call `ApplyServiceManagedBlueprintsAsync` yet — the blueprint exists in DI but is dead code. | low — opt-in by next step |
-| 3 | octo-identity-services | Add `IdentityBlueprintVariableProvider`. Behind a feature flag (`OctoIdentityServicesOptions.UseBlueprintBootstrap=false` default), wire the override: `ServiceManagedBlueprintPrefix => "System.Identity."`, `RefreshTenantStateAsync` override calls `ApplyServiceManagedBlueprintsAsync(tenantId, throwOnFailure: false)`. Flag stays `false` so the seed path in `SetupTenantAsync` is unchanged. Test on test-2 by flipping the flag on a side cluster and observing `BlueprintInstallation` rows appear without disturbing the existing seed. | **medium** — Identity is high-blast-radius; the flag-on-test-2 burn-in is the validation phase |
-| 4 | octo-identity-services | Switch `SetupTenantAsync` to call `ApplyServiceManagedBlueprintsAsync` instead of the inline `CreateXxx` / `EnsureXxxAsync` chains. Delete the methods. Keep the flag for one release as a rollback latch. | **medium-high** — the actual cutover. test-2 burn-in is the gate. Roll forward on staging-1 only after a week of clean test-2 logs. |
-| 5 | octo-identity-services + octo-common-services | Delete the feature flag, delete `IdentitySchemaVersionKey` / `IdentitySchemaVersionValue` constants, delete the schema-version gate transaction, retire the Phase-2 backfill in `EnsureIdentityResourceAsync` since it has no caller. Update concept doc §6 to mark the follow-up "shipped". | low — pure cleanup, after prod has run on Phase 3 for one release cycle |
+| Step | Repo | What | Risk | Shipped |
+|---|---|---|---|---|
+| 1 | octo-common-services | Lift `ApplyServiceManagedBlueprintsAsync` + the property + predicate + failure hook + ctor params from Standardized down to Base. Standardized inherits unchanged. | low — additive on Base; behavioral equivalence on Standardized (same code, different location) | ✅ PR #25 `9e296c6` |
+| 2 | octo-identity-services | Add the `System.Identity.Bootstrap-1.0.0` blueprint folder under Persistence.IdentityCkModel. Wire the `BlueprintFolder` MSBuild item. Register `AddBlueprintSystemIdentityBootstrapV1()` in `Program.cs`. Do NOT call `ApplyServiceManagedBlueprintsAsync` yet — the blueprint exists in DI but is dead code. | low — opt-in by next step | ✅ PR #87 `4141e31` |
+| 3 | octo-identity-services | Add `IdentityBlueprintVariableProvider`. Behind a feature flag (`OctoIdentityServicesOptions.UseBlueprintBootstrap=false` default), wire the override: `ServiceManagedBlueprintPrefix => "System.Identity."`, `RefreshTenantStateAsync` override calls `ApplyServiceManagedBlueprintsAsync(tenantId, throwOnFailure: false)`. Flag stays `false` so the seed path in `SetupTenantAsync` is unchanged. Test on test-2 by flipping the flag on a side cluster and observing `BlueprintInstallation` rows appear without disturbing the existing seed. | **medium** — Identity is high-blast-radius; the flag-on-test-2 burn-in is the validation phase | ✅ PR #88 `5269a9e` |
+| 4 | octo-identity-services | Switch `SetupTenantAsync` to call `ApplyServiceManagedBlueprintsAsync` instead of the inline `CreateXxx` / `EnsureXxxAsync` chains. Delete the methods. Keep the flag for one release as a rollback latch. | **medium-high** — the actual cutover. test-2 burn-in is the gate. Roll forward on staging-1 only after a week of clean test-2 logs. | ✅ PR #89 `826ed0c` |
+| 5 | octo-identity-services + octo-common-services | Delete the feature flag, delete `IdentitySchemaVersionKey` / `IdentitySchemaVersionValue` constants, delete the schema-version gate transaction, retire the Phase-2 backfill in `EnsureIdentityResourceAsync` since it has no caller. Update concept doc §6 to mark the follow-up "shipped". | low — pure cleanup, after prod has run on Phase 3 for one release cycle | ✅ PR #90 `7f0d306` |
 
 The flag in step 3 (`UseBlueprintBootstrap`) gates **only the override of `RefreshTenantStateAsync`**, not the static seed path. That lets us observe blueprint installations writing without competing with the existing seed transaction. Step 4 flips the static path. Steps 3 and 4 are intentionally separate so a problem at step 4 has a one-line rollback (step 3 stays); a problem with the blueprint shape surfaces at step 3 without touching seed semantics.
 
+### 5a. Surprises during burn-in — design changes that landed
+
+These were not in the original concept; both surfaced on the local burn-in against octosystem / meshtest / ai-sandbox and were folded into PR #89 before merge.
+
+1. **`BlueprintVariableInterpolator` did not substitute inside list-valued attributes** — the engine's interpolator only touched `attribute.Value is string`, so `RedirectUris: ['${octo.identity.refineryStudioUrl}/']` and `AllowedCorsOrigins: ['${octo.identity.refineryStudioUrl}']` landed in MongoDB as literal placeholder strings. Duende's redirect-URI validation then rejected every Refinery Studio login. Fixed upstream in `octo-construction-kit-engine` PR #191 (`8832520`); cascade re-publishes the engine NuGet, Identity picks it up on its next image build.
+2. **Identity service was the only Standardized consumer that did NOT register `AddMongoBlueprintSupport()`.** Without it, the engine defaults to `InMemoryTenantBlueprintInstallations` and `BlueprintInstallation` rows never land in MongoDB even though the log claims "1 blueprints installed". Fixed in `octo-identity-services` PR #89 by adding the registration inside `AddOctoIdentityPersistence`, so every consumer of the persistence builder (including the integration-test fixtures) picks it up automatically.
+3. **`PreBlueprintCleanupMigration` evolved into a two-phase verbatim-preservation migration.** The original "delete OLD entities + orphan associations" design lost every user's role assignments because:
+   - `User → Role` edges live as `AssignedRole` associations, but
+   - `ExternalTenantUserMapping → Role` is stored in the `MappedRoleIds` attribute (the schema disallows `AssignedRole` on this type).
+   The migration now (a) reads the OLD role names from both origin types into a `PendingPostBlueprintRoleAssignments` TenantConfiguration row, (b) deletes OLD entities + orphan associations in the right order so the engine's target-existence validator passes, and (c) post-blueprint, `DefaultConfigurationCreatorService.SetupTenantAsync` reads the pending row and re-attaches by name → new stable rtId. Crash-safe across restarts because the pending row persists in MongoDB. Validated locally on octosystem (3 `User → Role` remappings) + meshtest (2 `ExternalTenantUserMapping.MappedRoleIds` entries) with the exact rtIds matching the blueprint's `660…01..0E` range.
+
 ## 6. Follow-ups out of scope for Phase 3
 
-- **`System.Notification.Bootstrap-1.0.0`** for the mail templates + `RtMailNotificationConfiguration` Identity currently seeds inline. Same pattern as `System.Identity.Bootstrap`; smaller footprint, lower risk, but the Identity refactor is enough for one phase.
-- **Identity provider configuration** (Google client id / secret, Azure AD tenant id, OpenLDAP host). Today these are operator-configured via REST. A future `System.Identity.Providers` blueprint could parameterize them via cluster env vars — but only if there's a real operator pain point. None has surfaced.
-- **Refinery Studio dashboard for the Phase 2 Step 6 observability API.** UI work in `octo-frontend-refinery-studio`. Tracked separately; Phase 3 doesn't block it.
-- **MACO drift surfacing.** Phase 2 §6 follow-up. Independent of Identity.
+- **`System.Notification.Bootstrap-1.0.0`** for the mail templates + `RtMailNotificationConfiguration` Identity currently seeds inline. Same pattern as `System.Identity.Bootstrap`; smaller footprint, lower risk, but the Identity refactor is enough for one phase. **Status: still open** — natural next item now that the Phase 3 pattern is fully exercised; the lift is mechanical (Mail-Templates out of `DefaultConfigurationCreatorService.CreateTenantConfiguration` into a `System.Notification.Bootstrap` blueprint).
+- **Identity provider configuration** (Google client id / secret, Azure AD tenant id, OpenLDAP host). Today these are operator-configured via REST. A future `System.Identity.Providers` blueprint could parameterize them via cluster env vars — but only if there's a real operator pain point. None has surfaced. **Status: deferred indefinitely** (no pain signal).
+- **Refinery Studio dashboard for the Phase 2 Step 6 observability API.** UI work in `octo-frontend-refinery-studio`. Tracked separately; Phase 3 doesn't block it. **Status: still open** — Phase 2 backend (`/system/v1/services/{key}/drift` + 4 sister endpoints) is live in `octo-platform-services`; UI scope likely cross-tenant-only (system-tenant operator surface, not a per-tenant Meshboard).
+- **MACO drift surfacing.** Phase 2 §6 follow-up. Independent of Identity. **Status: still open** — folded into the drift-dashboard scope above; MACO's non-standard scopes (`SystemApi` / `TenantApi`) need to round-trip the observability API correctly.
 
 ## 7. Risks
 
@@ -304,13 +328,13 @@ The flag in step 3 (`UseBlueprintBootstrap`) gates **only the override of `Refre
 - **Schema-version row deletion is a one-way door.** Once step 5 deletes `IdentitySchemaVersionKey`, downgrading to a pre-Phase-3 image loses the seed-version state — but the old code's gate would still trigger a no-op insert because the entities exist. Net effect: no functional regression on downgrade, just one stray `RtConfiguration` row missing. The risk is operational confusion, not data loss.
 - **The lift in step 1 affects 7 other services.** Standardized inherits Base; the ctor change adds optional params that flow through. Every Standardized subclass already passes positional args by position — the new optional params at the tail are backward-compatible (Phase 2 PR #1 had the same shape). But it's worth running every consumer service's unit suite after step 1 (Comm-Ctrl 373/373, Admin-Panel build, Asset-Repo, Bot, Report, MCP, AI) to confirm.
 
-## 8. Open decisions
+## 8. Open decisions — resolved
 
-1. **Should the `${octo.identity.refineryStudioUrl}` placeholder gate the `RtClient` via `requires:` when empty?** Reading: blueprint engine's `requires:` block is evaluated against the resolved variable map; gating one entity (vs the whole blueprint) is not in the current contract. Pragmatic answer: gate the whole blueprint with `requires.octo.identity.refineryStudioUrl: ".+"` (regex-style), document that an unset URL means the Refinery Studio SPA cannot authenticate, and accept that on any cluster that has Refinery Studio deployed the URL is mandatory. Slight semantic stretch — does anyone deploy Identity without Refinery Studio?
-2. **Stable `rtId` range — pre-allocate?** Communication-Controller chose `670000000000000000000…` for `System.Communication`. Phase 3 proposes `660000000000000000000…` for `System.Identity` and `680000000000000000000…` reserved for `System.Notification`. Concrete prefix is a 60-second decision; just want it locked before we hand-write 30+ rtIds.
-3. **Inline `CreateTenantConfiguration` (Notification templates) — leave or fold into a sibling blueprint now?** Leaving it means the Phase 3 PR touches less code. Folding it means one less follow-up. Recommend leaving for Phase 3 — the Notification model's templates are a separate concern, the surface area is smaller, and the bootstrap-via-blueprint pattern is identical so the lift later is mechanical.
-4. **Constant-name policy when removing `IdentitySchemaVersionKey`.** Leave the constant as `[Obsolete]` with a sunset comment for one release, or delete outright in step 5? Recommend delete — it has no callers post-step-4.
+1. **`${octo.identity.refineryStudioUrl}` placeholder gate** → **decided: blueprint stays unconditional, empty placeholder accepted.** The seed entity for the Refinery Studio client is always written; if the operator left `OctoIdentityServicesOptions.RefineryStudioUrl` unset, the redirect URI is empty and OIDC fails fast on the first login attempt — visible to the operator on the spot, no silent breakage. The `requires:` workaround was rejected because (a) gating one entity vs. the whole blueprint is not in the engine contract and (b) every cluster that ships Identity ships Refinery Studio too.
+2. **Stable `rtId` range** → **decided: `660…` for System.Identity, `680…` reserved for System.Notification, `670…` already in use by System.Communication.** All 37 seed entities are hand-written in the `660…01..40` range.
+3. **Inline `CreateTenantConfiguration` (Notification templates)** → **decided: leave for Phase 3.** Lifted out as Phase 3.5 (`System.Notification.Bootstrap-1.0.0`, see §6).
+4. **Constant-name policy** → **decided: hard-delete in step 5.** No `[Obsolete]` period — Phase 3 ships as one coordinated rollout and the constants have no callers post-step-4.
 
 ---
 
-This concept is ready for review. Once we agree on §4 and §5 I will turn it into work items, starting with step 1 in `octo-common-services` (the lift down to Base). The blueprint shape in §4.2 is the long-pole — pinning §8.2 (rtId range) unblocks the seed YAML hand-write that step 2 needs.
+Concept shipped 2026-06-15. The next natural items are `System.Notification.Bootstrap-1.0.0` (mechanical lift of the inline mail-template seed, ~50 LOC out of `CreateTenantConfiguration`) and the drift-dashboard UI on top of the live Phase 2 observability API.
