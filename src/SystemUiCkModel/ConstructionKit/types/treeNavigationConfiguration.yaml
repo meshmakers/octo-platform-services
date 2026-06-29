@@ -1,0 +1,17 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+types:
+  - typeId: TreeNavigationConfiguration
+    derivedFromCkTypeId: ${this}/UIElement
+    isFinal: false
+    isAbstract: false
+    description: "Per-tenant configuration for the entity trees (repository browser + communication data-mappings). Overrides which auto-discovered association roles are shown, their label, order, grouping and icon. Singleton per tenant via rtWellKnownName = 'TreeNavigation'. Optional: when absent the trees fall back to pure auto-discovery. Derives from UIElement (same as Branding, Dashboard) — consistent with SystemUiCkModel convention."
+    attributes:
+      - id: ${System}/Name
+        name: Name
+        isOptional: true
+      - id: ${System}/Description
+        name: Description
+        isOptional: true
+      - id: ${this}/TreeNavigationConfiguration.Roles
+        name: Roles
+        isOptional: true

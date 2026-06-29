@@ -1,0 +1,30 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+attributes:
+  # --- TreeNavigationConfiguration: the per-tenant list of role overrides ---
+  - id: TreeNavigationConfiguration.Roles
+    valueType: RecordArray
+    valueCkRecordId: ${this}/TreeNavigationRoleConfig
+    description: "Per-association overrides applied on top of the auto-discovered association roles in the entity trees (repository browser + data-mappings). Absent / empty = pure auto-discovery."
+
+  # --- TreeNavigationRoleConfig: one override rule ---
+  - id: TreeNavigationRoleConfig.SourceCkTypeId
+    valueType: String
+    description: "Runtime CK type id of the entity being expanded that this rule applies to (e.g. 'EnergyIQ/Space'), or '*' to match every type."
+  - id: TreeNavigationRoleConfig.RoleId
+    valueType: String
+    description: "Runtime association role id this rule applies to (e.g. 'EnergyIQ/SpaceSensors', 'System/ParentChild')."
+  - id: TreeNavigationRoleConfig.Visible
+    valueType: Boolean
+    description: "Whether the role is shown in the tree. Absent = visible."
+  - id: TreeNavigationRoleConfig.DisplayName
+    valueType: String
+    description: "Overrides the group node label. Absent = the association's navigation property name."
+  - id: TreeNavigationRoleConfig.SortIndex
+    valueType: Int
+    description: "Ordering hint among group nodes (ascending). Absent = default discovery order after the flattened ParentChild children."
+  - id: TreeNavigationRoleConfig.Grouped
+    valueType: Boolean
+    description: "Whether the role renders as an expandable group node (true) or its targets are flattened directly under the entity (false). Absent = flat for System/ParentChild, grouped for every other role."
+  - id: TreeNavigationRoleConfig.Icon
+    valueType: String
+    description: "Optional icon name for the group node, resolved by the frontend against its known icon set. Absent = default folder icon."
