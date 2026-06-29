@@ -1,0 +1,25 @@
+$schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
+blueprintId: System.TenantMode-1.0.0
+description: |
+  Service-managed blueprint that seeds a System/TenantModeConfiguration entity
+  (rtWellKnownName "TenantMode") on every tenant. The entity's EnvironmentMode is
+  driven by the cluster's ${octo.environment} value via the ${octo.environmentMode}
+  variable — Development/Testing/Staging/Production are mapped automatically — so a
+  single blueprint covers all four deployment environments without a per-environment
+  variant.
+
+  MaintenanceLevel defaults to "Off" so a freshly seeded tenant is fully operational;
+  operators flip it to UserApps or FullSystem by updating the entity manually (the
+  attribute is not stamped rtBlueprintLocked, so user edits survive blueprint re-apply
+  at the same version — see "Entity Source Tracking" in the engine docs/blueprints.md).
+
+  Auto-applied by the Admin Panel service on tenant Enable / startup, alongside the
+  System.UI.*Cockpit blueprints. Following the OctoMesh "System.* = service-managed"
+  convention, Studio hides Install / Re-apply controls.
+
+ckModelDependencies:
+  # System CK model carries the TenantModeConfiguration type plus the EnvironmentModes
+  # and MaintenanceLevels enums. Range floor is the lowest version that ships them.
+  - System-[2.0,3.0)
+
+seedDataPath: seed-data/entities.yaml

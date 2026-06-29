@@ -1,13 +1,17 @@
 using System.IdentityModel.Tokens.Jwt;
 using Meshmakers.Common.Shared;
 using Meshmakers.Octo.Backend.PlatformServices;
+using Meshmakers.Octo.Backend.PlatformServices.Configuration;
 using Meshmakers.Octo.Backend.PlatformServices.Options;
 using Meshmakers.Octo.Backend.PlatformServices.Routing;
+using Meshmakers.Octo.Backend.PlatformServices.Services;
 using Meshmakers.Octo.Communication.Contracts;
+using Meshmakers.Octo.Runtime.Contracts.Blueprints;
 using Meshmakers.Octo.Runtime.Contracts.MongoDb.Configuration;
 using Meshmakers.Octo.Runtime.Contracts.MongoDb.Extensions;
 using Meshmakers.Octo.Runtime.Engine.Configuration.DependencyInjection;
 using Meshmakers.Octo.Services.Infrastructure;
+using Meshmakers.Octo.Services.Infrastructure.Services;
 using Meshmakers.Octo.Services.Observability;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using NLog;
@@ -30,6 +34,12 @@ try
         builder.Configuration.GetSection("PlatformServices").Bind(options));
     builder.Services.Configure<OctoSystemConfiguration>(options =>
         builder.Configuration.GetSection("System").Bind(options));
+    // Bind blueprint variable context (octo.version/environment/systemTenantId) so the default
+    // IBlueprintVariableProvider surfaces values from helm-injected OCTO_BLUEPRINTS__* environment
+    // variables instead of falling back to defaults — drives ${octo.environmentMode} /
+    // ${octo.isSystemTenant} in the System.UI / System.TenantMode seeds.
+    builder.Services.Configure<OctoBlueprintVariablesOptions>(options =>
+        builder.Configuration.GetSection(OctoBlueprintVariablesOptions.SectionName).Bind(options));
 
     builder.Services.AddControllers();
 
@@ -60,10 +70,30 @@ try
 
     // MongoDB runtime engine — provides ISystemContext (tenant enumeration + per-tenant
     // repository lookup) and IBlueprintService / ITenantBlueprintInstallations /
-    // ITenantBlueprintHistory used by the read-only observability endpoints.
+    // ITenantBlueprintHistory used by the read-only observability endpoints AND by the
+    // System.UI service-managed blueprint apply.
     builder.Services.AddRuntimeEngine()
         .AddMongoDbRuntimeRepository()
         .AddMongoBlueprintSupport();
+
+    // Tenant lifecycle host — registers the distribution event hub tenant-event consumers
+    // (PosCreateTenant / PosUpdateTenant) plus the cold-start initialization services that
+    // drive IDefaultConfigurationCreatorService.SetupAsync / StartDeferredTenantsAsync. Required
+    // since platform-services owns the System.UI service-managed blueprints (Phase 4): they are
+    // seeded on tenant create / attach / restore via these events. No identity-data command
+    // client is registered — the blueprint-only creator seeds no identity data.
+    builder.Services.ConfigureOptions<ConfigureDistributionEventHubOptions>();
+    builder.Services.AddOctoServiceInfrastructure("PlatformServices");
+    builder.Services.AddTransient<IDefaultConfigurationCreatorService, DefaultConfigurationCreatorService>();
+
+    // System.UI CK model + the service-managed blueprints (cockpit dashboards + the
+    // cross-cutting System.TenantMode seed). DefaultConfigurationCreatorService applies every
+    // System.UI.* blueprint (plus the allowlisted System.TenantMode) per tenant; each blueprint's
+    // `requires:` block decides which tenants actually receive it.
+    builder.Services.AddCkModelSystemUIV2();
+    builder.Services.AddBlueprintSystemUISystemCockpitV1();
+    builder.Services.AddBlueprintSystemUITenantCockpitV1();
+    builder.Services.AddBlueprintSystemTenantModeV1();
 
     // JWT Bearer authentication — tokens validated against the local Identity service.
     // Browser-flow cookie / OIDC scheme is intentionally omitted; this is a backend

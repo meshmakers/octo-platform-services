@@ -8,19 +8,29 @@ using Xunit;
 namespace Meshmakers.Octo.Backend.PlatformServices.ContractTests;
 
 /// <summary>
-///     Snapshot-locks the JSON shape of <see cref="TenantConfigurationDto" /> against
-///     the legacy <c>ClientDto</c> served by <c>octo-frontend-admin-panel</c>.
-///     Phase 1 of the platform-services initiative is contract-preserving: any
-///     field rename, addition, or removal here forces every external consumer
-///     (Refinery Studio, Office Integration, PowerBI, Power Query) to redeploy
-///     in lockstep. If you intend such a break, bump to Phase 2 and update the
-///     consumers first, then update this baseline.
+///     Snapshot-locks the JSON shape of <see cref="TenantConfigurationDto" />.
 /// </summary>
+/// <remarks>
+///     <para>
+///         Phase 4 (admin-panel retirement) intentionally dropped the four OAuth client
+///         fields the legacy <c>ClientDto</c> carried — <c>clientId</c>, <c>redirectUri</c>,
+///         <c>postLogoutRedirectUri</c>, <c>scope</c>. They only ever described the retired
+///         admin-panel UI's own OIDC client; every live consumer (Refinery Studio, Office
+///         Integration, PowerBI, Power Query) brings its own client registration from its
+///         bundled <c>config.json</c> and reads only the issuer + service URLs from this
+///         payload. The remaining ten fields are the live contract.
+///     </para>
+///     <para>
+///         Any further field rename, addition, or removal here forces every external consumer
+///         to redeploy in lockstep — treat this baseline as the source of truth and update the
+///         consumers first if you intend such a break.
+///     </para>
+/// </remarks>
 public class TenantConfigurationDtoContractTests
 {
     /// <summary>
-    ///     Exact JSON property names returned by the legacy admin-panel
-    ///     <c>OidcConfigurationController</c>. Order independent.
+    ///     Exact JSON property names served by the <c>_configuration</c> endpoint after the
+    ///     Phase 4 OAuth-field removal. Order independent.
     /// </summary>
     private static readonly string[] ExpectedJsonProperties =
     [
@@ -29,10 +39,6 @@ public class TenantConfigurationDtoContractTests
         "communicationServices",
         "reportingServices",
         "issuer",
-        "clientId",
-        "redirectUri",
-        "postLogoutRedirectUri",
-        "scope",
         "systemTenantId",
         "crateDbAdminUrl",
         "grafanaUrl",
@@ -41,10 +47,10 @@ public class TenantConfigurationDtoContractTests
     ];
 
     [Fact]
-    public void Dto_serialises_exactly_the_legacy_fourteen_fields()
+    public void Dto_serialises_exactly_the_ten_live_fields()
     {
         var options = NewOptions();
-        var dto = new TenantConfigurationDto("test-client", options);
+        var dto = new TenantConfigurationDto(options);
 
         var json = JsonSerializer.Serialize(dto);
         using var doc = JsonDocument.Parse(json);
@@ -61,10 +67,6 @@ public class TenantConfigurationDtoContractTests
     [InlineData(nameof(TenantConfigurationDto.CommunicationServices), "communicationServices")]
     [InlineData(nameof(TenantConfigurationDto.ReportingServices), "reportingServices")]
     [InlineData(nameof(TenantConfigurationDto.Authority), "issuer")]
-    [InlineData(nameof(TenantConfigurationDto.ClientId), "clientId")]
-    [InlineData(nameof(TenantConfigurationDto.RedirectUri), "redirectUri")]
-    [InlineData(nameof(TenantConfigurationDto.PostLogoutRedirectUri), "postLogoutRedirectUri")]
-    [InlineData(nameof(TenantConfigurationDto.Scope), "scope")]
     [InlineData(nameof(TenantConfigurationDto.SystemTenantId), "systemTenantId")]
     [InlineData(nameof(TenantConfigurationDto.CrateDbAdminUrl), "crateDbAdminUrl")]
     [InlineData(nameof(TenantConfigurationDto.GrafanaUrl), "grafanaUrl")]
@@ -84,42 +86,17 @@ public class TenantConfigurationDtoContractTests
     public void Every_url_value_ends_with_slash()
     {
         var options = NewOptions(); // no trailing slashes on any input
-        var dto = new TenantConfigurationDto("test-client", options);
+        var dto = new TenantConfigurationDto(options);
 
         Assert.EndsWith("/", dto.AssetServices);
         Assert.EndsWith("/", dto.BotServices);
         Assert.EndsWith("/", dto.CommunicationServices);
         Assert.EndsWith("/", dto.ReportingServices);
         Assert.EndsWith("/", dto.Authority);
-        Assert.EndsWith("/", dto.RedirectUri);
-        Assert.EndsWith("/", dto.PostLogoutRedirectUri);
         Assert.EndsWith("/", dto.CrateDbAdminUrl);
         Assert.EndsWith("/", dto.GrafanaUrl);
         Assert.EndsWith("/", dto.MeshAdapterUrl);
         Assert.EndsWith("/", dto.AiServices);
-    }
-
-    [Fact]
-    public void Scope_matches_legacy_admin_panel_default()
-    {
-        var options = NewOptions();
-        var dto = new TenantConfigurationDto("test-client", options);
-
-        // The legacy ClientDto built scope from
-        //   ApiScopes.OctoApiFullAccess
-        //   DefaultScopes.UserDefault | DefaultScopes.OfflineAccess
-        // Locked against the admin-panel response observed during the
-        // platform-services extraction (2026-06-12).
-        Assert.Equal("openid profile email role offline_access octo_api", dto.Scope);
-    }
-
-    [Fact]
-    public void ClientId_is_propagated_verbatim()
-    {
-        var options = NewOptions();
-        var dto = new TenantConfigurationDto("some-client-id", options);
-
-        Assert.Equal("some-client-id", dto.ClientId);
     }
 
     private static PlatformServiceUrlsOptions NewOptions() => new()
@@ -129,7 +106,6 @@ public class TenantConfigurationDtoContractTests
         CommunicationServiceUrl = "https://comm.example.com",
         ReportingServiceUrl = "https://reporting.example.com",
         AuthorityUrl = "https://identity.example.com",
-        AdminPanelUrl = "https://adminpanel.example.com",
         SystemTenantId = "octosystem",
         GrafanaUrl = "https://grafana.example.com",
         MeshAdapterUrl = "https://adapter.example.com",

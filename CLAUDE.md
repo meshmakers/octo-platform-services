@@ -4,26 +4,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-**octo-platform-services** is a slim ASP.NET Core service that serves the public, tenant-scoped `_configuration` discovery endpoint for OctoMesh's external clients (Refinery Studio, Office Integration, PowerBI / Power Query). The endpoint was previously hosted by `octo-frontend-admin-panel`; this repo is Phase 1 of the `octo-platform-services` initiative, which extracted that single concern so the legacy Admin Panel can be retired.
+**octo-platform-services** is an ASP.NET Core service that (1) serves the public, tenant-scoped `_configuration` discovery endpoint for OctoMesh's external clients (Refinery Studio, Office Integration, PowerBI / Power Query), (2) exposes read-only tenant/blueprint/drift observability endpoints, and (3) — since Phase 4 — **owns the `System.UI` CK model and its service-managed blueprints** (the cockpit dashboards + the cross-cutting `System.TenantMode` seed), applying them on every tenant lifecycle event. All three concerns were previously hosted by `octo-frontend-admin-panel`; this repo is the consolidation point so the legacy Admin Panel can be retired.
 
-Later phases (not yet implemented):
-- **Phase 2**: consolidate CK model installation across services into a declarative registry
-- **Phase 3**: blueprint orchestration + initial-data seeding as a central service (today every service reinvents `DefaultConfigurationCreatorService`)
-- **Phase 4**: retire `octo-frontend-admin-panel`
+Phase history:
+- **Phase 1 (done)**: extracted the `_configuration` discovery endpoint.
+- **Phase 2 (done)**: tenant / blueprint / service-drift observability endpoints (`/system/v1/...`).
+- **Phase 3 (done elsewhere)**: identity-data seeding moved to the `System.Identity.Bootstrap` blueprint in `octo-identity-services`.
+- **Phase 4 (this repo, in progress — AB#4261)**: own the `System.UI` CK model + service-managed blueprints so `octo-frontend-admin-panel` can be retired. The strategic direction is to manage CK models more centrally through platform-services going forward.
 
-## Status: Phase 1 (Contract-Preserving Extraction)
+### What changed in Phase 4
 
-The `_configuration` endpoint must return a byte-identical response to the legacy `OidcConfigurationController` in `octo-frontend-admin-panel`. The contract is the 14-field `TenantConfigurationDto`:
+The Phase-1 "slim, single-endpoint" framing no longer holds. Owning the blueprints means platform-services now:
+- depends on the CK runtime + MongoDB (`AddRuntimeEngine().AddMongoDbRuntimeRepository().AddMongoBlueprintSupport()` — already present for the Phase-2 observability endpoints), and
+- runs the **distribution event hub** tenant-lifecycle host (`AddOctoServiceInfrastructure`) so it consumes `PosCreateTenant` / `PosUpdateTenant` events and seeds the blueprints on tenant create / attach / restore. This is the same runtime footprint the admin-panel backend had.
+
+It deliberately seeds **no identity data**: the `octo-admin-panel` OIDC client the admin-panel used to seed is dead (only the removed admin-panel UI authenticated with it), so `DefaultConfigurationCreatorService` is built on `DefaultConfigurationCreatorServiceBase` (no identity-data command client) rather than `…Standardized`. See `docs/concepts/phase-4-system-ui-ownership.md`.
+
+## The `_configuration` contract
+
+The endpoint returns the 10-field `TenantConfigurationDto`:
 
 ```
 assetServices, botServices, communicationServices, reportingServices,
-issuer, clientId, redirectUri, postLogoutRedirectUri, scope,
-systemTenantId, crateDbAdminUrl, grafanaUrl, meshAdapterUrl, aiServices
+issuer, systemTenantId, crateDbAdminUrl, grafanaUrl, meshAdapterUrl, aiServices
 ```
 
-All URLs are trailing-slashed via `EnsureEndsWith("/")`. `clientId` is `CommonConstants.OctoAdminPanelClientId` (or `…Debug` when a debugger is attached) — the new service reuses the legacy OAuth client identity so consumers do not need to be re-registered in Identity.
+All URLs are trailing-slashed via `EnsureEndsWith("/")`. Phase 4 dropped the four OAuth client fields the legacy admin-panel `ClientDto` carried (`clientId`, `redirectUri`, `postLogoutRedirectUri`, `scope`) — they only described the retired admin-panel UI's own OIDC client, which no live consumer reads (Refinery Studio, Office, PowerBI, Power Query each bring their own client registration from their bundled `config.json` and consume only the issuer + service URLs here).
 
-**No DTO change goes in Phase 1.** A field rename, new field, or different trailing-slash rule would force every consumer (Refinery Studio, Office, PowerBI, Power Query) to redeploy in lockstep.
+**Any DTO change forces every consumer to redeploy in lockstep.** The contract snapshot test (`tests/PlatformServices.ContractTests/`) fails CI loudly on field-set / property-name / trailing-slash drift — keep it as the source of truth and update consumers first if you intend a break.
 
 ## Build and Test Commands
 
@@ -47,13 +55,19 @@ After modifying shared DTOs in `octo-sdk`, run `invoke-buildall -branch main -co
 ```
 src/PlatformServices/
 ├── Controllers/TenantConfigurationController.cs   # GET {tenantId}/_configuration
-├── Dto/TenantConfigurationDto.cs                  # 14-field response
-├── Options/PlatformServiceUrlsOptions.cs          # bound from OCTO_PLATFORMSERVICES__*
-├── Program.cs                                     # Observability + CORS + Controllers
+├── Controllers/{Tenants,Blueprints,Services}Controller.cs  # /system/v1 observability (admin-only)
+├── Dto/TenantConfigurationDto.cs                  # 10-field response (OAuth client fields dropped in Phase 4)
+├── Options/PlatformServiceUrlsOptions.cs          # bound from OCTO_PLATFORMSERVICES__* (URLs + broker)
+├── Configuration/ConfigureDistributionEventHubOptions.cs  # broker wiring for the tenant-event host
+├── Services/DefaultConfigurationCreatorService.cs # blueprint-only tenant bootstrap (System.UI + TenantMode)
+├── Program.cs                                     # Observability + CORS + RuntimeEngine + ServiceInfrastructure + blueprints
 ├── Dockerfile                                     # mcr.microsoft.com/dotnet/aspnet:10.0-noble
 ├── appsettings.json
 ├── nlog.config
 └── Properties/launchSettings.json                 # 5024 http / 5025 https
+src/SystemUiCkModel/                               # System.UI CK model + 3 service-managed blueprints (moved from admin-panel)
+├── ConstructionKit/                               # System.UI-2.1.0 model YAML
+└── Blueprints/{System.UI.SystemCockpit,System.UI.TenantCockpit,System.TenantMode}/
 ```
 
 ### Local-dev ports
@@ -75,17 +89,19 @@ src/PlatformServices/
 ### Dependencies
 
 - `Meshmakers.Octo.Services.Observability` — `/healthz/live`, `/healthz/ready`, Prometheus scrape, OpenTelemetry. The 15-second startup grace before `/healthz/ready` flips to 200 is shared with every Octo service (`StartupBackgroundService`).
-- `Meshmakers.Octo.Communication.Contracts` — `CommonConstants.OctoAdminPanelClientId`, `CommonConstants.GetScopes`, `ApiScopes.OctoApiFullAccess`, `DefaultScopes`, and transitively `Meshmakers.Common.Shared` (for `EnsureEndsWith`).
+- `Meshmakers.Octo.Communication.Contracts` — `CommonConstants.OctoApiFullAccess` (admin policy), `CommonConstants.GetScopes`, and transitively `Meshmakers.Common.Shared` (for `EnsureEndsWith`).
+- `Meshmakers.Octo.Runtime.Engine.MongoDb` — CK runtime + Mongo blueprint support (`IBlueprintService`, `ISystemContext`, `ITenantBlueprintInstallations`) for both the observability endpoints and the System.UI blueprint apply.
+- `Meshmakers.Octo.Services.Infrastructure` — `AddOctoServiceInfrastructure` (distribution event hub tenant-event host + `IDefaultConfigurationCreatorService` lifecycle) and `InfrastructureCommon.ClaimScope`.
 
-Deliberately NOT depended on: `Meshmakers.Octo.Services.Infrastructure` (no RabbitMQ / event-hub), `Meshmakers.Octo.Runtime.Engine.MongoDb` (no CK runtime), `Meshmakers.Octo.Services.Swagger` (single endpoint, no docs).
+Phase-1 NOTE (now obsolete): the service used to avoid Infrastructure / the CK runtime to stay slim. Phase 4 owns the System.UI blueprints, which requires both. It still does **not** seed identity data — see §"What changed in Phase 4" and the config-creator's class doc.
 
 ### CORS
 
-Anonymous endpoint hit from browser SPAs and Excel-hosted add-ins. No credentials in flight, so the global default policy is `AllowAnyOrigin / AllowAnyHeader / AllowAnyMethod`. Do **not** pull in `Meshmakers.Octo.Services.Infrastructure` — its `CorsPolicyProvider` rebuilds policies per-tenant from `IdentityClient` origins and would break Office / PowerBI access ([[cors_policy_provider_overrides_named_policy]] in memory).
+Anonymous endpoint hit from browser SPAs and Excel-hosted add-ins. No credentials in flight, so the global default policy is `AllowAnyOrigin / AllowAnyHeader / AllowAnyMethod`. Even though the service now references `Meshmakers.Octo.Services.Infrastructure` (for the tenant-event host), it deliberately does **not** activate that package's per-tenant `CorsPolicyProvider` — it keeps its own `AddCors` default policy, because the provider rebuilds policies per-tenant from `IdentityClient` origins and would break Office / PowerBI access ([[cors_policy_provider_overrides_named_policy]] in memory).
 
 ### Helm Deployment
 
-Chart values block: `services.platformServices` in `octo-helm-core/src/octo-mesh/values.yaml`. Env-var section in `templates/_env.tpl` under `else if eq .name "platformServices"`. The service is plain — no broker, no MongoDB, no blueprints — so the deployment template's RollingUpdate default is fine; no `recreateStrategy` needed.
+Chart values block: `services.platformServices` in `octo-helm-core/src/octo-mesh/values.yaml`. Env-var section in `templates/_env.tpl` under `else if eq .name "platformServices"`. Since Phase 4 the service is **no longer plain** — it needs broker (RabbitMQ) + MongoDB connection config and applies service-managed blueprints on tenant events, the same footprint as `communication-controller`. The deployment env must now carry the `OCTO_PLATFORMSERVICES__BROKER*` + `OCTO_SYSTEM__DATABASE*` + `OCTO_BLUEPRINTS__*` settings (helm wiring is part of AB#4261); rolling-update concurrency of the blueprint apply should be reviewed against the other blueprint-owning services before the chart change ships.
 
 Public URI per environment:
 - test-2: `platform.test.octo-mesh.com`
@@ -94,7 +110,7 @@ Public URI per environment:
 
 ### Tests
 
-`tests/PlatformServices.ContractTests/` contains a single test class that snapshot-compares the rendered `TenantConfigurationDto` JSON against the legacy admin-panel `ClientDto` shape (field set + JSON property names + trailing slashes). Any DTO drift fails CI loudly — that is intentional, Phase 1 must not change the contract.
+`tests/PlatformServices.ContractTests/` snapshot-locks the rendered `TenantConfigurationDto` JSON (10-field set + JSON property names + trailing slashes) plus controller tests for the observability endpoints. Any DTO drift fails CI loudly — that is intentional. The baseline reflects the Phase 4 ten-field contract (the four OAuth client fields were removed).
 
 ## CI / CD
 

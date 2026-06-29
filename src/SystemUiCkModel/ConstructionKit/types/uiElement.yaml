@@ -1,0 +1,6 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+types:
+  - typeId: UIElement
+    derivedFromCkTypeId: ${System}/Entity
+    isFinal: false
+    isAbstract: true

@@ -1,0 +1,9 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+records:
+  - recordId: ThemeGradient
+    description: "Two-stop linear gradient definition. Rendered at 90deg (to-right) by ThemeService — no angle override persisted."
+    attributes:
+      - id: ${this}/ThemeGradient.StartColor
+        name: StartColor
+      - id: ${this}/ThemeGradient.EndColor
+        name: EndColor

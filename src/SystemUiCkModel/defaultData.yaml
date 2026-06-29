@@ -1,0 +1,39 @@
+$schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
+dependencies:
+  - System.UI
+entities:
+  - rtId: 66d57b8c1e174377820fa860
+    ckTypeId: Basic/StudioRoot
+    rtWellKnownName: Basic/Tree
+    attributes:
+      - id: System.UI/TargetCkTypeId
+        value: Basic/Tree
+      - id: System.UI/TargetRtId
+        value: 5fc8fc3d8b2fc75f925e21aa
+  - rtId: 66d57b8c1e174377820fa861
+    ckTypeId: Basic/StudioTreeItem
+    rtWellKnownName: Basic/TreeNode
+    attributes:
+      - id: System.UI/TargetCkTypeId
+        value: Basic/TreeNode
+      - id: System.UI/TargetRoleId
+        value: ${System}/ParentChild
+    associations:
+      - roleId: ${System}/ParentChild
+        targetRtId: 66d57b8c1e174377820fa860
+        targetCkTypeId: Basic/StudioRoot
+      - roleId: ${System}/ParentChild
+        targetRtId: 66d57b8c1e174377820fa861
+        targetCkTypeId: Basic/StudioTreeItem
+  - rtId: 66d57b8c1e174377820fa862
+    ckTypeId: Basic/StudioTreeItem
+    rtWellKnownName: Basic/Asset
+    attributes:
+      - id: System.UI/TargetCkTypeId
+        value: Basic/Asset
+      - id: System.UI/TargetRoleId
+        value: ${System}/ParentChild
+    associations:
+      - roleId: ${System}/ParentChild
+        targetRtId: 66d57b8c1e174377820fa861
+        targetCkTypeId: Basic/StudioTreeItem                 

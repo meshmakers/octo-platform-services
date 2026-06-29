@@ -1,0 +1,47 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+types:
+  - typeId: ProcessDiagram
+    derivedFromCkTypeId: ${this}/UIElement
+    isFinal: false
+    isAbstract: false
+    description: HMI-style process diagram with tanks, pipes, valves, pumps, and other industrial elements.
+    attributes:
+      - id: ${System}/Name
+        name: Name
+      - id: ${System}/Description
+        name: Description
+        isOptional: true
+      - id: ${this}/ProcessDiagram.Version
+        name: Version
+      - id: ${this}/ProcessDiagram.CanvasWidth
+        name: CanvasWidth
+      - id: ${this}/ProcessDiagram.CanvasHeight
+        name: CanvasHeight
+      - id: ${this}/ProcessDiagram.CanvasBackgroundColor
+        name: CanvasBackgroundColor
+        isOptional: true
+      - id: ${this}/ProcessDiagram.Elements
+        name: Elements
+      - id: ${this}/ProcessDiagram.Primitives
+        name: Primitives
+        isOptional: true
+      - id: ${this}/ProcessDiagram.Connections
+        name: Connections
+      - id: ${this}/ProcessDiagram.Variables
+        name: Variables
+        isOptional: true
+      - id: ${this}/ProcessDiagram.RefreshInterval
+        name: RefreshInterval
+        isOptional: true
+      - id: ${this}/ProcessDiagram.SymbolInstances
+        name: SymbolInstances
+        isOptional: true
+      - id: ${this}/ProcessDiagram.TransformProperties
+        name: TransformProperties
+        isOptional: true
+      - id: ${this}/ProcessDiagram.PropertyBindings
+        name: PropertyBindings
+        isOptional: true
+      - id: ${this}/ProcessDiagram.Animations
+        name: Animations
+        isOptional: true

@@ -1,24 +1,26 @@
 using System.Text.Json.Serialization;
 using Meshmakers.Common.Shared;
 using Meshmakers.Octo.Backend.PlatformServices.Options;
-using Meshmakers.Octo.Communication.Contracts;
 
 namespace Meshmakers.Octo.Backend.PlatformServices.Dto;
 
 /// <summary>
-///     Wire-compatible replacement for the legacy <c>ClientDto</c> served by
-///     <c>octo-frontend-admin-panel</c>. All field names and JSON property names
-///     match 1:1 so existing consumers (Refinery Studio, Office Integration,
-///     PowerBI, Power Query) can be cut over without code changes — only the
-///     <c>adminUri</c> in their <c>config.json</c> needs to point at the new
-///     service.
+///     Tenant-scoped environment discovery payload served at <c>_configuration</c>.
+///     Successor of the legacy <c>ClientDto</c> served by <c>octo-frontend-admin-panel</c>.
 /// </summary>
+/// <remarks>
+///     The OAuth client fields the legacy DTO carried (<c>clientId</c>, <c>redirectUri</c>,
+///     <c>postLogoutRedirectUri</c>, <c>scope</c>) were dropped in Phase 4: they only ever
+///     described the retired admin-panel UI's own OIDC client. Every live consumer (Refinery
+///     Studio, Office Integration, PowerBI / Power Query) brings its own client registration
+///     from its bundled <c>config.json</c> and reads only the issuer + service URLs from this
+///     payload, so the fields were vestigial.
+/// </remarks>
 public class TenantConfigurationDto
 {
-    /// <summary>Builds the DTO from the supplied OAuth client id and configured URLs.</summary>
-    public TenantConfigurationDto(string clientId, PlatformServiceUrlsOptions options)
+    /// <summary>Builds the DTO from the configured environment URLs.</summary>
+    public TenantConfigurationDto(PlatformServiceUrlsOptions options)
     {
-        ClientId = clientId;
         Authority = options.AuthorityUrl.EnsureEndsWith("/");
         AssetServices = options.AssetServiceUrl.EnsureEndsWith("/");
         CommunicationServices = options.CommunicationServiceUrl.EnsureEndsWith("/");
@@ -28,11 +30,6 @@ public class TenantConfigurationDto
         MeshAdapterUrl = options.MeshAdapterUrl.EnsureEndsWith("/");
         AiServices = options.AiServicesUrl.EnsureEndsWith("/");
         BotServices = options.BotServiceUrl.EnsureEndsWith("/");
-        RedirectUri = options.AdminPanelUrl.EnsureEndsWith("/");
-        PostLogoutRedirectUri = options.AdminPanelUrl.EnsureEndsWith("/");
-        Scope = CommonConstants.GetScopes(
-            ApiScopes.OctoApiFullAccess, null,
-            DefaultScopes.UserDefault | DefaultScopes.OfflineAccess);
         SystemTenantId = options.SystemTenantId;
     }
 
@@ -50,19 +47,6 @@ public class TenantConfigurationDto
 
     /// <summary>OIDC issuer (identity service public URL).</summary>
     [JsonPropertyName("issuer")] public string Authority { get; set; }
-
-    /// <summary>OAuth client id used by the consuming application.</summary>
-    [JsonPropertyName("clientId")] public string ClientId { get; set; }
-
-    /// <summary>OAuth redirect URI for the consuming application.</summary>
-    [JsonPropertyName("redirectUri")] public string RedirectUri { get; set; }
-
-    /// <summary>OAuth post-logout redirect URI for the consuming application.</summary>
-    [JsonPropertyName("postLogoutRedirectUri")]
-    public string PostLogoutRedirectUri { get; set; }
-
-    /// <summary>Space-separated OAuth scope string requested by the consuming application.</summary>
-    [JsonPropertyName("scope")] public string Scope { get; set; }
 
     /// <summary>System tenant identifier (default <c>octosystem</c>).</summary>
     [JsonPropertyName("systemTenantId")] public string SystemTenantId { get; set; }

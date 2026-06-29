@@ -1,7 +1,5 @@
-using System.Diagnostics;
 using Meshmakers.Octo.Backend.PlatformServices.Dto;
 using Meshmakers.Octo.Backend.PlatformServices.Options;
-using Meshmakers.Octo.Communication.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -28,11 +26,7 @@ public class TenantConfigurationController(IOptions<PlatformServiceUrlsOptions> 
     public IActionResult GetTenantConfiguration(string tenantId)
     {
         _ = tenantId;
-        var clientId = Debugger.IsAttached
-            ? CommonConstants.OctoAdminPanelClientIdDebug
-            : CommonConstants.OctoAdminPanelClientId;
-
-        var dto = new TenantConfigurationDto(clientId, _options);
+        var dto = new TenantConfigurationDto(_options);
         return Ok(dto);
     }
 }

@@ -1,0 +1,71 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+attributes:
+  # --- Branding: naming ---
+  - id: Branding.AppName
+    valueType: String
+    description: "Full display name of the application (e.g. 'Maco Application')."
+  - id: Branding.AppTitle
+    valueType: String
+    description: "Text rendered into the browser tab (document.title)."
+
+  # --- Branding: logos (binary assets) ---
+  # `Binary` = stored inline per OSS schema enum. Client sends byte[] in the
+  # mutation and the server returns bytes back (no separate upload round-trip
+  # needed like `BinaryLinked` would require). The closed-source
+  # System.Communication package uses `LargeBinary` (same concept, larger
+  # limit, returns downloadUri) which is not yet exposed in the public
+  # construction-kit element schema enum.
+  - id: Branding.HeaderLogo
+    valueType: Binary
+    description: "Logo displayed in the page header/topbar."
+  - id: Branding.FooterLogo
+    valueType: Binary
+    description: "Logo displayed in the page footer."
+  - id: Branding.Favicon
+    valueType: Binary
+    description: "Browser favicon."
+
+  # --- Branding: themes (records) ---
+  - id: Branding.LightTheme
+    valueType: Record
+    valueCkRecordId: ${this}/ThemePalette
+    description: "Color palette applied when the user/system selects the light theme."
+  - id: Branding.DarkTheme
+    valueType: Record
+    valueCkRecordId: ${this}/ThemePalette
+    description: "Color palette applied when the user/system selects the dark theme. Leave unset for single-theme apps."
+
+  # --- ThemePalette: base colors (hex strings like #RRGGBB) ---
+  - id: ThemePalette.PrimaryColor
+    valueType: String
+    description: "Base for the primary Kendo color family; full palette generated via HSL math."
+  - id: ThemePalette.SecondaryColor
+    valueType: String
+    description: "Base for the secondary Kendo color family."
+  - id: ThemePalette.TertiaryColor
+    valueType: String
+    description: "Base for the tertiary Kendo color family."
+  - id: ThemePalette.NeutralColor
+    valueType: String
+    description: "Base for the neutral family (base/border/subtle)."
+  - id: ThemePalette.BackgroundColor
+    valueType: String
+    description: "Page/surface background color (not derived from any palette base)."
+
+  # --- ThemePalette: gradients (records) ---
+  - id: ThemePalette.HeaderGradient
+    valueType: Record
+    valueCkRecordId: ${this}/ThemeGradient
+    description: "Gradient applied to the header/topbar. Rendered as linear-gradient(90deg, start, end)."
+  - id: ThemePalette.FooterGradient
+    valueType: Record
+    valueCkRecordId: ${this}/ThemeGradient
+    description: "Gradient applied to the footer. Rendered as linear-gradient(90deg, start, end)."
+
+  # --- ThemeGradient: endpoints ---
+  - id: ThemeGradient.StartColor
+    valueType: String
+    description: "Gradient start color (hex)."
+  - id: ThemeGradient.EndColor
+    valueType: String
+    description: "Gradient end color (hex)."

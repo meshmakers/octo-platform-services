@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OctoPublishCkModel>true</OctoPublishCkModel>
+        <Configurations>Debug;Release;DebugL</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <OctoPublishCkModel Condition="'$(TargetFramework)' == 'net10.0'">true</OctoPublishCkModel>
+        <OctoGenerateCkDocumentation Condition="'$(TargetFramework)' == 'net10.0'">true</OctoGenerateCkDocumentation>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Meshmakers.Octo.Runtime.Contracts" Version="$(OctoCoreLibVersion)"/>
+        <PackageReference Include="Meshmakers.Octo.ConstructionKit.SourceGeneration" OutputItemType="Analyzer" ReferenceOutputAssembly="false" Version="$(OctoCoreLibVersion)"/>
+        <PackageReference Include="Meshmakers.Octo.ConstructionKit.MsBuildTasks" Version="$(OctoCoreLibVersion)" PrivateAssets="all"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ConstructionKitFolder Visible="false" Include="$(MSBuildProjectDirectory)\ConstructionKit"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!--
+            Blueprints shipped with this CK-model package. The BlueprintEmbed MSBuild task picks
+            up every subdirectory and embeds the files as manifest resources; the
+            BlueprintSourceGenerator then emits IBlueprintEmbeddedSource +
+            AddBlueprint<Name>V<Major> extensions so consuming services only need to call the
+            generated DI extensions and the engine's EmbeddedResourceBlueprintCatalog handles
+            discovery.
+        -->
+        <BlueprintFolder Visible="false" Include="$(MSBuildProjectDirectory)\Blueprints"/>
+    </ItemGroup>
+
+</Project>

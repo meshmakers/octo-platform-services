@@ -1,0 +1,24 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+types:
+  - typeId: SymbolLibrary
+    derivedFromCkTypeId: ${this}/UIElement
+    isFinal: false
+    isAbstract: false
+    description: A library containing reusable symbol definitions composed of primitives for process diagrams.
+    attributes:
+      - id: ${System}/Name
+        name: Name
+      - id: ${System}/Description
+        name: Description
+        isOptional: true
+      - id: ${this}/SymbolLibrary.Version
+        name: Version
+      - id: ${this}/SymbolLibrary.Author
+        name: Author
+        isOptional: true
+      - id: ${this}/SymbolLibrary.IsBuiltIn
+        name: IsBuiltIn
+        isOptional: true
+      - id: ${this}/SymbolLibrary.IsReadOnly
+        name: IsReadOnly
+        isOptional: true

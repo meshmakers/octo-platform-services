@@ -1,0 +1,27 @@
+$schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
+dependencies:
+  - System-2.0.0
+entities:
+  # ---------------------------------------------------------------------------
+  # Tenant-mode configuration. rtWellKnownName "TenantMode" gives the runtime a
+  # stable handle for environment/maintenance checks across services.
+  #
+  # EnvironmentMode is filled from ${octo.environmentMode} — DefaultBlueprintVariableProvider
+  # maps the helm-injected octo.environment (dev/test/staging/production) to the
+  # matching System/EnvironmentModes enum-value name. ImportRtModelCommand's enum
+  # match is OrdinalIgnoreCase against the name, so the placeholder resolves to the
+  # correct numeric key without YAML-level branching.
+  #
+  # MaintenanceLevel defaults to "Off" (= operational). Flip to UserApps or
+  # FullSystem from Studio or the API when entering a maintenance window — the
+  # attribute is not stamped rtBlueprintLocked, so user edits survive blueprint
+  # re-apply at the same version.
+  # ---------------------------------------------------------------------------
+  - rtId: '670200000000000000000010'
+    ckTypeId: System/TenantModeConfiguration
+    rtWellKnownName: TenantMode
+    attributes:
+      - id: System/EnvironmentMode
+        value: "${octo.environmentMode}"
+      - id: System/MaintenanceLevel
+        value: Off

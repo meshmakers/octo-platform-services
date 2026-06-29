@@ -1,0 +1,26 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+records:
+  - recordId: ThemePalette
+    description: "Color palette consumed by ThemeService to generate the Kendo CSS variable set. All fields optional — consumers fall back to per-app defaults when absent."
+    attributes:
+      - id: ${this}/ThemePalette.PrimaryColor
+        name: PrimaryColor
+        isOptional: true
+      - id: ${this}/ThemePalette.SecondaryColor
+        name: SecondaryColor
+        isOptional: true
+      - id: ${this}/ThemePalette.TertiaryColor
+        name: TertiaryColor
+        isOptional: true
+      - id: ${this}/ThemePalette.NeutralColor
+        name: NeutralColor
+        isOptional: true
+      - id: ${this}/ThemePalette.BackgroundColor
+        name: BackgroundColor
+        isOptional: true
+      - id: ${this}/ThemePalette.HeaderGradient
+        name: HeaderGradient
+        isOptional: true
+      - id: ${this}/ThemePalette.FooterGradient
+        name: FooterGradient
+        isOptional: true

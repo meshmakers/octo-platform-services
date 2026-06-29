@@ -1,0 +1,346 @@
+$schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
+dependencies:
+  - System.UI-2.1.0
+entities:
+  # ---------------------------------------------------------------------------
+  # Dashboard — the System Cockpit. rtWellKnownName "cockpit" makes Refinery
+  # Studio resolve this entity as the start page after login.
+  # ---------------------------------------------------------------------------
+  - rtId: 69553a0d8b72e7555662012f
+    ckTypeId: System.UI/Dashboard-1
+    rtWellKnownName: cockpit
+    associations: []
+    attributes:
+      - id: System/Name-1
+        value: System Cockpit
+      - id: System/Description-1
+        value: The cockpit for overview of the OctoMesh Installation
+      - id: System.UI/Dashboard.Columns-1
+        value: 4
+      - id: System.UI/Dashboard.RowHeight-1
+        value: 200
+      - id: System.UI/Dashboard.Gap-1
+        value: 16
+
+  # ---------------------------------------------------------------------------
+  # Widgets — KPIs and service-health tiles attached to the cockpit dashboard
+  # via System/ParentChild associations.
+  # ---------------------------------------------------------------------------
+  - rtId: 69553a508b72e75556620130
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Tenant count
+      - id: System.UI/DashboardWidget.Type-1
+        value: kpi
+      - id: System.UI/DashboardWidget.Col-1
+        value: 1
+      - id: System.UI/DashboardWidget.Row-1
+        value: 1
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: runtimeEntity
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: System/Tenant
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"valueAttribute":"_count","icon":"chart"}'
+
+  - rtId: 69553a508b72e75556620131
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Health Identity Services
+      - id: System.UI/DashboardWidget.Type-1
+        value: serviceHealth
+      - id: System.UI/DashboardWidget.Col-1
+        value: 2
+      - id: System.UI/DashboardWidget.Row-1
+        value: 1
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: serviceCall
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"callType":"healthCheck","serviceType":"identity","navigateOnClick":false,"showPulse":true}'
+
+  - rtId: 69553a6a8b72e75556620134
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Health Asset Repository Services
+      - id: System.UI/DashboardWidget.Type-1
+        value: serviceHealth
+      - id: System.UI/DashboardWidget.Col-1
+        value: 3
+      - id: System.UI/DashboardWidget.Row-1
+        value: 1
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: serviceCall
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"callType":"healthCheck","serviceType":"asset-repository","navigateOnClick":false,"showPulse":true}'
+
+  - rtId: 69553acb8b72e75556620136
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Construction Kit Model Status
+      - id: System.UI/DashboardWidget.Type-1
+        value: pieChart
+      - id: System.UI/DashboardWidget.Col-1
+        value: 1
+      - id: System.UI/DashboardWidget.Row-1
+        value: 4
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 2
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 2
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: constructionKitQuery
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"chartType":"donut","categoryField":"","valueField":"","showLabels":true,"showLegend":true,"legendPosition":"right","ckQueryTarget":"models","ckGroupBy":"modelState"}'
+
+  - rtId: 69553aef8b72e75556620138
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Health Bot Services
+      - id: System.UI/DashboardWidget.Type-1
+        value: serviceHealth
+      - id: System.UI/DashboardWidget.Col-1
+        value: 4
+      - id: System.UI/DashboardWidget.Row-1
+        value: 1
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: serviceCall
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"callType":"healthCheck","serviceType":"bot","navigateOnClick":false,"showPulse":true}'
+
+  - rtId: 69553b0b8b72e7555662013a
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Health Communication Controller Services
+      - id: System.UI/DashboardWidget.Type-1
+        value: serviceHealth
+      - id: System.UI/DashboardWidget.Col-1
+        value: 5
+      - id: System.UI/DashboardWidget.Row-1
+        value: 1
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: serviceCall
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"callType":"healthCheck","serviceType":"communication-controller","navigateOnClick":false,"showPulse":true}'
+
+  - rtId: 69553b8e8b72e7555662013c
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Migration Status
+      - id: System.UI/DashboardWidget.Type-1
+        value: table
+      - id: System.UI/DashboardWidget.Col-1
+        value: 3
+      - id: System.UI/DashboardWidget.Row-1
+        value: 4
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 2
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 2
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: runtimeEntity
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: System/TenantConfiguration
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"columns":[{"field":"rtWellKnownName","title":"Rt Well Known Name"},{"field":"configurationValue","title":"Configuration Value"}],"sorting":[],"filters":[{"attributePath":"rtWellKnownName","operator":"LIKE","comparisonValue":"Migration"}],"pageSize":10,"sortable":true}'
+
+  - rtId: 69553bc38b72e7555662013e
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Communication
+      - id: System.UI/DashboardWidget.Type-1
+        value: statusIndicator
+      - id: System.UI/DashboardWidget.Col-1
+        value: 4
+      - id: System.UI/DashboardWidget.Row-1
+        value: 2
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: serviceCall
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"callType":"modelAvailable","modelName":"System.Communication","trueLabel":"ENABLED","falseLabel":"DISABLED","trueColor":"#10b981","falseColor":"#ef4444"}'
+
+  - rtId: 69553ceb8b72e75556620140
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Error events
+      - id: System.UI/DashboardWidget.Type-1
+        value: kpi
+      - id: System.UI/DashboardWidget.Col-1
+        value: 2
+      - id: System.UI/DashboardWidget.Row-1
+        value: 2
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: runtimeEntity
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: System.Notification/Event
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"valueAttribute":"_count","icon":"chart","filters":[{"attributePath":"level","operator":"EQUALS","comparisonValue":"Error"}]}'
+
+  - rtId: 69553ceb8b72e75556620141
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Fatal events
+      - id: System.UI/DashboardWidget.Type-1
+        value: kpi
+      - id: System.UI/DashboardWidget.Col-1
+        value: 3
+      - id: System.UI/DashboardWidget.Row-1
+        value: 2
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: runtimeEntity
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: System.Notification/Event
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"valueAttribute":"_count","icon":"chart","filters":[{"attributePath":"level","operator":"EQUALS","comparisonValue":"Critical"}]}'
+
+  - rtId: 69553ceb8b72e75556620142
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Reporting
+      - id: System.UI/DashboardWidget.Type-1
+        value: statusIndicator
+      - id: System.UI/DashboardWidget.Col-1
+        value: 1
+      - id: System.UI/DashboardWidget.Row-1
+        value: 2
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: serviceCall
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"callType":"modelAvailable","modelName":"System.Reporting","trueLabel":"ENABLED","falseLabel":"DISABLED","trueColor":"#10b981","falseColor":"#ef4444"}'

@@ -1,0 +1,54 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+attributes:
+  # ProcessDiagram attributes
+  - id: ProcessDiagram.Version
+    valueType: String
+    description: Schema version for migrations (e.g., "1.0.0").
+
+  - id: ProcessDiagram.CanvasWidth
+    valueType: Int
+    description: Canvas width in pixels.
+
+  - id: ProcessDiagram.CanvasHeight
+    valueType: Int
+    description: Canvas height in pixels.
+
+  - id: ProcessDiagram.CanvasBackgroundColor
+    valueType: String
+    description: Background color (CSS color or 'transparent').
+
+  - id: ProcessDiagram.Elements
+    valueType: String
+    description: JSON array of process element configurations (tanks, valves, pumps, etc.).
+
+  - id: ProcessDiagram.Primitives
+    valueType: String
+    description: JSON array of primitive shape configurations (rectangles, ellipses, lines, polygons, paths, text, images).
+
+  - id: ProcessDiagram.Connections
+    valueType: String
+    description: JSON array of connection configurations between elements.
+
+  - id: ProcessDiagram.Variables
+    valueType: String
+    description: JSON array of variable definitions for parameterization.
+
+  - id: ProcessDiagram.RefreshInterval
+    valueType: Int
+    description: Global refresh interval in milliseconds (0 = no auto-refresh).
+
+  - id: ProcessDiagram.SymbolInstances
+    valueType: String
+    description: JSON array of symbol instance configurations (references to symbols from libraries with position, scale, rotation).
+
+  - id: ProcessDiagram.TransformProperties
+    valueType: String
+    description: JSON array of exposed transform properties (id, name, type, defaultValue, min, max) that can be bound to runtime data.
+
+  - id: ProcessDiagram.PropertyBindings
+    valueType: String
+    description: JSON array of property bindings connecting transform properties to element/primitive attributes with expressions.
+
+  - id: ProcessDiagram.Animations
+    valueType: String
+    description: JSON array of animation definitions (rotation, blink, pulse, motion path) for diagram elements.

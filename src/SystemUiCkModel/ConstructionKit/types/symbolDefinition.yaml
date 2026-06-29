@@ -1,0 +1,51 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+types:
+  - typeId: SymbolDefinition
+    derivedFromCkTypeId: ${this}/UIElement
+    isFinal: false
+    isAbstract: false
+    description: A reusable symbol definition composed of primitives, belonging to a symbol library.
+    attributes:
+      - id: ${System}/Name
+        name: Name
+      - id: ${System}/Description
+        name: Description
+        isOptional: true
+      - id: ${this}/SymbolDefinition.Version
+        name: Version
+      - id: ${this}/SymbolDefinition.Primitives
+        name: Primitives
+      - id: ${this}/SymbolDefinition.BoundsWidth
+        name: BoundsWidth
+      - id: ${this}/SymbolDefinition.BoundsHeight
+        name: BoundsHeight
+      - id: ${this}/SymbolDefinition.ConnectionPoints
+        name: ConnectionPoints
+        isOptional: true
+      - id: ${this}/SymbolDefinition.Parameters
+        name: Parameters
+        isOptional: true
+      - id: ${this}/SymbolDefinition.Tags
+        name: Tags
+        isOptional: true
+      - id: ${this}/SymbolDefinition.Category
+        name: Category
+        isOptional: true
+      - id: ${this}/SymbolDefinition.PreviewImage
+        name: PreviewImage
+        isOptional: true
+      - id: ${this}/SymbolDefinition.SymbolInstances
+        name: SymbolInstances
+        isOptional: true
+      - id: ${this}/SymbolDefinition.GridSize
+        name: GridSize
+        isOptional: true
+      - id: ${this}/SymbolDefinition.CanvasSizeWidth
+        name: CanvasSizeWidth
+        isOptional: true
+      - id: ${this}/SymbolDefinition.CanvasSizeHeight
+        name: CanvasSizeHeight
+        isOptional: true
+    associations:
+      - id: ${System}/ParentChild
+        targetCkTypeId: ${this}/SymbolLibrary

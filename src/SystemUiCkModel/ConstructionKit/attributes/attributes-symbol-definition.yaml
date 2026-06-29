@@ -1,0 +1,54 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+attributes:
+  # SymbolDefinition attributes
+  - id: SymbolDefinition.Version
+    valueType: String
+    description: Symbol version for tracking changes (e.g., "1.0.0").
+
+  - id: SymbolDefinition.Primitives
+    valueType: String
+    description: JSON array of primitive configurations that make up this symbol (positions relative to 0,0).
+
+  - id: SymbolDefinition.BoundsWidth
+    valueType: Int
+    description: Default width of the symbol in pixels.
+
+  - id: SymbolDefinition.BoundsHeight
+    valueType: Int
+    description: Default height of the symbol in pixels.
+
+  - id: SymbolDefinition.ConnectionPoints
+    valueType: String
+    description: JSON array of connection point definitions for wiring symbols together.
+
+  - id: SymbolDefinition.Parameters
+    valueType: String
+    description: JSON array of customizable parameter definitions.
+
+  - id: SymbolDefinition.Tags
+    valueType: String
+    description: Comma-separated tags for filtering and searching.
+
+  - id: SymbolDefinition.Category
+    valueType: String
+    description: Category for grouping symbols (e.g., "Tanks", "Valves", "Sensors").
+
+  - id: SymbolDefinition.PreviewImage
+    valueType: String
+    description: Preview image as data URL or external URL.
+
+  - id: SymbolDefinition.SymbolInstances
+    valueType: String
+    description: JSON array of nested symbol instances within this symbol.
+
+  - id: SymbolDefinition.GridSize
+    valueType: Int
+    description: Grid size for the symbol editor (default 10).
+
+  - id: SymbolDefinition.CanvasSizeWidth
+    valueType: Int
+    description: Preferred canvas width for the symbol editor.
+
+  - id: SymbolDefinition.CanvasSizeHeight
+    valueType: Int
+    description: Preferred canvas height for the symbol editor.

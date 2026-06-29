@@ -1,0 +1,26 @@
+$schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
+blueprintId: System.UI.SystemCockpit-1.0.0
+description: |
+  Service-managed blueprint seeding the System Cockpit dashboard for the OctoSystem
+  tenant. Provides a fixed Refinery Studio start page (rtWellKnownName "cockpit") with
+  KPI tiles for tenant count, service health checks, CK model status and event counters.
+  Auto-applied by the Admin Panel service on tenant Enable / startup; only the system
+  tenant receives this blueprint — non-system tenants get System.UI.TenantCockpit instead.
+  Following the OctoMesh "System.* = service-managed" convention, Studio hides Install /
+  Re-apply controls for this blueprint.
+
+ckModelDependencies:
+  # Range floor must match the System.UI CK model version this blueprint ships with —
+  # the engine's CkModelUpgradeService picks MinVersion as the install target. We embed
+  # the blueprint in the same NuGet as System.UI-2.1.0, so the floor and the on-disk CK
+  # model are always in lockstep. Bump both together when the CK model version moves
+  # forward.
+  - System.UI-[2.1.0,3.0)
+
+seedDataPath: seed-data/entities.yaml
+
+# Apply only to the OctoSystem tenant. The companion blueprint
+# System.UI.TenantCockpit gates on the opposite value so the AdminPanel service can
+# apply both blueprints unconditionally and the runtime picks the right one per tenant.
+requires:
+  octo.isSystemTenant: "true"

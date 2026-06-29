@@ -24,15 +24,6 @@ public class PlatformServiceUrlsOptions
     /// <summary>Public URL of the identity service (OIDC issuer).</summary>
     public string AuthorityUrl { get; set; } = "https://localhost:5003";
 
-    /// <summary>
-    ///     URL of the legacy Admin Panel host. Surfaced as <c>redirectUri</c> /
-    ///     <c>postLogoutRedirectUri</c> of the configuration DTO so the existing
-    ///     OAuth client (<c>OctoAdminPanelClient</c>) remains usable for clients
-    ///     that still authenticate against it. Will be retired together with the
-    ///     Admin Panel itself (Phase 4 of the platform-services initiative).
-    /// </summary>
-    public string AdminPanelUrl { get; set; } = "https://localhost:5005";
-
     /// <summary>System tenant identifier (default <c>octosystem</c>).</summary>
     public string SystemTenantId { get; set; } = "octosystem";
 
@@ -47,4 +38,22 @@ public class PlatformServiceUrlsOptions
 
     /// <summary>Public URL of the CrateDB admin console.</summary>
     public string CrateDbAdminUrl { get; set; } = "http://localhost:4201";
+
+    /// <summary>
+    ///     Prefix for the OctoMesh installation instance — forwarded to the distribution
+    ///     event hub so platform-services' tenant-event consumer subscribes to the same
+    ///     instance-scoped queues as the rest of the services.
+    /// </summary>
+    public string? InstancePrefix { get; set; }
+
+    /// <summary>RabbitMQ broker host name. Required since platform-services owns the
+    ///     System.UI service-managed blueprints and must consume tenant lifecycle events
+    ///     (<c>PosCreateTenant</c> / <c>PosUpdateTenant</c>) to seed them.</summary>
+    public string BrokerHost { get; set; } = "localhost";
+
+    /// <summary>RabbitMQ broker username.</summary>
+    public string? BrokerUser { get; set; } = "guest";
+
+    /// <summary>RabbitMQ broker password.</summary>
+    public string? BrokerPassword { get; set; } = "guest";
 }

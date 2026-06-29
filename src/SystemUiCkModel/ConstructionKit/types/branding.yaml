@@ -1,0 +1,35 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+types:
+  - typeId: Branding
+    derivedFromCkTypeId: ${this}/UIElement
+    isFinal: false
+    isAbstract: false
+    description: "Per-tenant UI branding and theming for a frontend app (app names, logos, favicon, light/dark palettes, gradients). Singleton per tenant via rtWellKnownName = 'Branding'. Derives from UIElement (same as Dashboard, ProcessDiagram, SymbolDefinition, SymbolLibrary) — consistent with SystemUiCkModel convention."
+    attributes:
+      - id: ${System}/Name
+        name: Name
+        isOptional: true
+      - id: ${System}/Description
+        name: Description
+        isOptional: true
+      - id: ${this}/Branding.AppName
+        name: AppName
+        isOptional: true
+      - id: ${this}/Branding.AppTitle
+        name: AppTitle
+        isOptional: true
+      - id: ${this}/Branding.HeaderLogo
+        name: HeaderLogo
+        isOptional: true
+      - id: ${this}/Branding.FooterLogo
+        name: FooterLogo
+        isOptional: true
+      - id: ${this}/Branding.Favicon
+        name: Favicon
+        isOptional: true
+      - id: ${this}/Branding.LightTheme
+        name: LightTheme
+        isOptional: true
+      - id: ${this}/Branding.DarkTheme
+        name: DarkTheme
+        isOptional: true

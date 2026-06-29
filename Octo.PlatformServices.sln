@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformServices", "src\PlatformServices\PlatformServices.csproj", "{A9B1D4E2-6F37-4E2D-9D2A-1D7C5B5A4F01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemUiCkModel", "src\SystemUiCkModel\SystemUiCkModel.csproj", "{9B46581A-8B19-4B20-904B-E84E4ACE5D4A}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B7C4D8E5-3A21-4F1C-8E2D-5C9B7A8F4E12}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformServices.ContractTests", "tests\PlatformServices.ContractTests\PlatformServices.ContractTests.csproj", "{D2E5A1F7-4B89-4C3E-9A6F-7E1D8C5B3A24}"
@@ -19,6 +21,12 @@ Global
 		{A9B1D4E2-6F37-4E2D-9D2A-1D7C5B5A4F01}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A9B1D4E2-6F37-4E2D-9D2A-1D7C5B5A4F01}.DebugL|Any CPU.ActiveCfg = DebugL|Any CPU
 		{A9B1D4E2-6F37-4E2D-9D2A-1D7C5B5A4F01}.DebugL|Any CPU.Build.0 = DebugL|Any CPU
+		{9B46581A-8B19-4B20-904B-E84E4ACE5D4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B46581A-8B19-4B20-904B-E84E4ACE5D4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B46581A-8B19-4B20-904B-E84E4ACE5D4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B46581A-8B19-4B20-904B-E84E4ACE5D4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B46581A-8B19-4B20-904B-E84E4ACE5D4A}.DebugL|Any CPU.ActiveCfg = DebugL|Any CPU
+		{9B46581A-8B19-4B20-904B-E84E4ACE5D4A}.DebugL|Any CPU.Build.0 = DebugL|Any CPU
 		{D2E5A1F7-4B89-4C3E-9A6F-7E1D8C5B3A24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D2E5A1F7-4B89-4C3E-9A6F-7E1D8C5B3A24}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2E5A1F7-4B89-4C3E-9A6F-7E1D8C5B3A24}.Release|Any CPU.ActiveCfg = Release|Any CPU

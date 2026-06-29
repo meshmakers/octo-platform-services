@@ -1,0 +1,50 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+types:
+  - typeId: Dashboard
+    derivedFromCkTypeId: ${this}/UIElement
+    isFinal: false
+    isAbstract: false
+    description: A configurable dashboard containing multiple widgets arranged in a grid layout.
+    attributes:
+      - id: ${System}/Name
+        name: Name
+      - id: ${System}/Description
+        name: Description
+      - id: ${this}/Dashboard.Columns
+        name: Columns
+      - id: ${this}/Dashboard.RowHeight
+        name: RowHeight
+      - id: ${this}/Dashboard.Gap
+        name: Gap
+
+  - typeId: DashboardWidget
+    derivedFromCkTypeId: ${this}/UIElement
+    isFinal: false
+    isAbstract: false
+    description: A widget within a dashboard that displays data in a specific visualization format.
+    attributes:
+      - id: ${System}/Name
+        name: Name
+      - id: ${this}/DashboardWidget.Type
+        name: Type
+      - id: ${this}/DashboardWidget.Col
+        name: Col
+      - id: ${this}/DashboardWidget.Row
+        name: Row
+      - id: ${this}/DashboardWidget.ColSpan
+        name: ColSpan
+      - id: ${this}/DashboardWidget.RowSpan
+        name: RowSpan
+      - id: ${this}/DashboardWidget.DataSourceType
+        name: DataSourceType
+      - id: ${this}/DashboardWidget.DataSourceCkTypeId
+        name: DataSourceCkTypeId
+        isOptional: true
+      - id: ${this}/DashboardWidget.DataSourceRtId
+        name: DataSourceRtId
+        isOptional: true
+      - id: ${this}/DashboardWidget.Config
+        name: Config
+    associations:
+      - id: ${System}/ParentChild
+        targetCkTypeId: ${this}/Dashboard

@@ -1,0 +1,18 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+attributes:
+  # SymbolLibrary attributes
+  - id: SymbolLibrary.Version
+    valueType: String
+    description: Library version for tracking changes (e.g., "1.0.0").
+
+  - id: SymbolLibrary.Author
+    valueType: String
+    description: Author name or identifier.
+
+  - id: SymbolLibrary.IsBuiltIn
+    valueType: Boolean
+    description: Whether this is a system-provided built-in library.
+
+  - id: SymbolLibrary.IsReadOnly
+    valueType: Boolean
+    description: Whether this library is read-only (cannot be modified by users).

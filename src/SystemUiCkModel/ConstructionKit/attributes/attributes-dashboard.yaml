@@ -1,0 +1,41 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+attributes:
+  # Dashboard attributes (Name, Description from System)
+  - id: Dashboard.Columns
+    valueType: Int
+    description: Number of columns in the dashboard grid layout.
+  - id: Dashboard.RowHeight
+    valueType: Int
+    description: Height of each row in pixels.
+  - id: Dashboard.Gap
+    valueType: Int
+    description: Gap between widgets in pixels.
+
+  # DashboardWidget attributes (Name from System used as Title)
+  - id: DashboardWidget.Type
+    valueType: String
+    description: Widget type identifier (entityCard, kpi, entityWithAssociations, table).
+  - id: DashboardWidget.Col
+    valueType: Int
+    description: Column position in the grid (1-based).
+  - id: DashboardWidget.Row
+    valueType: Int
+    description: Row position in the grid (1-based).
+  - id: DashboardWidget.ColSpan
+    valueType: Int
+    description: Number of columns the widget spans.
+  - id: DashboardWidget.RowSpan
+    valueType: Int
+    description: Number of rows the widget spans.
+  - id: DashboardWidget.DataSourceType
+    valueType: String
+    description: Type of data source (runtimeEntity, systemQuery, static).
+  - id: DashboardWidget.DataSourceCkTypeId
+    valueType: String
+    description: Construction kit type ID for the data source.
+  - id: DashboardWidget.DataSourceRtId
+    valueType: String
+    description: Runtime entity ID for the data source (optional).
+  - id: DashboardWidget.Config
+    valueType: String
+    description: JSON configuration for widget-specific settings.

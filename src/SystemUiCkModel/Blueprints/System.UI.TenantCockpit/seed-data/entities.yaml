@@ -1,0 +1,58 @@
+$schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
+dependencies:
+  - System.UI-2.1.0
+entities:
+  # ---------------------------------------------------------------------------
+  # Dashboard — the Tenant Cockpit. rtWellKnownName "cockpit" makes Refinery
+  # Studio resolve this entity as the start page after login. Tenants may add
+  # additional widgets; the blueprint owns the dashboard itself plus the seed
+  # widget below.
+  # ---------------------------------------------------------------------------
+  - rtId: 6a16c4b5d146049b10b3735a
+    ckTypeId: System.UI/Dashboard-1
+    rtWellKnownName: cockpit
+    associations: []
+    attributes:
+      - id: System/Name-1
+        value: Tenant Cockpit
+      - id: System/Description-1
+        value: Tenant-scoped cockpit dashboard, used as Studio start page.
+      - id: System.UI/Dashboard.Columns-1
+        value: 6
+      - id: System.UI/Dashboard.RowHeight-1
+        value: 200
+      - id: System.UI/Dashboard.Gap-1
+        value: 16
+
+  # ---------------------------------------------------------------------------
+  # Default widget — CK-model overview pie chart, kept minimal so each tenant
+  # has a non-empty starting cockpit without prescribing layout.
+  # ---------------------------------------------------------------------------
+  - rtId: 6a16c515d146049b10b3735b
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 6a16c4b5d146049b10b3735a
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Construction Kit Models
+      - id: System.UI/DashboardWidget.Type-1
+        value: pieChart
+      - id: System.UI/DashboardWidget.Col-1
+        value: 1
+      - id: System.UI/DashboardWidget.Row-1
+        value: 1
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 2
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: constructionKitQuery
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"chartType":"pie","categoryField":"","valueField":"","showLabels":false,"showLegend":true,"legendPosition":"right","ckQueryTarget":"models","ckGroupBy":"modelState"}'

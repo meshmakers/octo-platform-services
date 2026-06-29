@@ -37,6 +37,14 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- System.UI CK model + the System.UI.* / System.TenantMode service-managed
+             blueprints. Owned by platform-services since the admin-panel retirement
+             (Phase 4); the BlueprintSourceGenerator emits the AddCkModelSystemUIV2 +
+             AddBlueprintSystem...V1 DI extensions consumed in Program.cs. -->
+        <ProjectReference Include="..\SystemUiCkModel\SystemUiCkModel.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
         <None Include="nlog.config">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
