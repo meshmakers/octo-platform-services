@@ -89,7 +89,7 @@ stages:
             inputs:
               command: 'build'
               projects: $(solutionFile)
-              arguments: '--no-restore --configuration $(buildConfiguration) /p:OctoNugetPrivateServer=$(nugetPrivateServer) /p:OctoPrivateGitHubApiKey=$(GitHubPAT) /p:OctoPublicGitHubApiKey=$(GitHubPAT)'
+              arguments: '--no-restore --configuration $(buildConfiguration) /p:OctoNugetPrivateServer=$(nugetPrivateServer) /p:OctoPublishCatalog="$(effectivePublishCatalog)" /p:OctoPrivateGitHubApiKey=$(GitHubPAT) /p:OctoPublicGitHubApiKey=$(GitHubPAT)'
               publishWebProjects: false
               zipAfterPublish: false
               modifyOutputPath: false
@@ -110,3 +110,10 @@ stages:
               dockerfile: src/PlatformServices/Dockerfile
               enableMainLatestTag: true
           - template: templates/steps/handle-artifacts.yml@pipelineTemplates
+            parameters:
+              # System.UI CK library (moved from the retired octo-frontend-admin-panel
+              # in Phase 4 / AB#4261). Publishing it here lets the octo-documentation
+              # collect-docs harvester pick up the SystemUiCkModel catalog docs that
+              # admin-panel-CI used to produce.
+              constructionKitLibraryPaths:
+                - 'src/SystemUiCkModel/bin/$(buildConfiguration)/$(artifactsFrameworkVersion)/octo-ck-libraries/SystemUiCkModel'
