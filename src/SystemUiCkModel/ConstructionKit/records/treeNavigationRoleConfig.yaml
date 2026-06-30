@@ -1,0 +1,24 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+records:
+  - recordId: TreeNavigationRoleConfig
+    description: "A single override rule for one association role of one source CK type (or all types via '*'). Matched by (SourceCkTypeId, RoleId); the most specific match wins (exact type over '*'). All presentational fields are optional and fall back to auto-discovery defaults."
+    attributes:
+      - id: ${this}/TreeNavigationRoleConfig.SourceCkTypeId
+        name: SourceCkTypeId
+      - id: ${this}/TreeNavigationRoleConfig.RoleId
+        name: RoleId
+      - id: ${this}/TreeNavigationRoleConfig.Visible
+        name: Visible
+        isOptional: true
+      - id: ${this}/TreeNavigationRoleConfig.DisplayName
+        name: DisplayName
+        isOptional: true
+      - id: ${this}/TreeNavigationRoleConfig.SortIndex
+        name: SortIndex
+        isOptional: true
+      - id: ${this}/TreeNavigationRoleConfig.Grouped
+        name: Grouped
+        isOptional: true
+      - id: ${this}/TreeNavigationRoleConfig.Icon
+        name: Icon
+        isOptional: true

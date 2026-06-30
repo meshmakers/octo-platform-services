@@ -12,10 +12,10 @@ description: |
 ckModelDependencies:
   # Range floor must match the System.UI CK model version this blueprint ships with —
   # the engine's CkModelUpgradeService picks MinVersion as the install target. We embed
-  # the blueprint in the same NuGet as System.UI-2.1.0, so the floor and the on-disk CK
+  # the blueprint in the same NuGet as System.UI-2.2.0, so the floor and the on-disk CK
   # model are always in lockstep. Bump both together when the CK model version moves
   # forward.
-  - System.UI-[2.1.0,3.0)
+  - System.UI-[2.2.0,3.0)
 
 seedDataPath: seed-data/entities.yaml
 
