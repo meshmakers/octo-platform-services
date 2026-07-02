@@ -6,6 +6,41 @@ attributes:
     valueCkRecordId: ${this}/TreeNavigationRoleConfig
     description: "Per-association overrides applied on top of the auto-discovered association roles in the entity trees (repository browser + data-mappings). Absent / empty = pure auto-discovery."
 
+  # --- TreeNavigationConfiguration: the per-tenant list of switchable tree perspectives ---
+  - id: TreeNavigationConfiguration.Perspectives
+    valueType: RecordArray
+    valueCkRecordId: ${this}/TreePerspectiveConfig
+    description: "Additional switchable tree perspectives (each with its own root + navigation whitelist) offered next to the built-in spatial perspective. Absent / empty = only the spatial perspective (today's behaviour); the perspective switcher is hidden."
+
+  # --- TreePerspectiveConfig: one switchable perspective ---
+  - id: TreePerspectiveConfig.Key
+    valueType: String
+    description: "Stable identifier of the perspective, unique within the tenant (e.g. 'Spatial', 'Systems'). Used to persist the user's active-perspective choice."
+  - id: TreePerspectiveConfig.DisplayName
+    valueType: String
+    description: "Label shown for this perspective in the tree toolbar switcher."
+  - id: TreePerspectiveConfig.SortIndex
+    valueType: Int
+    description: "Ordering hint among perspectives in the switcher (ascending). Absent = definition order."
+  - id: TreePerspectiveConfig.Icon
+    valueType: String
+    description: "Optional icon name for the switcher entry, resolved by the frontend against its known icon set. Absent = default perspective icon."
+  - id: TreePerspectiveConfig.RootMode
+    valueType: String
+    description: "How the perspective determines its root nodes: 'Spatial' = all Basic/Tree entities (the built-in ParentChild default), 'Type' = all runtime instances of RootCkTypeId."
+  - id: TreePerspectiveConfig.RootCkTypeId
+    valueType: String
+    description: "Runtime CK type id whose instances form the root nodes when RootMode = 'Type' (e.g. 'EnergyIQ/DistributionSystem'). Ignored for RootMode = 'Spatial'."
+  - id: TreePerspectiveConfig.PrimaryRoleId
+    valueType: String
+    description: "Association role navigated as the primary axis directly under each root node; its targets are flattened at the top (like System/ParentChild in the spatial view). E.g. 'EnergyIQ/SystemMembers'. Absent = no primary flattening."
+  - id: TreePerspectiveConfig.PrimaryDirection
+    valueType: String
+    description: "Direction the primary role is navigated from the root node: 'Inbound' or 'Outbound'. Absent = the containment ('N') side, matching auto-discovery."
+  - id: TreePerspectiveConfig.SecondaryRoleIds
+    valueType: StringArray
+    description: "Additional association roles shown as group nodes directly under each root node. Together with PrimaryRoleId these form the root-level whitelist; deeper nodes fall back to full auto-discovery. Absent / empty = only the primary role at the root."
+
   # --- TreeNavigationRoleConfig: one override rule ---
   - id: TreeNavigationRoleConfig.SourceCkTypeId
     valueType: String

@@ -1,0 +1,29 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+records:
+  - recordId: TreePerspectiveConfig
+    description: "A single switchable tree perspective for the entity trees (repository browser + communication data-mappings). A perspective defines its own root (the spatial ParentChild tree, or all instances of a CK type) and an optional primary/secondary navigation whitelist applied at the root level. Absent / empty Perspectives = only the built-in spatial perspective, i.e. today's behaviour."
+    attributes:
+      - id: ${this}/TreePerspectiveConfig.Key
+        name: Key
+      - id: ${this}/TreePerspectiveConfig.DisplayName
+        name: DisplayName
+      - id: ${this}/TreePerspectiveConfig.SortIndex
+        name: SortIndex
+        isOptional: true
+      - id: ${this}/TreePerspectiveConfig.Icon
+        name: Icon
+        isOptional: true
+      - id: ${this}/TreePerspectiveConfig.RootMode
+        name: RootMode
+      - id: ${this}/TreePerspectiveConfig.RootCkTypeId
+        name: RootCkTypeId
+        isOptional: true
+      - id: ${this}/TreePerspectiveConfig.PrimaryRoleId
+        name: PrimaryRoleId
+        isOptional: true
+      - id: ${this}/TreePerspectiveConfig.PrimaryDirection
+        name: PrimaryDirection
+        isOptional: true
+      - id: ${this}/TreePerspectiveConfig.SecondaryRoleIds
+        name: SecondaryRoleIds
+        isOptional: true

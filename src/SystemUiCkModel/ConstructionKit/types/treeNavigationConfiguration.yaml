@@ -4,7 +4,7 @@ types:
     derivedFromCkTypeId: ${this}/UIElement
     isFinal: false
     isAbstract: false
-    description: "Per-tenant configuration for the entity trees (repository browser + communication data-mappings). Overrides which auto-discovered association roles are shown, their label, order, grouping and icon. Singleton per tenant via rtWellKnownName = 'TreeNavigation'. Optional: when absent the trees fall back to pure auto-discovery. Derives from UIElement (same as Branding, Dashboard) — consistent with SystemUiCkModel convention."
+    description: "Per-tenant configuration for the entity trees (repository browser + communication data-mappings). Overrides which auto-discovered association roles are shown, their label, order, grouping and icon (Roles), and defines additional switchable tree perspectives with their own root (Perspectives). Singleton per tenant via rtWellKnownName = 'TreeNavigation'. Optional: when absent the trees fall back to pure auto-discovery and the spatial perspective only. Derives from UIElement (same as Branding, Dashboard) — consistent with SystemUiCkModel convention."
     attributes:
       - id: ${System}/Name
         name: Name
@@ -14,4 +14,7 @@ types:
         isOptional: true
       - id: ${this}/TreeNavigationConfiguration.Roles
         name: Roles
+        isOptional: true
+      - id: ${this}/TreeNavigationConfiguration.Perspectives
+        name: Perspectives
         isOptional: true
