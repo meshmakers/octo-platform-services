@@ -9,6 +9,7 @@ using Meshmakers.Octo.Communication.Contracts;
 using Meshmakers.Octo.Runtime.Contracts.Blueprints;
 using Meshmakers.Octo.Runtime.Contracts.MongoDb.Configuration;
 using Meshmakers.Octo.Runtime.Contracts.MongoDb.Extensions;
+using Meshmakers.Octo.Runtime.Contracts.MongoDb.Services;
 using Meshmakers.Octo.Runtime.Engine.Configuration.DependencyInjection;
 using Meshmakers.Octo.Services.Infrastructure;
 using Meshmakers.Octo.Services.Infrastructure.Services;
@@ -91,6 +92,12 @@ try
     // System.UI.* blueprint (plus the allowlisted System.TenantMode) per tenant; each blueprint's
     // `requires:` block decides which tenants actually receive it.
     builder.Services.AddCkModelSystemUIV2();
+    // Auto-import System.UI at its embedded version into every tenant on resolve (engine descriptor
+    // mechanism), decoupled from the cockpit blueprint floors: bumping ConstructionKit/ckModel.yaml
+    // now propagates to all tenants — no ckModelDependencies bump required.
+    builder.Services.AddSingleton<IServiceManagedCkModelDescriptor>(
+        _ => new ServiceManagedCkModelDescriptor(
+            SystemUiCkModel.Generated.System.UI.v2.SystemUICkIds.CkModelId));
     builder.Services.AddBlueprintSystemUISystemCockpitV1();
     builder.Services.AddBlueprintSystemUITenantCockpitV1();
     builder.Services.AddBlueprintSystemTenantModeV1();
