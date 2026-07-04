@@ -66,7 +66,7 @@ src/PlatformServices/
 ├── nlog.config
 └── Properties/launchSettings.json                 # 5024 http / 5025 https
 src/SystemUiCkModel/                               # System.UI CK model + 3 service-managed blueprints (moved from admin-panel)
-├── ConstructionKit/                               # System.UI-2.3.0 model YAML (incl. TreeNavigationConfiguration: Roles + Perspectives)
+├── ConstructionKit/                               # System.UI-2.4.0 model YAML (incl. TreeNavigationConfiguration: Roles + Perspectives; MappingCoverageConfiguration: per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage')
 └── Blueprints/{System.UI.SystemCockpit,System.UI.TenantCockpit,System.TenantMode}/
 ```
 

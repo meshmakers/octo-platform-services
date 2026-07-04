@@ -1,0 +1,17 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+types:
+  - typeId: MappingCoverageConfiguration
+    derivedFromCkTypeId: ${this}/UIElement
+    isFinal: false
+    isAbstract: false
+    description: "Per-tenant configuration for the Mapping Coverage page (communication data-mappings). Stores which CK types act as mapping-source catalogues in the Orphan Sources tab (e.g. Loxone/Control, MQTT/Topic, OpcUa/Node) so the selection is shared by all operators of the tenant instead of living in browser localStorage. Singleton per tenant via rtWellKnownName = 'MappingCoverage'. Optional: when absent the Orphan Sources tab starts empty. Derives from UIElement (same as Branding, Dashboard, TreeNavigationConfiguration) — consistent with SystemUiCkModel convention."
+    attributes:
+      - id: ${System}/Name
+        name: Name
+        isOptional: true
+      - id: ${System}/Description
+        name: Description
+        isOptional: true
+      - id: ${this}/MappingCoverageConfiguration.SourceCandidateCkTypeIds
+        name: SourceCandidateCkTypeIds
+        isOptional: true

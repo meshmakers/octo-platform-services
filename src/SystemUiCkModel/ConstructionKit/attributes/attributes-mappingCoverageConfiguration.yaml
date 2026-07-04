@@ -1,0 +1,6 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+attributes:
+  # --- MappingCoverageConfiguration: source catalogue CK types for the Orphan Sources tab ---
+  - id: MappingCoverageConfiguration.SourceCandidateCkTypeIds
+    valueType: StringArray
+    description: "Runtime CK type ids whose entities act as mapping-source candidates in the Mapping Coverage page's Orphan Sources tab (e.g. 'Loxone/Control', 'MQTT/Topic', 'OpcUa/Node'). Absent / empty = the tab starts without a source catalogue and hides itself until a type is configured."
