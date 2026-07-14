@@ -14,6 +14,7 @@ using Meshmakers.Octo.Runtime.Engine.Configuration.DependencyInjection;
 using Meshmakers.Octo.Services.Infrastructure;
 using Meshmakers.Octo.Services.Infrastructure.Services;
 using Meshmakers.Octo.Services.Observability;
+using Meshmakers.Octo.Services.Swagger.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using NLog;
 using NLog.Web;
@@ -85,6 +86,31 @@ try
     // client is registered — the blueprint-only creator seeds no identity data.
     builder.Services.ConfigureOptions<ConfigureDistributionEventHubOptions>();
     builder.Services.AddOctoServiceInfrastructure("PlatformServices");
+
+    // Swagger UI / OpenAPI (AB#4388) — shared package, same pattern as octo-mcp-service.
+    // The UI's OAuth authorization-code flow uses the dedicated
+    // octo-platformServices-swagger client seeded by System.Identity.Bootstrap.
+    builder.Services.ConfigureOptions<ConfigureOctoOpenApiOptions>();
+    builder.Services.AddOctoApiVersioningAndDocumentation(options =>
+    {
+        options.Scopes = new Dictionary<string, string>
+        {
+            {
+                CommonConstants.OctoApiFullAccess,
+                CommonConstants.OctoApiFullAccessDisplayName
+            }
+        };
+
+        options.XmlDocDataTransferObjectAssemblies = [typeof(Program).Assembly];
+        options.XmlDocOperationAssemblies = [typeof(Program).Assembly];
+
+        options.ApiTitle = "OctoMesh Platform Services API";
+        options.ApiDescription =
+            "Tenant configuration discovery and platform observability endpoints (tenants, blueprints, service drift).";
+
+        options.ClientId = PlatformServicesConstants.PlatformServicesSwaggerClientId;
+        options.AppName = "OctoMesh Platform Services Swagger Client";
+    }).AddVersion();
     builder.Services.AddTransient<IDefaultConfigurationCreatorService, DefaultConfigurationCreatorService>();
 
     // System.UI CK model + the service-managed blueprints (cockpit dashboards + the
@@ -139,6 +165,8 @@ try
         app.UseHsts();
     }
     app.UseCors();
+    app.UseStaticFiles();
+    app.UseOctoApiVersioningAndDocumentation();
     app.UseRouting();
     app.UseAuthentication();
     app.UseAuthorization();

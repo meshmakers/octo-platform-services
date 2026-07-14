@@ -14,4 +14,10 @@ internal static class PlatformServicesConstants
     ///     per-tenant self-service surface (concept §8.2 decision).
     /// </summary>
     public const string PlatformServicesAdminPolicy = nameof(PlatformServicesAdminPolicy);
+
+    /// <summary>
+    ///     Client ID for the platform-services Swagger UI client (Authorization Code Flow).
+    ///     Seeded by the <c>System.Identity.Bootstrap</c> blueprint (AB#4388).
+    /// </summary>
+    public const string PlatformServicesSwaggerClientId = "octo-platformServices-swagger";
 }

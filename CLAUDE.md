@@ -22,11 +22,12 @@ It deliberately seeds **no identity data**: the `octo-admin-panel` OIDC client t
 
 ## The `_configuration` contract
 
-The endpoint returns the 10-field `TenantConfigurationDto`:
+The endpoint returns the 11-field `TenantConfigurationDto`:
 
 ```
 assetServices, botServices, communicationServices, reportingServices,
-issuer, systemTenantId, crateDbAdminUrl, grafanaUrl, meshAdapterUrl, aiServices
+issuer, systemTenantId, crateDbAdminUrl, grafanaUrl, meshAdapterUrl, aiServices,
+mcpServices
 ```
 
 All URLs are trailing-slashed via `EnsureEndsWith("/")`. Phase 4 dropped the four OAuth client fields the legacy admin-panel `ClientDto` carried (`clientId`, `redirectUri`, `postLogoutRedirectUri`, `scope`) — they only described the retired admin-panel UI's own OIDC client, which no live consumer reads (Refinery Studio, Office, PowerBI, Power Query each bring their own client registration from their bundled `config.json` and consume only the issuer + service URLs here).
@@ -56,7 +57,7 @@ After modifying shared DTOs in `octo-sdk`, run `invoke-buildall -branch main -co
 src/PlatformServices/
 ├── Controllers/TenantConfigurationController.cs   # GET {tenantId}/_configuration
 ├── Controllers/{Tenants,Blueprints,Services}Controller.cs  # /system/v1 observability (admin-only)
-├── Dto/TenantConfigurationDto.cs                  # 10-field response (OAuth client fields dropped in Phase 4)
+├── Dto/TenantConfigurationDto.cs                  # 11-field response (OAuth client fields dropped in Phase 4; mcpServices added AB#4381)
 ├── Options/PlatformServiceUrlsOptions.cs          # bound from OCTO_PLATFORMSERVICES__* (URLs + broker)
 ├── Configuration/ConfigureDistributionEventHubOptions.cs  # broker wiring for the tenant-event host
 ├── Services/DefaultConfigurationCreatorService.cs # blueprint-only tenant bootstrap (System.UI + TenantMode)
@@ -95,6 +96,17 @@ src/SystemUiCkModel/                               # System.UI CK model + 3 serv
 
 Phase-1 NOTE (now obsolete): the service used to avoid Infrastructure / the CK runtime to stay slim. Phase 4 owns the System.UI blueprints, which requires both. It still does **not** seed identity data — see §"What changed in Phase 4" and the config-creator's class doc.
 
+### Swagger UI / OpenAPI (AB#4388)
+
+The service exposes Swagger UI at `/swagger` via the shared `Meshmakers.Octo.Services.Swagger`
+package (same pattern as octo-mcp-service): `AddOctoApiVersioningAndDocumentation(...)` +
+`.AddVersion()` in DI, `app.UseOctoApiVersioningAndDocumentation()` in the pipeline,
+`ConfigureOctoOpenApiOptions` feeds the OAuth authority from `PlatformServiceUrlsOptions.AuthorityUrl`.
+The UI's authorization-code+PKCE flow uses the `octo-platformServices-swagger` client seeded by the
+`System.Identity.Bootstrap` blueprint (≥1.2.0, `${octo.platform.publicUrl}` — "platform" slug in
+`IdentityBlueprintVariableProvider`). `wwwroot/css/swagger.css` carries the shared styling
+(served via `UseStaticFiles`).
+
 ### CORS
 
 Anonymous endpoint hit from browser SPAs and Excel-hosted add-ins. No credentials in flight, so the global default policy is `AllowAnyOrigin / AllowAnyHeader / AllowAnyMethod`. Even though the service now references `Meshmakers.Octo.Services.Infrastructure` (for the tenant-event host), it deliberately does **not** activate that package's per-tenant `CorsPolicyProvider` — it keeps its own `AddCors` default policy, because the provider rebuilds policies per-tenant from `IdentityClient` origins and would break Office / PowerBI access ([[cors_policy_provider_overrides_named_policy]] in memory).
@@ -110,7 +122,7 @@ Public URI per environment:
 
 ### Tests
 
-`tests/PlatformServices.ContractTests/` snapshot-locks the rendered `TenantConfigurationDto` JSON (10-field set + JSON property names + trailing slashes) plus controller tests for the observability endpoints. Any DTO drift fails CI loudly — that is intentional. The baseline reflects the Phase 4 ten-field contract (the four OAuth client fields were removed).
+`tests/PlatformServices.ContractTests/` snapshot-locks the rendered `TenantConfigurationDto` JSON (11-field set + JSON property names + trailing slashes) plus controller tests for the observability endpoints. Any DTO drift fails CI loudly — that is intentional. The baseline reflects the Phase 4 ten-field contract (the four OAuth client fields were removed) plus the additive `mcpServices` field (AB#4381).
 
 ## CI / CD
 
