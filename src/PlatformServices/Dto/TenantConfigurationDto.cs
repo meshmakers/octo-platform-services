@@ -29,6 +29,7 @@ public class TenantConfigurationDto
         GrafanaUrl = options.GrafanaUrl.EnsureEndsWith("/");
         MeshAdapterUrl = options.MeshAdapterUrl.EnsureEndsWith("/");
         AiServices = options.AiServicesUrl.EnsureEndsWith("/");
+        McpServices = options.McpServiceUrl.EnsureEndsWith("/");
         BotServices = options.BotServiceUrl.EnsureEndsWith("/");
         SystemTenantId = options.SystemTenantId;
     }
@@ -62,4 +63,7 @@ public class TenantConfigurationDto
 
     /// <summary>Public URL of the AI adapter (octo-ai-services).</summary>
     [JsonPropertyName("aiServices")] public string AiServices { get; set; }
+
+    /// <summary>Public URL of the MCP service (octo-mcp-service).</summary>
+    [JsonPropertyName("mcpServices")] public string McpServices { get; set; }
 }

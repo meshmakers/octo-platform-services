@@ -36,6 +36,9 @@ public class PlatformServiceUrlsOptions
     /// <summary>Public URL of the AI adapter (octo-ai-services).</summary>
     public string AiServicesUrl { get; set; } = "https://localhost:5019";
 
+    /// <summary>Public URL of the MCP service (octo-mcp-service).</summary>
+    public string McpServiceUrl { get; set; } = "https://localhost:5017";
+
     /// <summary>Public URL of the CrateDB admin console.</summary>
     public string CrateDbAdminUrl { get; set; } = "http://localhost:4201";
 

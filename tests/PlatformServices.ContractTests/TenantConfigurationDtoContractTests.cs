@@ -30,7 +30,9 @@ public class TenantConfigurationDtoContractTests
 {
     /// <summary>
     ///     Exact JSON property names served by the <c>_configuration</c> endpoint after the
-    ///     Phase 4 OAuth-field removal. Order independent.
+    ///     Phase 4 OAuth-field removal. Order independent. <c>mcpServices</c> was added for
+    ///     the Studio Development→Swagger link (AB#4381) — an additive, backward-compatible
+    ///     extension: existing consumers ignore unknown fields.
     /// </summary>
     private static readonly string[] ExpectedJsonProperties =
     [
@@ -43,11 +45,12 @@ public class TenantConfigurationDtoContractTests
         "crateDbAdminUrl",
         "grafanaUrl",
         "meshAdapterUrl",
-        "aiServices"
+        "aiServices",
+        "mcpServices"
     ];
 
     [Fact]
-    public void Dto_serialises_exactly_the_ten_live_fields()
+    public void Dto_serialises_exactly_the_eleven_live_fields()
     {
         var options = NewOptions();
         var dto = new TenantConfigurationDto(options);
@@ -72,6 +75,7 @@ public class TenantConfigurationDtoContractTests
     [InlineData(nameof(TenantConfigurationDto.GrafanaUrl), "grafanaUrl")]
     [InlineData(nameof(TenantConfigurationDto.MeshAdapterUrl), "meshAdapterUrl")]
     [InlineData(nameof(TenantConfigurationDto.AiServices), "aiServices")]
+    [InlineData(nameof(TenantConfigurationDto.McpServices), "mcpServices")]
     public void Property_carries_the_expected_JsonPropertyName(string clrName, string jsonName)
     {
         var prop = typeof(TenantConfigurationDto).GetProperty(clrName,
@@ -97,6 +101,7 @@ public class TenantConfigurationDtoContractTests
         Assert.EndsWith("/", dto.GrafanaUrl);
         Assert.EndsWith("/", dto.MeshAdapterUrl);
         Assert.EndsWith("/", dto.AiServices);
+        Assert.EndsWith("/", dto.McpServices);
     }
 
     private static PlatformServiceUrlsOptions NewOptions() => new()
@@ -110,6 +115,7 @@ public class TenantConfigurationDtoContractTests
         GrafanaUrl = "https://grafana.example.com",
         MeshAdapterUrl = "https://adapter.example.com",
         AiServicesUrl = "https://ai.example.com",
+        McpServiceUrl = "https://mcp.example.com",
         CrateDbAdminUrl = "https://cratedb.example.com"
     };
 }
