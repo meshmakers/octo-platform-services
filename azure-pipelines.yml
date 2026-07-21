@@ -30,7 +30,7 @@ resources:
       type: github
       name: meshmakers/octo-pipeline-templates
       endpoint: meshmakers-access-token
-      ref: refs/tags/tpl-v0.4.11
+      ref: refs/tags/tpl-v0.5.0
 
 trigger:
   batch: true
@@ -76,6 +76,13 @@ stages:
           - checkout: self
             clean: true
           - template: templates/steps/set-version.yml@pipelineTemplates
+          # CK SemVer honesty gate (AB#4420): System.UI is published DURING
+          # the dotnet build (/p:OctoPublishCatalog), so the gate must be able
+          # to fail first.
+          - template: templates/steps/validate-ck-versions.yml@pipelineTemplates
+            parameters:
+              constructionKitPaths:
+                - 'src/SystemUiCkModel/ConstructionKit'
           - template: templates/steps/download-ca.yml@pipelineTemplates
           - task: DotNetCoreCLI@2
             retryCountOnTaskFailure: 2
