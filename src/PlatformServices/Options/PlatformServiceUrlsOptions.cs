@@ -18,8 +18,13 @@ public class PlatformServiceUrlsOptions
     /// <summary>Public URL of the communication controller service.</summary>
     public string CommunicationServiceUrl { get; set; } = "https://localhost:5015";
 
-    /// <summary>Public URL of the reporting service.</summary>
-    public string ReportingServiceUrl { get; set; } = "https://localhost:5007";
+    /// <summary>
+    ///     Public URL of the reporting service. Empty (the default) means reporting is not part
+    ///     of this installation: <c>_configuration</c> consumers key on the empty string
+    ///     (AB#4884) — a localhost default must never reach a browser. Deployments that include
+    ///     reporting announce the URL (Helm <c>externalUris.reporting</c>, locally Start-Octo).
+    /// </summary>
+    public string ReportingServiceUrl { get; set; } = string.Empty;
 
     /// <summary>Public URL of the identity service (OIDC issuer).</summary>
     public string AuthorityUrl { get; set; } = "https://localhost:5003";
@@ -33,11 +38,13 @@ public class PlatformServiceUrlsOptions
     /// <summary>Public URL of the Mesh Adapter.</summary>
     public string MeshAdapterUrl { get; set; } = "https://localhost:5020";
 
-    /// <summary>Public URL of the AI adapter (octo-ai-services).</summary>
-    public string AiServicesUrl { get; set; } = "https://localhost:5019";
+    /// <summary>Public URL of the AI adapter (octo-ai-services). Optional service — empty
+    ///     default with the same absent-when-empty contract as <see cref="ReportingServiceUrl" />.</summary>
+    public string AiServicesUrl { get; set; } = string.Empty;
 
-    /// <summary>Public URL of the MCP service (octo-mcp-service).</summary>
-    public string McpServiceUrl { get; set; } = "https://localhost:5017";
+    /// <summary>Public URL of the MCP service (octo-mcp-service). Optional service — empty
+    ///     default with the same absent-when-empty contract as <see cref="ReportingServiceUrl" />.</summary>
+    public string McpServiceUrl { get; set; } = string.Empty;
 
     /// <summary>Public URL of the CrateDB admin console.</summary>
     public string CrateDbAdminUrl { get; set; } = "http://localhost:4201";

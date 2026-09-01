@@ -104,6 +104,41 @@ public class TenantConfigurationDtoContractTests
         Assert.EndsWith("/", dto.McpServices);
     }
 
+    /// <summary>
+    ///     AB#4884: Reporting, AI and MCP are optional services — an installation without them
+    ///     must advertise them as absent. A localhost default must never reach a browser, so the
+    ///     option defaults are empty instead of localhost fallbacks.
+    /// </summary>
+    [Fact]
+    public void Optional_service_urls_default_to_empty()
+    {
+        var options = new PlatformServiceUrlsOptions();
+
+        Assert.Equal(string.Empty, options.ReportingServiceUrl);
+        Assert.Equal(string.Empty, options.AiServicesUrl);
+        Assert.Equal(string.Empty, options.McpServiceUrl);
+    }
+
+    /// <summary>
+    ///     AB#4884: an empty option value means "service not part of this installation" and must
+    ///     be served verbatim — consumers key on the empty string. Trailing-slash normalisation
+    ///     would turn it into "/", which older frontends only tolerate by accident.
+    /// </summary>
+    [Fact]
+    public void Unconfigured_optional_services_serialise_as_empty_string_not_slash()
+    {
+        var options = NewOptions();
+        options.ReportingServiceUrl = string.Empty;
+        options.AiServicesUrl = string.Empty;
+        options.McpServiceUrl = string.Empty;
+
+        var dto = new TenantConfigurationDto(options);
+
+        Assert.Equal(string.Empty, dto.ReportingServices);
+        Assert.Equal(string.Empty, dto.AiServices);
+        Assert.Equal(string.Empty, dto.McpServices);
+    }
+
     private static PlatformServiceUrlsOptions NewOptions() => new()
     {
         AssetServiceUrl = "https://assets.example.com",
