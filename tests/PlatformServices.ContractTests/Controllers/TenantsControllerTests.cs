@@ -66,7 +66,7 @@ public sealed class TenantsControllerTests
     public async Task ListAsync_OrdersSystemFirstThenChildrenAlphabetically()
     {
         A.CallTo(() => _systemContext.IsSystemTenantExistingAsync()).Returns(true);
-        A.CallTo(() => _systemContext.GetChildTenantsAsync(_session, A<int?>._, A<int?>._))
+        A.CallTo(() => _systemContext.GetAllTenantsAsync(_session, A<int?>._, A<int?>._))
             .Returns(FakeChildren(("zulu", "zulu_db"), ("alpha", "alpha_db")));
 
         var result = await CreateSut().ListAsync(CancellationToken.None);
