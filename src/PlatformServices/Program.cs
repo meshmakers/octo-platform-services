@@ -139,7 +139,18 @@ try
             var authorityUrl = builder.Configuration["PlatformServices:AuthorityUrl"]?.EnsureEndsWith("/")
                                ?? "https://localhost:5003/";
             options.Authority = authorityUrl;
-            options.TokenValidationParameters.ValidateAudience = false;
+            // AB#5051: audience IS validated. Every token that can reach an endpoint here has to
+            // carry the octo_api scope (PlatformServicesAdminPolicy below), and that scope only
+            // exists on the "octoAPI" ApiResource in System.Identity.Bootstrap — so the identity
+            // service always stamps aud=octoAPI on it, for user and client-credentials tokens
+            // alike. Identity / bot / communication-controller / ai-services already require the
+            // same audience. Until AB#5051 this was ValidateAudience=false, which let any token of
+            // the authority through the transport check; this service has no tenant gate
+            // (see below) so the audience check is its only transport-level narrowing.
+            // 🔴 Do not "fix" a 401 here by turning this off — a token that fails it was minted
+            // without the octo_api scope and would fail the admin policy anyway. The public
+            // {tenantId}/_configuration endpoint is [AllowAnonymous] and unaffected.
+            options.Audience = CommonConstants.OctoApi;
             // Pin ValidIssuer so validation does not need the OIDC discovery document
             // mid-rolling-update; identity / asset-repo / bot all do the same.
             options.TokenValidationParameters.ValidIssuer = authorityUrl;
@@ -170,6 +181,19 @@ try
     app.UseRouting();
     app.UseAuthentication();
     app.UseAuthorization();
+    // AB#5051: deliberately NO UseOctoTenantAuthorization(). The shared transport tenant gate
+    // compares the {tenantId} route value with the caller's tenant_id claim, and neither route
+    // shape here wants that:
+    //   * {tenantId}/_configuration is [AllowAnonymous] public discovery — the middleware skips
+    //     anonymous endpoints anyway, so the gate would cover nothing.
+    //   * system/v1/tenants/{tenantId}/blueprints|ck-models are cross-tenant *operator* routes.
+    //     The tenant id is the subject being inspected, not the tenant being addressed; the
+    //     caller is a system-tenant admin. The gate reads the route value regardless of the
+    //     system/ prefix and its user-token path is unconditional (no LogOnly staging), so
+    //     wiring it would 403 exactly the use case these endpoints exist for.
+    // If a genuinely tenant-addressed, authenticated route is ever added here, wire the gate for
+    // that route only (e.g. app.UseWhen(ctx => !ctx.Request.Path.StartsWithSegments("/system"), …))
+    // together with AddOctoTenantAuthorization(builder.Configuration).
     app.MapControllers();
 
     app.Run();
