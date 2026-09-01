@@ -139,6 +139,25 @@ public class TenantConfigurationDtoContractTests
         Assert.Equal(string.Empty, dto.McpServices);
     }
 
+    /// <summary>
+    ///     AB#4884: a whitespace-only configured value (e.g. an env var accidentally set to " ")
+    ///     must degrade to the empty-string contract instead of serialising a malformed " /".
+    /// </summary>
+    [Fact]
+    public void Whitespace_only_optional_services_serialise_as_empty_string()
+    {
+        var options = NewOptions();
+        options.ReportingServiceUrl = " ";
+        options.AiServicesUrl = "\t";
+        options.McpServiceUrl = "  ";
+
+        var dto = new TenantConfigurationDto(options);
+
+        Assert.Equal(string.Empty, dto.ReportingServices);
+        Assert.Equal(string.Empty, dto.AiServices);
+        Assert.Equal(string.Empty, dto.McpServices);
+    }
+
     private static PlatformServiceUrlsOptions NewOptions() => new()
     {
         AssetServiceUrl = "https://assets.example.com",

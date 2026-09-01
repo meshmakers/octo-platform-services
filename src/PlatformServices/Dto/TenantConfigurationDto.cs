@@ -35,13 +35,14 @@ public class TenantConfigurationDto
     }
 
     /// <summary>
-    ///     Configured URLs are trailing-slashed; an empty value is served verbatim, because it
-    ///     means "service not part of this installation" (AB#4884) and consumers key on the
-    ///     empty string. Plain <c>EnsureEndsWith("/")</c> would turn it into "/", which older
-    ///     frontends only tolerate by accident (the auth interceptor skips both).
+    ///     Configured URLs are trailing-slashed; an empty (or whitespace-only) value is served as
+    ///     the empty string, because it means "service not part of this installation" (AB#4884)
+    ///     and consumers key on the empty string. Plain <c>EnsureEndsWith("/")</c> would turn it
+    ///     into "/" (or " /"), which older frontends only tolerate by accident (the auth
+    ///     interceptor skips both).
     /// </summary>
     private static string NormalizeUrl(string url) =>
-        string.IsNullOrEmpty(url) ? string.Empty : url.EnsureEndsWith("/");
+        string.IsNullOrWhiteSpace(url) ? string.Empty : url.EnsureEndsWith("/");
 
     /// <summary>Public URL of the asset repository service.</summary>
     [JsonPropertyName("assetServices")] public string AssetServices { get; set; }
