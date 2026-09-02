@@ -92,7 +92,7 @@ public sealed class ServicesControllerTests
         StubTenantConfig(acmeContext, "BotServicesIdentityData", 1);   // behind → drift
         StubTenantConfig(betaContext, "BotServicesIdentityData", null); // never installed → drift
 
-        A.CallTo(() => _systemContext.GetChildTenantsAsync(_adminSession, A<int?>._, A<int?>._))
+        A.CallTo(() => _systemContext.GetAllTenantsAsync(_adminSession, A<int?>._, A<int?>._))
             .Returns(FakeChildren("acme", "beta"));
         A.CallTo(() => _systemContext.TryFindTenantContextAsync("acme")).Returns(Task.FromResult<ITenantContext?>(acmeContext));
         A.CallTo(() => _systemContext.TryFindTenantContextAsync("beta")).Returns(Task.FromResult<ITenantContext?>(betaContext));

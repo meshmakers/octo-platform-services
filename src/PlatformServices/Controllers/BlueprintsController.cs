@@ -55,7 +55,7 @@ public class BlueprintsController : ControllerBase
 
         using (var adminSession = await _systemContext.GetAdminSessionAsync().ConfigureAwait(false))
         {
-            var children = await _systemContext.GetChildTenantsAsync(adminSession).ConfigureAwait(false);
+            var children = await _systemContext.GetAllTenantsAsync(adminSession).ConfigureAwait(false);
             foreach (var tenant in children.Items.OrderBy(t => t.TenantId, StringComparer.Ordinal))
             {
                 entries.Add(await BuildEntryAsync(tenant.TenantId, blueprintName, cancellationToken).ConfigureAwait(false));

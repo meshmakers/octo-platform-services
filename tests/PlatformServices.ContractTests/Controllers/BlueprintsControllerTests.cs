@@ -50,7 +50,7 @@ public sealed class BlueprintsControllerTests
         const string blueprintName = "System.Communication.Release";
 
         A.CallTo(() => _systemContext.IsSystemTenantExistingAsync()).Returns(true);
-        A.CallTo(() => _systemContext.GetChildTenantsAsync(_session, A<int?>._, A<int?>._))
+        A.CallTo(() => _systemContext.GetAllTenantsAsync(_session, A<int?>._, A<int?>._))
             .Returns(FakeChildren("acme", "beta"));
 
         var now = DateTime.UtcNow;
