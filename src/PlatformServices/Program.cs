@@ -3,7 +3,6 @@ using Meshmakers.Common.Shared;
 using Meshmakers.Octo.Backend.PlatformServices;
 using Meshmakers.Octo.Backend.PlatformServices.Configuration;
 using Meshmakers.Octo.Backend.PlatformServices.Options;
-using Meshmakers.Octo.Backend.PlatformServices.Routing;
 using Meshmakers.Octo.Backend.PlatformServices.Services;
 using Meshmakers.Octo.Communication.Contracts;
 using Meshmakers.Octo.Runtime.Contracts.Blueprints;
@@ -67,8 +66,7 @@ try
     // Tenant-id route constraint — required by every Phase-2 Step 6 endpoint that
     // includes {tenantId} in its route, so the constraint name matches the rest of
     // the OctoMesh services (asset-repo, bot, identity, ...).
-    builder.Services.Configure<RouteOptions>(options =>
-        options.ConstraintMap.Add("tenantId", typeof(TenantIdRouteConstraint)));
+    builder.Services.AddOctoTenantIdRouteConstraint();
 
     // MongoDB runtime engine — provides ISystemContext (tenant enumeration + per-tenant
     // repository lookup) and IBlueprintService / ITenantBlueprintInstallations /
