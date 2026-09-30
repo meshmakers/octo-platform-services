@@ -5,10 +5,7 @@
 # tenant-scoped `_configuration` discovery endpoint that was previously
 # served by octo-frontend-admin-panel. Image: meshmakers/octo-mesh-platform-services.
 #
-# No NuGet output, no helm chart in this repo (chart lives in octo-helm-core),
-# no tests yet. The contract parity test (tests/ContractTests) compares the
-# DTO shape to the legacy admin-panel response — once the test suite is wired
-# up it will plug into the DotNetCoreCLI@2 test task.
+# No NuGet output, no helm chart in this repo (chart lives in octo-helm-core).
 
 name: $(MajorVersion).$(MinorVersion).$(date:yyMM).$(DayOfMonth)$(rev:rrr)-$(Build.SourceBranchName)
 
