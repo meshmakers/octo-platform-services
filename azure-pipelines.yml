@@ -1,14 +1,11 @@
 # Root-level CI pipeline for octo-platform-services, using shared templates
-# from octo-pipeline-templates@tpl-v0.3.1.
+# from octo-pipeline-templates@tpl-v1.0.0.
 #
 # Phase 1 scope (the only thing this service currently does): host the
 # tenant-scoped `_configuration` discovery endpoint that was previously
 # served by octo-frontend-admin-panel. Image: meshmakers/octo-mesh-platform-services.
 #
-# No NuGet output, no helm chart in this repo (chart lives in octo-helm-core),
-# no tests yet. The contract parity test (tests/ContractTests) compares the
-# DTO shape to the legacy admin-panel response — once the test suite is wired
-# up it will plug into the DotNetCoreCLI@2 test task.
+# No NuGet output, no helm chart in this repo (chart lives in octo-helm-core).
 
 name: $(MajorVersion).$(MinorVersion).$(date:yyMM).$(DayOfMonth)$(rev:rrr)-$(Build.SourceBranchName)
 
@@ -42,7 +39,7 @@ resources:
       type: github
       name: meshmakers/octo-pipeline-templates
       endpoint: meshmakers-access-token
-      ref: refs/tags/tpl-v0.5.0
+      ref: refs/tags/tpl-v1.0.0
 
 trigger:
   batch: true
@@ -88,13 +85,6 @@ stages:
           - checkout: self
             clean: true
           - template: templates/steps/set-version.yml@pipelineTemplates
-          # CK SemVer honesty gate (AB#4420): System.UI is published DURING
-          # the dotnet build (/p:OctoPublishCatalog), so the gate must be able
-          # to fail first.
-          - template: templates/steps/validate-ck-versions.yml@pipelineTemplates
-            parameters:
-              constructionKitPaths:
-                - 'src/SystemUiCkModel/ConstructionKit'
           - template: templates/steps/download-ca.yml@pipelineTemplates
           - task: DotNetCoreCLI@2
             retryCountOnTaskFailure: 2
@@ -104,13 +94,21 @@ stages:
               projects: '$(solutionFile)'
               restoreArguments: '--force /p:OctoNugetPrivateServer=$(nugetPrivateServer)'
               noCache: true
+          # The build compiles System.UI and publishes it nowhere: the CK step
+          # below owns publishing, and CkCompile would publish with isForced
+          # hardcoded. No other CK in this solution depends on it, so a local catalog
+          # would never be read; the model, its embedded blueprints and the library
+          # docs handle-artifacts collects are all produced by compiling alone. The
+          # command line overrides the csproj's <OctoPublishCkModel>, which stays for
+          # local development. The GitHub API keys keep CkCompile's catalog refresh
+          # clear of GitHub's unauthenticated rate limit.
           - task: DotNetCoreCLI@2
             retryCountOnTaskFailure: 2
             displayName: 'Build'
             inputs:
               command: 'build'
               projects: $(solutionFile)
-              arguments: '--no-restore --configuration $(buildConfiguration) /p:OctoNugetPrivateServer=$(nugetPrivateServer) /p:OctoPublishCatalog="$(effectivePublishCatalog)" /p:OctoPrivateGitHubApiKey=$(GitHubPAT) /p:OctoPublicGitHubApiKey=$(GitHubPAT)'
+              arguments: '--no-restore --configuration $(buildConfiguration) /p:OctoNugetPrivateServer=$(nugetPrivateServer) /p:OctoPublishCkModel=false /p:OctoPrivateGitHubApiKey=$(GitHubPAT) /p:OctoPublicGitHubApiKey=$(GitHubPAT)'
               publishWebProjects: false
               zipAfterPublish: false
               modifyOutputPath: false
@@ -124,6 +122,17 @@ stages:
                 **/*Tests.csproj
                 !**/*SystemTests.csproj
               testRunTitle: 'CI'
+          # CK SemVer and schema gate (AB#4420), and since tpl-v1.0.0 also the
+          # publish of System.UI (AB#5121): main -> private catalog, r* tags ->
+          # private AND public, never replacing a published version. It runs after
+          # Test so a run whose build or tests fail never leaves a version in a
+          # shared catalog — a published version cannot be withdrawn. The step
+          # compiles the model itself with the pinned octo-ckc, so it needs nothing
+          # from the build; it only has to come before the image.
+          - template: templates/steps/validate-and-publish-ck-versions.yml@pipelineTemplates
+            parameters:
+              constructionKitPaths:
+                - 'src/SystemUiCkModel/ConstructionKit'
           # Multi-arch image (AB#4451): arm64 for Apple-Silicon kind clusters and
           # edge devices, amd64 for the managed clusters.
           - template: templates/steps/build-and-push-docker.yml@pipelineTemplates
