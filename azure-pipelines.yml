@@ -1,5 +1,5 @@
 # Root-level CI pipeline for octo-platform-services, using shared templates
-# from octo-pipeline-templates@tpl-v0.7.0.
+# from octo-pipeline-templates@tpl-v1.0.0.
 #
 # Phase 1 scope (the only thing this service currently does): host the
 # tenant-scoped `_configuration` discovery endpoint that was previously
@@ -39,7 +39,7 @@ resources:
       type: github
       name: meshmakers/octo-pipeline-templates
       endpoint: meshmakers-access-token
-      ref: refs/tags/tpl-v0.7.0
+      ref: refs/tags/tpl-v1.0.0
 
 trigger:
   batch: true
@@ -122,14 +122,14 @@ stages:
                 **/*Tests.csproj
                 !**/*SystemTests.csproj
               testRunTitle: 'CI'
-          # CK SemVer and schema gate (AB#4420), and since tpl-v0.7.0 also the
+          # CK SemVer and schema gate (AB#4420), and since tpl-v1.0.0 also the
           # publish of System.UI (AB#5121): main -> private catalog, r* tags ->
           # private AND public, never replacing a published version. It runs after
           # Test so a run whose build or tests fail never leaves a version in a
           # shared catalog — a published version cannot be withdrawn. The step
           # compiles the model itself with the pinned octo-ckc, so it needs nothing
           # from the build; it only has to come before the image.
-          - template: templates/steps/validate-ck-versions.yml@pipelineTemplates
+          - template: templates/steps/validate-and-publish-ck-versions.yml@pipelineTemplates
             parameters:
               constructionKitPaths:
                 - 'src/SystemUiCkModel/ConstructionKit'

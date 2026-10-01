@@ -174,10 +174,10 @@ Public URI per environment:
 
 ## CI / CD
 
-Root-level `azure-pipelines.yml` follows the Phase 4a Layer-2 pattern: pulls shared templates from `octo-pipeline-templates@tpl-v0.7.0`, builds + tests + pushes Docker image (private always, public on release tag), tags `:main-latest` on main. No Helm chart (the chart lives in `octo-helm-core`).
+Root-level `azure-pipelines.yml` follows the Phase 4a Layer-2 pattern: pulls shared templates from `octo-pipeline-templates@tpl-v1.0.0`, builds + tests + pushes Docker image (private always, public on release tag), tags `:main-latest` on main. No Helm chart (the chart lives in `octo-helm-core`).
 
 Since Phase 4 / AB#4261 the pipeline also **publishes the `System.UI` CK library + catalog** (moved from the retired `octo-frontend-admin-panel`):
-- the shared `validate-ck-versions` step publishes it after the tests — `main` to the private catalog, `r*` tags to the private **and** the public one, never replacing a published version (AB#5121). The `Build` step passes `/p:OctoPublishCkModel=false`: it compiles the model and publishes it nowhere;
+- the shared `validate-and-publish-ck-versions` step publishes it after the tests — `main` to the private catalog, `r*` tags to the private **and** the public one, never replacing a published version (AB#5121). The `Build` step passes `/p:OctoPublishCkModel=false`: it compiles the model and publishes it nowhere;
 - `handle-artifacts.yml` is given `constructionKitLibraryPaths: src/SystemUiCkModel/bin/$(buildConfiguration)/$(artifactsFrameworkVersion)/octo-ck-libraries/SystemUiCkModel`, so the `local` build artifact carries the generated `SystemUiCkModel` library docs.
 
 This is what lets `octo-documentation`'s `collect-docs.yml` harvester pick up the `System.UI` library docs from `octo-platform-services-CI` — it replaces the removed `octo-frontend-admin-panel-CI` (`frontendAdmin`) producer.
