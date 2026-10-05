@@ -1,0 +1,22 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+records:
+  - recordId: EntityFormSection
+    description: "A named section (group box) of an EntityForm. Fields reference it via EntityFormField.SectionKey; sections render ordered by Order, then definition order. Absent / empty Sections = all fields go into one generated section."
+    attributes:
+      - id: ${this}/EntityFormSection.Key
+        name: Key
+      - id: ${this}/EntityFormSection.Title
+        name: Title
+        isOptional: true
+      - id: ${this}/EntityFormSection.Description
+        name: Description
+        isOptional: true
+      - id: ${this}/EntityFormSection.Order
+        name: Order
+        isOptional: true
+      - id: ${this}/EntityFormSection.Collapsed
+        name: Collapsed
+        isOptional: true
+      - id: ${this}/EntityFormSection.Columns
+        name: Columns
+        isOptional: true

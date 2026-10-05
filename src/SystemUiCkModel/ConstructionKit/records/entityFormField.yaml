@@ -1,0 +1,64 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+records:
+  - recordId: EntityFormField
+    description: "Presentation and validation override for one attribute of the form's target type, addressed by AttributePath. Every property is optional except AttributePath; absent properties fall back to what the CK metadata implies. Attributes without an EntityFormField entry are generated from CK metadata unless the form sets GenerateRemainingFields = false."
+    attributes:
+      - id: ${this}/EntityFormField.AttributePath
+        name: AttributePath
+      - id: ${this}/EntityFormField.SectionKey
+        name: SectionKey
+        isOptional: true
+      - id: ${this}/EntityFormField.Order
+        name: Order
+        isOptional: true
+      - id: ${this}/EntityFormField.Label
+        name: Label
+        isOptional: true
+      - id: ${this}/EntityFormField.Help
+        name: Help
+        isOptional: true
+      - id: ${this}/EntityFormField.Placeholder
+        name: Placeholder
+        isOptional: true
+      - id: ${this}/EntityFormField.Editor
+        name: Editor
+        isOptional: true
+      - id: ${this}/EntityFormField.ReadOnly
+        name: ReadOnly
+        isOptional: true
+      - id: ${this}/EntityFormField.Required
+        name: Required
+        isOptional: true
+      - id: ${this}/EntityFormField.Width
+        name: Width
+        isOptional: true
+      - id: ${this}/EntityFormField.Default
+        name: Default
+        isOptional: true
+      - id: ${this}/EntityFormField.Min
+        name: Min
+        isOptional: true
+      - id: ${this}/EntityFormField.Max
+        name: Max
+        isOptional: true
+      - id: ${this}/EntityFormField.Pattern
+        name: Pattern
+        isOptional: true
+      - id: ${this}/EntityFormField.Secret
+        name: Secret
+        isOptional: true
+      - id: ${this}/EntityFormField.VisibleWhen
+        name: VisibleWhen
+        isOptional: true
+      - id: ${this}/EntityFormField.ReferenceCkTypeId
+        name: ReferenceCkTypeId
+        isOptional: true
+      - id: ${this}/EntityFormField.AssociationRoleId
+        name: AssociationRoleId
+        isOptional: true
+      - id: ${this}/EntityFormField.RecordColumns
+        name: RecordColumns
+        isOptional: true
+      - id: ${this}/EntityFormField.Hidden
+        name: Hidden
+        isOptional: true

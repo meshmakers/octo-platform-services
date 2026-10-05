@@ -1,0 +1,156 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+attributes:
+  # --- EntityForm: which type the form applies to and how it is resolved ---
+  - id: EntityForm.TargetCkTypeId
+    valueType: String
+    description: "Runtime CK type id this form describes (e.g. 'EnergyIQ/Space', 'System/Entity'). Required. Resolution prefers a form whose TargetCkTypeId equals the entity's type; otherwise the nearest base type whose form sets IncludeDerivedTypes = true."
+  - id: EntityForm.IncludeDerivedTypes
+    valueType: Boolean
+    description: "Whether the form also applies to subtypes of TargetCkTypeId that have no form of their own (the nearest base type wins). Absent = false: the form applies to TargetCkTypeId only."
+  - id: EntityForm.Category
+    valueType: String
+    description: "Free-text grouping label for the type in the Studio's entity navigation (e.g. 'Energy', 'Configuration'). Absent = the type is listed under its CK model."
+  - id: EntityForm.Icon
+    valueType: String
+    description: "Optional icon name for the type's list and form header, resolved by the frontend against its known icon set. Absent = default entity icon."
+  - id: EntityForm.Priority
+    valueType: Int
+    description: "Tie-breaker when several forms target the same type at the same source level (tenant forms always win over seeded ones first); the highest Priority wins. Absent = 0."
+  - id: EntityForm.CanCreate
+    valueType: Boolean
+    description: "Whether the list view offers creating new entities of this type. Absent = true."
+  - id: EntityForm.CanEdit
+    valueType: Boolean
+    description: "Whether existing entities of this type can be edited; false renders the form read-only. Absent = true."
+  - id: EntityForm.CanDelete
+    valueType: Boolean
+    description: "Whether the list view offers deleting entities of this type. Absent = true."
+  - id: EntityForm.CanDuplicate
+    valueType: Boolean
+    description: "Whether the list view offers duplicating an entity (opens the create form prefilled with its values). Absent = false."
+  - id: EntityForm.CanExport
+    valueType: Boolean
+    description: "Whether the list view offers exporting entities of this type. Absent = false."
+  - id: EntityForm.Singleton
+    valueType: Boolean
+    description: "Whether the type is a per-tenant singleton: the Studio skips the list and opens the one entity (identified by SingletonWellKnownName) directly, creating it on first save. Absent = false."
+  - id: EntityForm.SingletonWellKnownName
+    valueType: String
+    description: "rtWellKnownName of the singleton entity when Singleton = true (e.g. 'TreeNavigation', 'MappingCoverage'). Ignored when Singleton is absent or false. Absent with Singleton = true = the first entity of the type is used."
+  - id: EntityForm.CustomComponent
+    valueType: String
+    description: "Key of a dedicated frontend component that replaces the generated form for this type (e.g. for editors the generic form cannot express). Unknown keys fall back to the generated form. Absent = generated form."
+  - id: EntityForm.GenerateRemainingFields
+    valueType: Boolean
+    description: "Whether attributes of the target type that no EntityFormField mentions are generated from CK metadata and appended in an extra section titled GeneratedSectionTitle. false = only the listed Fields are shown. Absent = true."
+  - id: EntityForm.GeneratedSectionTitle
+    valueType: String
+    description: "Title of the section holding the generated remaining fields (see GenerateRemainingFields). Absent = 'Further attributes'."
+  - id: EntityForm.Sections
+    valueType: RecordArray
+    valueCkRecordId: ${this}/EntityFormSection
+    description: "Sections (group boxes) the form is divided into; fields are assigned via EntityFormField.SectionKey. Absent / empty = a single generated section."
+  - id: EntityForm.Fields
+    valueType: RecordArray
+    valueCkRecordId: ${this}/EntityFormField
+    description: "Per-attribute presentation and validation overrides. Absent / empty = every attribute is generated from CK metadata (when GenerateRemainingFields is not false)."
+  - id: EntityForm.ListColumns
+    valueType: RecordArray
+    valueCkRecordId: ${this}/EntityFormColumn
+    description: "Columns of the entity list view, in definition order. Absent / empty = columns are derived from CK metadata."
+
+  # --- EntityFormSection: one section of the form ---
+  - id: EntityFormSection.Key
+    valueType: String
+    description: "Stable identifier of the section, unique within the form; referenced by EntityFormField.SectionKey. Required."
+  - id: EntityFormSection.Title
+    valueType: String
+    description: "Heading shown for the section. Absent = Key is shown."
+  - id: EntityFormSection.Description
+    valueType: String
+    description: "Optional explanatory text shown below the section heading. Absent = no text."
+  - id: EntityFormSection.Order
+    valueType: Int
+    description: "Ordering hint among sections (ascending). Absent = definition order, after sections with an explicit Order."
+  - id: EntityFormSection.Collapsed
+    valueType: Boolean
+    description: "Whether the section starts collapsed. Absent = false (expanded)."
+  - id: EntityFormSection.Columns
+    valueType: Int
+    description: "Number of field columns in the section layout: 1 or 2. Absent = 1. Other values behave as 1."
+
+  # --- EntityFormField: one attribute override ---
+  - id: EntityFormField.AttributePath
+    valueType: String
+    description: "Attribute of the target type this field configures, by attribute name (e.g. 'Name', 'Address.City' for a nested record attribute). Required. Paths that match no attribute of the type are ignored."
+  - id: EntityFormField.SectionKey
+    valueType: String
+    description: "Key of the EntityFormSection this field belongs to. Absent or unknown key = the field goes into the first section (or the single generated section when no Sections are defined)."
+  - id: EntityFormField.Order
+    valueType: Int
+    description: "Ordering hint among the fields of its section (ascending). Absent = definition order, after fields with an explicit Order."
+  - id: EntityFormField.Label
+    valueType: String
+    description: "Label shown for the field. Absent = the attribute name, humanized."
+  - id: EntityFormField.Help
+    valueType: String
+    description: "Help text shown with the field. Absent = the CK attribute description, if any."
+  - id: EntityFormField.Placeholder
+    valueType: String
+    description: "Placeholder text shown in an empty input. Absent = no placeholder."
+  - id: EntityFormField.Editor
+    valueType: String
+    description: "Editor widget for the field. Allowed values: 'auto', 'text', 'multiline', 'password', 'number', 'toggle', 'enum', 'datetime', 'url', 'email', 'json', 'yaml', 'cron', 'reference', 'records'. Absent = 'auto' (derived from the attribute value type); unknown values behave as 'auto'."
+  - id: EntityFormField.ReadOnly
+    valueType: String
+    description: "When the field is read-only. Allowed values: 'never' (editable), 'always', 'afterCreate' (editable only while creating, read-only when editing an existing entity). Absent = 'never'; unknown values behave as 'never'."
+  - id: EntityFormField.Required
+    valueType: Boolean
+    description: "Whether a value is mandatory. Absent = taken from the model (the attribute's isOptional). true makes an optional attribute mandatory in the form; false cannot loosen an attribute the model declares mandatory."
+  - id: EntityFormField.Width
+    valueType: String
+    description: "Horizontal size of the field in a two-column section. Allowed values: 'full', 'half'. Absent = 'full'; unknown values behave as 'full'."
+  - id: EntityFormField.Default
+    valueType: String
+    description: "Initial value prefilled when creating a new entity, as a string parsed according to the attribute value type. Absent = the CK attribute default, if any, otherwise empty."
+  - id: EntityFormField.Min
+    valueType: Double
+    description: "Minimum allowed value for numeric attributes (inclusive). Ignored for non-numeric attributes. Absent = no lower bound."
+  - id: EntityFormField.Max
+    valueType: Double
+    description: "Maximum allowed value for numeric attributes (inclusive). Ignored for non-numeric attributes. Absent = no upper bound."
+  - id: EntityFormField.Pattern
+    valueType: String
+    description: "Regular expression the string value must match. Absent = no pattern check."
+  - id: EntityFormField.Secret
+    valueType: Boolean
+    description: "Whether the value is masked in the form and list (shown as dots, revealed on demand). Absent = false."
+  - id: EntityFormField.VisibleWhen
+    valueType: String
+    description: "Condition on another attribute that controls visibility, as 'AttributePath=value' (visible when that attribute equals value) or 'AttributePath=*' (visible when that attribute has any value). Absent = always visible."
+  - id: EntityFormField.ReferenceCkTypeId
+    valueType: String
+    description: "For Editor 'reference': runtime CK type id whose entities are offered for selection (e.g. 'EnergyIQ/Space'). Absent = derived from the attribute or association metadata."
+  - id: EntityFormField.AssociationRoleId
+    valueType: String
+    description: "For Editor 'reference': association role id the selection is stored in (e.g. 'System/ParentChild') instead of an attribute. Absent = the selection is stored in the attribute at AttributePath."
+  - id: EntityFormField.RecordColumns
+    valueType: StringArray
+    description: "For Editor 'records' (RecordArray attributes): the record attributes shown as grid columns, each entry 'Path:Label' (Label optional, e.g. 'Key:Key', 'DisplayName:Name'). Absent / empty = columns derived from the record's CK metadata."
+  - id: EntityFormField.Hidden
+    valueType: Boolean
+    description: "Whether the field is omitted from the form (the attribute is neither shown nor generated). Absent = false."
+
+  # --- EntityFormColumn: one list-view column ---
+  - id: EntityFormColumn.AttributePath
+    valueType: String
+    description: "Attribute of the target type shown in this list column, by attribute name (e.g. 'Name', 'Address.City'). Required. Paths that match no attribute of the type are ignored."
+  - id: EntityFormColumn.Label
+    valueType: String
+    description: "Column header. Absent = the attribute name, humanized."
+  - id: EntityFormColumn.Width
+    valueType: Int
+    description: "Column width in pixels. Absent = auto."
+  - id: EntityFormColumn.Display
+    valueType: String
+    description: "How the cell value is rendered. Allowed values: 'text', 'chip', 'date', 'mono'. Absent = 'text'; unknown values behave as 'text'."

@@ -1,0 +1,16 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+records:
+  - recordId: EntityFormColumn
+    description: "One column of the entity list view for the form's target type, addressed by AttributePath. Absent / empty ListColumns = the list view derives its columns from CK metadata."
+    attributes:
+      - id: ${this}/EntityFormColumn.AttributePath
+        name: AttributePath
+      - id: ${this}/EntityFormColumn.Label
+        name: Label
+        isOptional: true
+      - id: ${this}/EntityFormColumn.Width
+        name: Width
+        isOptional: true
+      - id: ${this}/EntityFormColumn.Display
+        name: Display
+        isOptional: true
