@@ -161,8 +161,10 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
     them a Settings entry and list columns; `CanEdit: false` makes every generic view read-only — the
     Studio routes list / create / edit of this entry to its custom page.
   - The Studio carries built-in copies of these entries (`settings-fallback-forms.ts`) that apply only
-    while a tenant has no form for the type, i.e. until this version is rolled out by a cold start.
-    Keep both in step when changing a wave-2/4 form here.
+    where its resolution would otherwise end at `form-default`, i.e. until this version is rolled out
+    by a cold start. Keep both in step when changing a wave-2/4 form here: the Studio checks its
+    copies against a snapshot of this seed (`entity-forms-seed-1.2.0.snapshot.ts`), which must be
+    regenerated too.
 - **Naming.** `rtWellKnownName` = `form-<kebab-type>`, e.g. `form-sftp-configuration` (no colon).
 - **Tenant overrides.** A tenant customises a delivered form by creating its **own** `EntityForm` for the same
   `TargetCkTypeId` (empty `rtBlueprintSource`). Never edit a delivered `form-*` entity: a blueprint re-apply
