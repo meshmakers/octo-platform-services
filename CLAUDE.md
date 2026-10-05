@@ -124,7 +124,7 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
   night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
 
-### `System.UI.EntityForms` blueprint (1.1.0, AB#5521 / AB#5523)
+### `System.UI.EntityForms` blueprint (1.2.0, AB#5521 / AB#5523 / AB#5524)
 
 `System.UI/EntityForm` (System.UI **2.7.0**, Minor, no migration) describes how the Refinery Studio lists,
 creates and edits entities of a CK type: sections, fields, list columns and capabilities, as flat record
@@ -143,6 +143,26 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   cold start rolls the higher embedded version forward on every tenant (no `Program.cs` change, the DI
   extension is keyed on the major version). Until then the Studio still shows these types under
   Settings › Connections › *All configurations* (form-default).
+- **1.2.0 (AB#5524)** adds waves 2 and 4 and retires the last hand-written Studio configuration pages:
+  `…30`–`…34` SAP, Microsoft Graph, finAPI (`form-finapi-configuration`), Helm repository, Service
+  accounts (`connections`); `…40`–`…42` AI configuration, AI agent configuration, AI quota limit (`ai`;
+  agent config and quota limit are created by the AI service, so `CanCreate`/`CanDelete: false`);
+  `…50`–`…51` Tenant mode and Tenant configuration (`tenant`). Credentials (SAP `Password`, Graph / finAPI
+  `ClientSecret`, finAPI / Helm `Password`, AI `ApiKey`, service account `ClientSecret`) are
+  `Editor: password` + `Secret: true` (write-only in the Studio). Helm repository shows the inbound
+  `System.Communication/HelmRepository` association as a read-only `Used by` reference field.
+  - **Tenant mode** is the only singleton: `Singleton: true`, `SingletonWellKnownName: TenantMode` (the
+    entity `System.TenantMode` seeds); the former page's field hints are `Help` texts.
+  - **Tenant configuration** and **AI configuration** are deliberately *lists*, not singletons as the
+    concept's wave 4 says: `TenantConfiguration` is the engine's key/value store (one entity per key,
+    `TenantContext.SetConfigurationAsync`), and pipelines reference several named `AiConfiguration`s via
+    `ApiKeyConfigurationName`. A singleton form would hide all but one entry.
+  - **Service accounts** stay a hand-written Studio page (rotation flow, concept §5.9). The form gives
+    them a Settings entry and list columns; `CanEdit: false` makes every generic view read-only — the
+    Studio routes list / create / edit of this entry to its custom page.
+  - The Studio carries built-in copies of these entries (`settings-fallback-forms.ts`) that apply only
+    while a tenant has no form for the type, i.e. until this version is rolled out by a cold start.
+    Keep both in step when changing a wave-2/4 form here.
 - **Naming.** `rtWellKnownName` = `form-<kebab-type>`, e.g. `form-sftp-configuration` (no colon).
 - **Tenant overrides.** A tenant customises a delivered form by creating its **own** `EntityForm` for the same
   `TargetCkTypeId` (empty `rtBlueprintSource`). Never edit a delivered `form-*` entity: a blueprint re-apply

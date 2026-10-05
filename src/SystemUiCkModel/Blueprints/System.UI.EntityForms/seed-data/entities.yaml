@@ -12,7 +12,8 @@ $schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
 # the entity system properties rtWellKnownName / rtChangedDateTime.
 #
 # Fixed rtIds 6703000000000000000000xx: 01 = form-default, 1x = wave-1 connection forms,
-# 2x = wave-3 connection forms (1.1.0).
+# 2x = wave-3 connection forms (1.1.0), 3x = wave-2 connection forms, 4x = AI forms,
+# 5x = tenant forms (1.2.0, AB#5524).
 dependencies:
   # 2.7.0 introduces System.UI/EntityForm + its records; keep in step with the
   # ckModelDependencies floor in blueprint.yaml.
@@ -1072,3 +1073,1020 @@ entities:
           - { id: System.UI/EntityFormColumn.AttributePath, value: "EnergyCommunityId" }
           - { id: System.UI/EntityFormColumn.Label, value: "Community ID" }
           - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+
+  # ---------------------------------------------------------------------------
+  # SAP — RFC connection of the SAP adapter. Mirrors the former Studio sap-configuration-details
+  # page; Password is write-only.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000030'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-sap-configuration
+    attributes:
+      - { id: System/Name, value: "SAP configuration" }
+      - { id: System/Description, value: "RFC connection to an SAP system (application server, client, user) used by the SAP adapter." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/SapConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "server" }
+          - { id: System.UI/EntityFormSection.Title, value: "Application server" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "auth" }
+          - { id: System.UI/EntityFormSection.Title, value: "Logon" }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "gateway" }
+          - { id: System.UI/EntityFormSection.Title, value: "Gateway (RFC server)" }
+          - { id: System.UI/EntityFormSection.Description, value: "Only needed when SAP calls the adapter (registered RFC server program)." }
+          - { id: System.UI/EntityFormSection.Order, value: 2 }
+          - { id: System.UI/EntityFormSection.Collapsed, value: true }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipelines reference it by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter configuration name" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "AppServerHost" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Application server host" }
+          - { id: System.UI/EntityFormField.Placeholder, value: "sap.example.com" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "SystemNumber" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "System number" }
+          - { id: System.UI/EntityFormField.Help, value: "Two-digit instance number, e.g. 00." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "00" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "SystemId" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "System ID" }
+          - { id: System.UI/EntityFormField.Help, value: "Three-character SAP system ID (SID)." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "PRD" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Client" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Client" }
+          - { id: System.UI/EntityFormField.Help, value: "Three-digit SAP client (Mandant), e.g. 100." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "100" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Language" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Language" }
+          - { id: System.UI/EntityFormField.Help, value: "Logon language, e.g. EN or DE." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "EN" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "User" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "User" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Password" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Password" }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Trace" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 4 }
+          - { id: System.UI/EntityFormField.Label, value: "Trace level" }
+          - { id: System.UI/EntityFormField.Help, value: "RFC trace level of the SAP connector (0 = off; the former page defaulted to 8)." }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Default, value: "8" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "GatewayHost" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "gateway" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Gateway host" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "GatewayService" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "gateway" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Gateway service" }
+          - { id: System.UI/EntityFormField.Placeholder, value: "sapgw00" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ProgramId" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "gateway" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Program ID" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "RegistrationCount" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "gateway" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Registration count" }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Min, value: 1 }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "AppServerHost" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Host" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Client" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "User" }
+
+  # ---------------------------------------------------------------------------
+  # Microsoft Graph — OAuth2 client-credentials app registration (Entra ID). ClientSecret is
+  # write-only.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000031'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-microsoft-graph-configuration
+    attributes:
+      - { id: System/Name, value: "Microsoft Graph configuration" }
+      - { id: System/Description, value: "Entra ID app registration (client credentials) for the Microsoft Graph API." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/MicrosoftGraphConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "app" }
+          - { id: System.UI/EntityFormSection.Title, value: "App registration" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "app" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipelines reference it by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "e.g. MicrosoftGraphInvoices" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "AzureTenantId" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "app" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Azure tenant ID" }
+          - { id: System.UI/EntityFormField.Help, value: "Directory (tenant) ID of the Entra ID tenant (GUID)." }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ClientId" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "app" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Client ID" }
+          - { id: System.UI/EntityFormField.Help, value: "Application (client) ID of the app registration." }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ClientSecret" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "app" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Client secret" }
+          - { id: System.UI/EntityFormField.Help, value: "Secret value of the app registration (not the secret ID)." }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "AzureTenantId" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Azure tenant ID" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "ClientId" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Client ID" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+
+  # ---------------------------------------------------------------------------
+  # finAPI — banking API (OAuth2 client plus finAPI user). ClientSecret and Password are
+  # write-only.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000032'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-finapi-configuration
+    attributes:
+      - { id: System/Name, value: "finAPI configuration" }
+      - { id: System/Description, value: "finAPI banking API connection used by the finAPI adapter." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/FinApiConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "api" }
+          - { id: System.UI/EntityFormSection.Title, value: "finAPI" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "client" }
+          - { id: System.UI/EntityFormSection.Title, value: "OAuth2 client" }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "user" }
+          - { id: System.UI/EntityFormSection.Title, value: "finAPI user" }
+          - { id: System.UI/EntityFormSection.Order, value: 2 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "api" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipelines reference it by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter configuration name" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "BaseUrl" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "api" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Base URL" }
+          - { id: System.UI/EntityFormField.Placeholder, value: "https://sandbox.finapi.io" }
+          - { id: System.UI/EntityFormField.Editor, value: "url" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "IsSandbox" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "api" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Sandbox" }
+          - { id: System.UI/EntityFormField.Help, value: "Use the finAPI sandbox environment." }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ClientId" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "client" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Client ID" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ClientSecret" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "client" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Client secret" }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Username" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "user" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Username" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Password" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "user" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Password" }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "BaseUrl" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Base URL" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "IsSandbox" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Sandbox" }
+          - { id: System.UI/EntityFormColumn.Display, value: "chip" }
+
+  # ---------------------------------------------------------------------------
+  # Helm repository — chart source of deployable workloads. Password is write-only; the
+  # inbound HelmRepository association ("Used by") is shown read-only: the link is set on
+  # the adapter / application, not here.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000033'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-helm-repository-configuration
+    attributes:
+      - { id: System/Name, value: "Helm repository" }
+      - { id: System/Description, value: "Helm chart repository the Communication Operator pulls adapter and application charts from." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/HelmRepositoryConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "repository" }
+          - { id: System.UI/EntityFormSection.Title, value: "Repository" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "auth" }
+          - { id: System.UI/EntityFormSection.Title, value: "Authentication" }
+          - { id: System.UI/EntityFormSection.Description, value: "Only for private repositories." }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "usage" }
+          - { id: System.UI/EntityFormSection.Title, value: "Usage" }
+          - { id: System.UI/EntityFormSection.Order, value: 2 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "repository" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the repository configuration. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter configuration name" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "RepositoryUrl" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "repository" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Repository URL" }
+          - { id: System.UI/EntityFormField.Placeholder, value: "https://meshmakers.github.io/octo-helm-core" }
+          - { id: System.UI/EntityFormField.Editor, value: "url" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Channel" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "repository" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Channel" }
+          - { id: System.UI/EntityFormField.Help, value: "Dev or Release; a label only, the operator does not derive behaviour from it." }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Default, value: "Release" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Username" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Username" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Password" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Password" }
+          - { id: System.UI/EntityFormField.Help, value: "Stored encrypted. Leave empty to keep the current password." }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "HelmRepositoryUsedBy" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "usage" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Used by" }
+          - { id: System.UI/EntityFormField.Help, value: "Adapters and applications that pull their chart from this repository. Change the link on the adapter or application." }
+          - { id: System.UI/EntityFormField.Editor, value: "reference" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "always" }
+          - { id: System.UI/EntityFormField.ReferenceCkTypeId, value: "System.Communication/DeployableWorkload" }
+          - { id: System.UI/EntityFormField.AssociationRoleId, value: "System.Communication/HelmRepository" }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "RepositoryUrl" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Repository URL" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Channel" }
+          - { id: System.UI/EntityFormColumn.Display, value: "chip" }
+
+  # ---------------------------------------------------------------------------
+  # Service account — stays a hand-written Studio page (secret rotation flow, usage panel,
+  # concept §5.9). This form only gives it a Settings › Connections entry and the list
+  # columns; the Studio serves its list / create / edit routes with the custom page.
+  # CanEdit false: generic views of a service account (e.g. "All configurations") are
+  # read-only, edits go through the custom page. ClientSecret is write-only.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000034'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-service-account-configuration
+    attributes:
+      - { id: System/Name, value: "Service accounts" }
+      - { id: System/Description, value: "Identities the adapters' pipelines run as; edit and rotate secrets on the service account page." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/ServiceAccountConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: false }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the service account configuration." }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ClientSecret" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Client secret" }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "ClientId" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Client ID" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "IssuerUri" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Issuer" }
+
+  # ---------------------------------------------------------------------------
+  # AI configuration — Anthropic API key and default model, referenced by pipeline nodes
+  # via ApiKeyConfigurationName. Several named configurations per tenant are valid, so this
+  # is a list, not a singleton (deviation from concept §5.10 wave 4, AB#5524). ApiKey is
+  # write-only.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000040'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-ai-configuration
+    attributes:
+      - { id: System/Name, value: "AI configuration" }
+      - { id: System/Description, value: "API credentials and default model settings for AI pipeline nodes (referenced by name)." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/AiConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "ai" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "api" }
+          - { id: System.UI/EntityFormSection.Title, value: "API" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "model" }
+          - { id: System.UI/EntityFormSection.Title, value: "Model defaults" }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "api" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipeline nodes reference it as ApiKeyConfigurationName. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter configuration name" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ApiKey" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "api" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "API key" }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "McpServerUrl" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "api" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "MCP server URL" }
+          - { id: System.UI/EntityFormField.Editor, value: "url" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "AiModel" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "model" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "AI model" }
+          - { id: System.UI/EntityFormField.Placeholder, value: "e.g. claude-sonnet-4-6" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "MaxTokens" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "model" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Max tokens" }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Min, value: 1 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Temperature" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "model" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Temperature" }
+          - { id: System.UI/EntityFormField.Help, value: "0.0 – 2.0" }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Min, value: 0 }
+          - { id: System.UI/EntityFormField.Max, value: 2 }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "AiModel" }
+          - { id: System.UI/EntityFormColumn.Label, value: "AI model" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+
+  # ---------------------------------------------------------------------------
+  # AI agent configuration — the AI adapter settings of the tenant. Created by the AI
+  # service, so no create / delete here (the former Studio page had none either).
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000041'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-ai-agent-config
+    attributes:
+      - { id: System/Name, value: "AI agent configuration" }
+      - { id: System/Description, value: "Auth mode, default model, workspace lifecycle and worker image of the AI adapter." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Ai/AiAgentConfig" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "ai" }
+      - { id: System.UI/EntityForm.CanCreate, value: false }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: false }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "agent" }
+          - { id: System.UI/EntityFormSection.Title, value: "Agent" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "workspace" }
+          - { id: System.UI/EntityFormSection.Title, value: "Workspace" }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Name" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "agent" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "DefaultModel" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "agent" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Default model" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "AuthMode" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "agent" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Auth mode" }
+          - { id: System.UI/EntityFormField.Help, value: "Subscription: token lease; CentralKey / ByoKey: API key of the linked AI configuration." }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "SubscriptionScope" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "agent" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Subscription scope" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "WorkspaceMode" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "workspace" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Workspace mode" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "HibernationIdleMinutes" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "workspace" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Hibernation idle minutes" }
+          - { id: System.UI/EntityFormField.Help, value: "Minutes of inactivity before the workspace scales to zero (0 disables)." }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Min, value: 0 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "WorkerImageTag" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "workspace" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Worker image tag" }
+          - { id: System.UI/EntityFormField.Placeholder, value: "e.g. \"stable\", \"canary\", \"pinned:1.2.3\"" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "DevBridgeEnabled" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "workspace" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Dev bridge enabled" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "AuthMode" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Auth mode" }
+          - { id: System.UI/EntityFormColumn.Display, value: "chip" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "DefaultModel" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Default model" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "WorkspaceMode" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Workspace mode" }
+
+  # ---------------------------------------------------------------------------
+  # AI quota limit — hard limits enforced by the QuotaManager. One per AI agent
+  # configuration and created by the AI service, so no create / delete here.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000042'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-ai-quota-limit
+    attributes:
+      - { id: System/Name, value: "AI quota limit" }
+      - { id: System/Description, value: "Token budgets, monthly cost cap and session limits the tenant cannot exceed." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Ai/AiQuotaLimit" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "ai" }
+      - { id: System.UI/EntityForm.CanCreate, value: false }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: false }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "budget" }
+          - { id: System.UI/EntityFormSection.Title, value: "Budget" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "sessions" }
+          - { id: System.UI/EntityFormSection.Title, value: "Sessions" }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "TokensPerDay" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "budget" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Tokens per day" }
+          - { id: System.UI/EntityFormField.Help, value: "Daily token cap (CentralKey / ByoKey modes)." }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Min, value: 0 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "TokensPerJob" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "budget" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Tokens per job" }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Min, value: 0 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "CostCapMonthlyEUR" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "budget" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Cost cap (EUR / month)" }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Min, value: 0 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ConcurrentJobs" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "sessions" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Concurrent jobs" }
+          - { id: System.UI/EntityFormField.Help, value: "Maximum simultaneous sessions." }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Min, value: 1 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "MaxSessionDurationMinutes" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "sessions" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Max session duration (minutes)" }
+          - { id: System.UI/EntityFormField.Help, value: "Watchdog limit per session." }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Min, value: 1 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "MaxSessionsQueued" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "sessions" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Max sessions queued" }
+          - { id: System.UI/EntityFormField.Help, value: "Maximum queue depth behind Concurrent jobs." }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Min, value: 0 }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtChangedDateTime" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Changed" }
+          - { id: System.UI/EntityFormColumn.Display, value: "date" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "TokensPerDay" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Tokens per day" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "CostCapMonthlyEUR" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Cost cap (EUR)" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "ConcurrentJobs" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Concurrent jobs" }
+
+  # ---------------------------------------------------------------------------
+  # Tenant mode — singleton: Settings › Tenant opens the entity with the well-known name
+  # TenantMode (seeded by System.TenantMode) directly, or creates it on first save. The field
+  # hints of the former Studio page are kept as Help texts.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000050'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-tenant-mode-configuration
+    attributes:
+      - { id: System/Name, value: "Tenant mode" }
+      - { id: System/Description, value: "Environment mode, maintenance level and observability opt-in of the tenant." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System/TenantModeConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "tenant" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: false }
+      - { id: System.UI/EntityForm.Singleton, value: true }
+      - { id: System.UI/EntityForm.SingletonWellKnownName, value: "TenantMode" }
+      - { id: System.UI/EntityForm.GenerateRemainingFields, value: false }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "mode" }
+          - { id: System.UI/EntityFormSection.Title, value: "Mode" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "observability" }
+          - { id: System.UI/EntityFormSection.Title, value: "Observability" }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "mode" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Fixed name of the tenant mode configuration." }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "always" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "EnvironmentMode" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "mode" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Environment mode" }
+          - { id: System.UI/EntityFormField.Help, value: "Operational mode of the tenant: Development, Testing, Staging or Production. Production asks for confirmation before destructive actions." }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "MaintenanceLevel" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "mode" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Maintenance level" }
+          - { id: System.UI/EntityFormField.Help, value: "Off = fully operational; UserApps = user apps unavailable; FullSystem = tenant not operational." }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "PublishCkModelObservability" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "observability" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Publish CK model observability" }
+          - { id: System.UI/EntityFormField.Help, value: "Publishes CK model health for this tenant: library resolve failures and catalog inconsistencies." }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "PublishWorkloadObservability" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "observability" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Publish workload observability" }
+          - { id: System.UI/EntityFormField.Help, value: "Publishes workload state for this tenant: deployment state, online/offline and configuration errors of adapters, pools and applications. Requires communication to be enabled; without it the tenant is skipped silently." }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "EnvironmentMode" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Environment mode" }
+          - { id: System.UI/EntityFormColumn.Display, value: "chip" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "MaintenanceLevel" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Maintenance level" }
+          - { id: System.UI/EntityFormColumn.Display, value: "chip" }
+
+  # ---------------------------------------------------------------------------
+  # Tenant configuration — the engine's per-tenant key/value store (one entity per key,
+  # e.g. MailNotificationConfiguration, stream-data settings). Several entries per tenant,
+  # so this is a list, not a singleton (deviation from concept §5.10 wave 4, AB#5524).
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000051'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-tenant-configuration
+    attributes:
+      - { id: System/Name, value: "Tenant configuration" }
+      - { id: System/Description, value: "Internal key/value settings of the tenant, maintained by the platform services." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System/TenantConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "tenant" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - { id: System.UI/EntityForm.GenerateRemainingFields, value: false }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "entry" }
+          - { id: System.UI/EntityFormSection.Title, value: "Entry" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "entry" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Key" }
+          - { id: System.UI/EntityFormField.Help, value: "Key of the entry; platform services look the value up by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ConfigurationValue" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "entry" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Value" }
+          - { id: System.UI/EntityFormField.Help, value: "Serialized value as written by the platform services. Changing it changes platform behaviour." }
+          - { id: System.UI/EntityFormField.Editor, value: "multiline" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Key" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtChangedDateTime" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Changed" }
+          - { id: System.UI/EntityFormColumn.Display, value: "date" }
