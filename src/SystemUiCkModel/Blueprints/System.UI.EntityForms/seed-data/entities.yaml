@@ -1142,6 +1142,7 @@ entities:
           - { id: System.UI/EntityFormField.Placeholder, value: "00" }
           - { id: System.UI/EntityFormField.Required, value: true }
           - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: ".{2}" }
         - ckRecordId: System.UI/EntityFormField
           attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "SystemId" }
@@ -1151,6 +1152,7 @@ entities:
           - { id: System.UI/EntityFormField.Help, value: "Three-character SAP system ID (SID)." }
           - { id: System.UI/EntityFormField.Placeholder, value: "PRD" }
           - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: ".{3}" }
         - ckRecordId: System.UI/EntityFormField
           attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "Client" }
@@ -1161,6 +1163,7 @@ entities:
           - { id: System.UI/EntityFormField.Placeholder, value: "100" }
           - { id: System.UI/EntityFormField.Required, value: true }
           - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: ".{3}" }
         - ckRecordId: System.UI/EntityFormField
           attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "Language" }
@@ -1171,6 +1174,8 @@ entities:
           - { id: System.UI/EntityFormField.Placeholder, value: "EN" }
           - { id: System.UI/EntityFormField.Required, value: true }
           - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Default, value: "EN" }
+          - { id: System.UI/EntityFormField.Pattern, value: ".{2}" }
         - ckRecordId: System.UI/EntityFormField
           attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "User" }
