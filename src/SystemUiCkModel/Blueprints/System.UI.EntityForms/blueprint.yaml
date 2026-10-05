@@ -1,12 +1,13 @@
 $schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
-blueprintId: System.UI.EntityForms-1.0.0
+blueprintId: System.UI.EntityForms-1.1.0
 description: |
   Service-managed blueprint seeding the platform's System.UI/EntityForm entities
   (AB#5521) on every tenant. Ships "form-default" — the form on System/Entity with
   IncludeDerivedTypes and the lowest Priority that ends the Refinery Studio's form
   resolution chain, so every type has a form — plus the wave-1 configuration forms
   (SFTP, Grafana, Discord, Loxone, e-mail sender, e-mail receiver) that replace the
-  hand-written Studio configuration pages.
+  hand-written Studio configuration pages. 1.1.0 (AB#5523) adds the wave-3 forms
+  WeClapp, EDA and Energy Community (Settings › Connections).
 
   Target types are referenced by their CK type id as a plain string
   (TargetCkTypeId), so this blueprint needs no System.Communication dependency; a

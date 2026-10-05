@@ -11,7 +11,8 @@ $schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
 # AttributePath convention: CK attribute names (Name, Host, RtBlueprintSource, ...) plus
 # the entity system properties rtWellKnownName / rtChangedDateTime.
 #
-# Fixed rtIds 6703000000000000000000xx: 01 = form-default, 1x = wave-1 connection forms.
+# Fixed rtIds 6703000000000000000000xx: 01 = form-default, 1x = wave-1 connection forms,
+# 2x = wave-3 connection forms (1.1.0).
 dependencies:
   # 2.7.0 introduces System.UI/EntityForm + its records; keep in step with the
   # ckModelDependencies floor in blueprint.yaml.
@@ -792,3 +793,282 @@ entities:
         - ckRecordId: System.UI/EntityFormColumn
           attributes:
           - { id: System.UI/EntityFormColumn.AttributePath, value: "Username" }
+
+  # ---------------------------------------------------------------------------
+  # Wave 3 (1.1.0, AB#5523): configuration types that never had a Studio page.
+  # Only the connection essentials are listed; everything else is generated
+  # into the remaining-fields section (concept §5.3).
+  # ---------------------------------------------------------------------------
+
+  # ---------------------------------------------------------------------------
+  # WeClapp — base URL + API key of the WeClapp cloud ERP (WeClapp adapter nodes
+  # reference it via apiConfiguration).
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000020'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-we-clapp-configuration
+    attributes:
+      - { id: System/Name, value: "WeClapp configuration" }
+      - { id: System/Description, value: "WeClapp cloud ERP API used by the WeClapp adapter nodes." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/WeClappConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "api" }
+          - { id: System.UI/EntityFormSection.Title, value: "WeClapp API" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "api" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipelines reference it by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "BaseUrl" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "api" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Base URL" }
+          - { id: System.UI/EntityFormField.Help, value: "Tenant-specific WeClapp API base URL." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "https://<tenant>.weclapp.com/webapp/api/v1" }
+          - { id: System.UI/EntityFormField.Editor, value: "url" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ApiKey" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "api" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "API key" }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "BaseUrl" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Base URL" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+
+  # ---------------------------------------------------------------------------
+  # EDA — Austrian energy data exchange (EDA) market partner. Exact type only:
+  # EnergyCommunityConfiguration derives from it and has its own form.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000021'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-eda-configuration
+    attributes:
+      - { id: System/Name, value: "EDA configuration" }
+      - { id: System/Description, value: "Market partner for the EDA energy data exchange." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/EdaConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "eda" }
+          - { id: System.UI/EntityFormSection.Title, value: "EDA" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "eda" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "PartnerId" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "eda" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Market partner ID" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "NotificationEmailContact" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "eda" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Notification e-mail" }
+          - { id: System.UI/EntityFormField.Editor, value: "email" }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "PartnerId" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Market partner ID" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+
+  # ---------------------------------------------------------------------------
+  # Energy Community — EDA partner plus community, billing and branding settings
+  # of the energy community app. Branding (logos, colours, gradients) is left to
+  # the generated section.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000022'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-energy-community-configuration
+    attributes:
+      - { id: System/Name, value: "Energy community configuration" }
+      - { id: System/Description, value: "Community, billing and branding settings of an energy community." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/EnergyCommunityConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - { id: System.UI/EntityForm.GeneratedSectionTitle, value: "Branding and further attributes" }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "community" }
+          - { id: System.UI/EntityFormSection.Title, value: "Community" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "billing" }
+          - { id: System.UI/EntityFormSection.Title, value: "Billing" }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "community" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Configuration name" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Name" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "community" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Community name" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "EnergyCommunityId" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "community" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Energy community ID" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "PartnerId" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "community" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Market partner ID" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "NotificationEmailContact" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "community" }
+          - { id: System.UI/EntityFormField.Order, value: 4 }
+          - { id: System.UI/EntityFormField.Label, value: "Notification e-mail" }
+          - { id: System.UI/EntityFormField.Editor, value: "email" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ConsumerPrice" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "billing" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ProducerPrice" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "billing" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "TaxRate" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "billing" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "FarmerTaxRate" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "billing" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ConsumptionRecordRequestDelay" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "billing" }
+          - { id: System.UI/EntityFormField.Order, value: 4 }
+          - { id: System.UI/EntityFormField.Label, value: "Consumption record request delay (days)" }
+          - { id: System.UI/EntityFormField.Min, value: 0 }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "BankAccountIban" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "billing" }
+          - { id: System.UI/EntityFormField.Order, value: 5 }
+          - { id: System.UI/EntityFormField.Label, value: "Bank account IBAN" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "BankAccountHolder" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "billing" }
+          - { id: System.UI/EntityFormField.Order, value: 6 }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "BillingMailServerConfiguration" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "billing" }
+          - { id: System.UI/EntityFormField.Order, value: 7 }
+          - { id: System.UI/EntityFormField.Label, value: "Billing mail sender" }
+          - { id: System.UI/EntityFormField.Help, value: "Well-known name of the e-mail sender configuration used for billing mail." }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "BillingReportName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "billing" }
+          - { id: System.UI/EntityFormField.Order, value: 8 }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "BillingReportFilePrefix" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "billing" }
+          - { id: System.UI/EntityFormField.Order, value: 9 }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Name" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Community" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "EnergyCommunityId" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Community ID" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }

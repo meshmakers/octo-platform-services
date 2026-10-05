@@ -124,7 +124,7 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
   night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
 
-### `System.UI.EntityForms` blueprint (1.0.0, AB#5521)
+### `System.UI.EntityForms` blueprint (1.1.0, AB#5521 / AB#5523)
 
 `System.UI/EntityForm` (System.UI **2.7.0**, Minor, no migration) describes how the Refinery Studio lists,
 creates and edits entities of a CK type: sections, fields, list columns and capabilities, as flat record
@@ -138,7 +138,11 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   reads) and not in the communication controller (it would need a System.UI dependency and race the
   System.UI install). 1.0.0 ships `form-default` (target `System/Entity`, `IncludeDerivedTypes: true`,
   `Priority: 0`, no `Category`) plus the six wave-1 forms (SFTP, Grafana, Discord, Loxone, E-Mail sender,
-  E-Mail receiver).
+  E-Mail receiver). 1.1.0 adds the wave-3 forms WeClapp, EDA (exact type only) and Energy Community
+  (`Category: connections`, rtIds `…20`–`…22`). Bump the blueprint version on every seed change: the next
+  cold start rolls the higher embedded version forward on every tenant (no `Program.cs` change, the DI
+  extension is keyed on the major version). Until then the Studio still shows these types under
+  Settings › Connections › *All configurations* (form-default).
 - **Naming.** `rtWellKnownName` = `form-<kebab-type>`, e.g. `form-sftp-configuration` (no colon).
 - **Tenant overrides.** A tenant customises a delivered form by creating its **own** `EntityForm` for the same
   `TargetCkTypeId` (empty `rtBlueprintSource`). Never edit a delivered `form-*` entity: a blueprint re-apply
