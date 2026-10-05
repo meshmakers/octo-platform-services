@@ -96,6 +96,34 @@ src/SystemUiCkModel/                               # System.UI CK model + 3 serv
 
 Phase-1 NOTE (now obsolete): the service used to avoid Infrastructure / the CK runtime to stay slim. Phase 4 owns the System.UI blueprints, which requires both. It still does **not** seed identity data — see §"What changed in Phase 4" and the config-creator's class doc.
 
+### `System.TenantMode` blueprint (1.1.0, AB#5497)
+
+`src/SystemUiCkModel/Blueprints/System.TenantMode/` seeds the singleton `System/TenantModeConfiguration`
+(`rtWellKnownName TenantMode`) on every tenant. Since **1.1.0** the seed also writes
+`System/PublishWorkloadObservability` and `System/PublishCkModelObservability` = `true`: the platform
+default is "observability on" (the System CK defaults both to `false` so a forgotten test tenant costs
+nothing — on a platform that left every new tenant dark until an operator remembered the switch). Done in
+the service-managed seed on purpose: a System CK bump forces a re-release of every externally built
+adapter (AB#5491). The `ckModelDependencies` floor is `System-[2.3,3.0)` — 2.3.0 (AB#5432) is the first
+System version carrying the two attributes; keep it in step with `seed-data/entities.yaml` `dependencies`.
+
+- **Version bump = `blueprintId` in `blueprint.yaml` only.** The `BlueprintSourceGenerator` keys the DI
+  extension on the *major* version (`AddBlueprintSystemTenantModeV1`), so a minor bump changes neither
+  `Program.cs` nor the generated class names.
+- **Roll-forward is automatic.** `SetupTenantAsync` → `ApplyServiceManagedBlueprintsAsync` picks the newest
+  embedded version per name and calls `ApplyBlueprintAsync` without force; the engine re-imports the seed
+  whenever the installed row's id differs from the embedded one (`willImportSeed`), so every tenant on
+  1.0.0 is upgraded — and switched on — during the first cold start after the rollout.
+- **Force re-apply does NOT preserve operator edits.** `RefreshTenantStateAsync` (attach / restore / Enable
+  / full `PosUpdateTenant`) applies with `force:true`, and the Upsert import rewrites every seeded attribute
+  that is not `isRuntimeState` in the System CK: `MaintenanceLevel` back to Off, both observability
+  switches back to true. Edits survive only the non-force same-version re-apply (cold start). Until
+  AB#5497's follow-up stamps the attributes `isRuntimeState` on the System CK, this is the trade-off.
+- **Nightly reset bug (the AB#5497 incident).** bot-services' `AttributeValueAggregatorJob` publishes
+  `PosUpdateTenant` with `TenantUpdateScope.CacheOnly` for every tenant at 00:00Z. Until
+  octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
+  night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
+
 ### Swagger UI / OpenAPI (AB#4388)
 
 The service exposes Swagger UI at `/swagger` via the shared `Meshmakers.Octo.Services.Swagger`
