@@ -1,0 +1,34 @@
+$schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
+blueprintId: System.UI.EntityForms-1.0.0
+description: |
+  Service-managed blueprint seeding the platform's System.UI/EntityForm entities
+  (AB#5521) on every tenant. Ships "form-default" — the form on System/Entity with
+  IncludeDerivedTypes and the lowest Priority that ends the Refinery Studio's form
+  resolution chain, so every type has a form — plus the wave-1 configuration forms
+  (SFTP, Grafana, Discord, Loxone, e-mail sender, e-mail receiver) that replace the
+  hand-written Studio configuration pages.
+
+  Target types are referenced by their CK type id as a plain string
+  (TargetCkTypeId), so this blueprint needs no System.Communication dependency; a
+  form whose type is absent in a tenant simply never resolves.
+
+  Tenants customise a form by creating their OWN EntityForm for the same
+  TargetCkTypeId — tenant forms win over these seeded ones. Do not edit the seeded
+  entities in a tenant: platform-services re-applies this blueprint on tenant
+  lifecycle events and the re-apply upserts them by rtId.
+
+  Following the OctoMesh "System.* = service-managed" convention, Studio hides
+  Install / Re-apply controls for this blueprint.
+
+ckModelDependencies:
+  # Satisfiability floor only. The install/upgrade target is driven by the engine's
+  # IServiceManagedCkModelDescriptor (System.UI embedded version), registered in
+  # platform-services Program.cs — NOT by this range. 2.7.0 is the first System.UI
+  # version carrying System.UI/EntityForm and its records; keep in step with the
+  # seed-data/entities.yaml `dependencies`.
+  - System.UI-[2.7.0,3.0)
+
+seedDataPath: seed-data/entities.yaml
+
+# No `requires:` block on purpose: the forms apply to the system tenant and every
+# child tenant alike.

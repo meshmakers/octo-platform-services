@@ -124,6 +124,8 @@ try
             SystemUiCkModel.Generated.System.UI.v2.SystemUICkIds.CkModelId));
     builder.Services.AddBlueprintSystemUISystemCockpitV1();
     builder.Services.AddBlueprintSystemUITenantCockpitV1();
+    // AB#5521: seeded EntityForms (form-default + wave-1 configuration forms), every tenant.
+    builder.Services.AddBlueprintSystemUIEntityFormsV1();
     builder.Services.AddBlueprintSystemTenantModeV1();
 
     // JWT Bearer authentication — tokens validated against the local Identity service.

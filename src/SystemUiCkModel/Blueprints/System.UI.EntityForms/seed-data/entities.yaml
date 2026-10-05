@@ -1,0 +1,794 @@
+$schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
+# System.UI.EntityForms seed (AB#5521). Service-managed: platform-services applies it to
+# every tenant and a re-apply upserts these entities by rtId — edit the seed, not the
+# tenant copy. Tenants override a form by creating their OWN System.UI/EntityForm for
+# the same TargetCkTypeId (tenant forms win over seeded ones before Priority is compared).
+#
+# TargetCkTypeId is a plain string, so targeting System.Communication types needs no
+# dependency on that model; a form whose type is absent in a tenant simply never
+# resolves.
+#
+# AttributePath convention: CK attribute names (Name, Host, RtBlueprintSource, ...) plus
+# the entity system properties rtWellKnownName / rtChangedDateTime.
+#
+# Fixed rtIds 6703000000000000000000xx: 01 = form-default, 1x = wave-1 connection forms.
+dependencies:
+  # 2.7.0 introduces System.UI/EntityForm + its records; keep in step with the
+  # ckModelDependencies floor in blueprint.yaml.
+  - System.UI-2.7.0
+entities:
+  # ---------------------------------------------------------------------------
+  # form-default — the end of the resolution chain. Targets System/Entity with
+  # IncludeDerivedTypes = true and the lowest Priority, so every type that has no
+  # form of its own (and no closer base-type form) resolves to this one. It only
+  # shapes the common header (well-known name, Name, Description) and the
+  # engine-stamped blueprint provenance; everything else is generated from CK
+  # metadata into the 'Attributes' section.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000001'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-default
+    attributes:
+      - { id: System/Name, value: "Default form" }
+      - { id: System/Description, value: "Fallback form for every entity type without a form of its own. Seeded by platform-services; create a tenant EntityForm for a type to override it." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System/Entity" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: true }
+      - { id: System.UI/EntityForm.Priority, value: 0 }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - { id: System.UI/EntityForm.CanDuplicate, value: false }
+      - { id: System.UI/EntityForm.CanExport, value: true }
+      - { id: System.UI/EntityForm.GenerateRemainingFields, value: true }
+      - { id: System.UI/EntityForm.GeneratedSectionTitle, value: "Attributes" }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "general" }
+          - { id: System.UI/EntityFormSection.Title, value: "General" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "system" }
+          - { id: System.UI/EntityFormSection.Title, value: "System" }
+          - { id: System.UI/EntityFormSection.Description, value: "Blueprint provenance stamped by the engine when a blueprint seeded this entity." }
+          - { id: System.UI/EntityFormSection.Order, value: 99 }
+          - { id: System.UI/EntityFormSection.Collapsed, value: true }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "general" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Well-known name" }
+          - { id: System.UI/EntityFormField.Help, value: "Stable, tenant-unique handle other entities, pipelines and the Studio use to find this entity. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Name" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "general" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Description" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "general" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Editor, value: "multiline" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "RtBlueprintSource" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "system" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Blueprint source" }
+          - { id: System.UI/EntityFormField.Help, value: "Blueprint that seeded this entity." }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "always" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "RtBlueprintLocked" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "system" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Blueprint locked" }
+          - { id: System.UI/EntityFormField.Help, value: "Whether the blueprint still manages this entity (a re-apply overwrites it); false keeps it as user data." }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "always" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "RtBlueprintAppliedAt" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "system" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Blueprint applied at" }
+          - { id: System.UI/EntityFormField.Help, value: "When the blueprint last wrote this entity." }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "always" }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtChangedDateTime" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Changed" }
+          - { id: System.UI/EntityFormColumn.Display, value: "date" }
+
+  # ---------------------------------------------------------------------------
+  # SFTP — mirrors the Studio sftp-configuration-details page (port 22, min 1 connection).
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000010'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-sftp-configuration
+    attributes:
+      - { id: System/Name, value: "SFTP configuration" }
+      - { id: System/Description, value: "Connection to an SFTP server (password or private-key authentication)." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/SftpConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "server" }
+          - { id: System.UI/EntityFormSection.Title, value: "Server" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "auth" }
+          - { id: System.UI/EntityFormSection.Title, value: "Authentication" }
+          - { id: System.UI/EntityFormSection.Description, value: "Password and/or private key; at least one is needed to log in." }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "limits" }
+          - { id: System.UI/EntityFormSection.Title, value: "Limits" }
+          - { id: System.UI/EntityFormSection.Order, value: 2 }
+          - { id: System.UI/EntityFormSection.Collapsed, value: true }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipelines reference it by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter configuration name" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Host" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Host" }
+          - { id: System.UI/EntityFormField.Help, value: "Host name or IP address of the SFTP server." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "sftp.example.com" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Port" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Port" }
+          - { id: System.UI/EntityFormField.Help, value: "TCP port of the SFTP server (default 22)." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "22" }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Default, value: "22" }
+          - { id: System.UI/EntityFormField.Min, value: 1 }
+          - { id: System.UI/EntityFormField.Max, value: 65535 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Username" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Username" }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter username" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Password" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Password" }
+          - { id: System.UI/EntityFormField.Help, value: "Password for password authentication (optional when a private key is used)." }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "PrivateKey" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Private key" }
+          - { id: System.UI/EntityFormField.Help, value: "Private key (PEM / OpenSSH format) for key-based authentication (optional)." }
+          - { id: System.UI/EntityFormField.Editor, value: "multiline" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "PrivateKeyPassphrase" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Private key passphrase" }
+          - { id: System.UI/EntityFormField.Help, value: "Passphrase protecting the private key, if any." }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+          - { id: System.UI/EntityFormField.VisibleWhen, value: "PrivateKey=*" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "MaxConcurrentConnections" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "limits" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Max concurrent connections" }
+          - { id: System.UI/EntityFormField.Help, value: "Maximum number of connections opened to the server at the same time. Empty = adapter default." }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Min, value: 1 }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Host" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Username" }
+
+  # ---------------------------------------------------------------------------
+  # Grafana — mirrors the Studio grafana-configuration-details page.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000011'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-grafana-configuration
+    attributes:
+      - { id: System/Name, value: "Grafana configuration" }
+      - { id: System/Description, value: "Grafana integration used by the GrafanaProvisionTenant / GrafanaDeprovisionTenant pipeline nodes." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/GrafanaConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "grafana" }
+          - { id: System.UI/EntityFormSection.Title, value: "Grafana" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "octomesh" }
+          - { id: System.UI/EntityFormSection.Title, value: "OctoMesh endpoints" }
+          - { id: System.UI/EntityFormSection.Description, value: "OctoMesh services the provisioned Grafana datasource points at." }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "grafana" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipelines reference it by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter configuration name" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "GrafanaUrl" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "grafana" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Grafana URL" }
+          - { id: System.UI/EntityFormField.Help, value: "Base URL of the Grafana instance." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "https://grafana.example.com" }
+          - { id: System.UI/EntityFormField.Editor, value: "url" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "AdminUser" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "grafana" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Admin user" }
+          - { id: System.UI/EntityFormField.Help, value: "Grafana server admin username used for the organization management API." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter Grafana admin username" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "AdminPassword" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "grafana" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Admin password" }
+          - { id: System.UI/EntityFormField.Help, value: "Grafana server admin password." }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "OctoMeshUrl" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "octomesh" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "OctoMesh URL" }
+          - { id: System.UI/EntityFormField.Help, value: "URL of the OctoMesh Asset Repository used in the provisioned datasource." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "https://assets.example.com" }
+          - { id: System.UI/EntityFormField.Editor, value: "url" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "IdentityServerUrl" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "octomesh" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Identity server URL" }
+          - { id: System.UI/EntityFormField.Help, value: "URL of the OctoMesh Identity Server used for the datasource OAuth configuration." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "https://connect.example.com" }
+          - { id: System.UI/EntityFormField.Editor, value: "url" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "OAuthClientId" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "octomesh" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "OAuth client ID" }
+          - { id: System.UI/EntityFormField.Help, value: "OAuth client ID for the Grafana datasource plugin (optional)." }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "GrafanaUrl" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Grafana URL" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "AdminUser" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Admin user" }
+
+  # ---------------------------------------------------------------------------
+  # Discord — mirrors the Studio discord-configuration-details page.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000012'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-discord-configuration
+    attributes:
+      - { id: System/Name, value: "Discord configuration" }
+      - { id: System/Description, value: "Discord bot used by the ToDiscord pipeline node." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/DiscordConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "bot" }
+          - { id: System.UI/EntityFormSection.Title, value: "Discord bot" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "bot" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipelines reference it by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter configuration name" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "BotToken" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "bot" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Bot token" }
+          - { id: System.UI/EntityFormField.Help, value: "Bot token sent as 'Authorization: Bot {token}' to the Discord REST API." }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "GuildId" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "bot" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Guild ID" }
+          - { id: System.UI/EntityFormField.Help, value: "Discord guild (server) snowflake ID. Reserved for future channel-name resolution; not read by the ToDiscord node yet." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Discord guild (server) snowflake ID (optional)" }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "GuildId" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Guild ID" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+
+  # ---------------------------------------------------------------------------
+  # Loxone — mirrors the Studio loxone-configuration-details page. MappingTargets is
+  # runtime state written by the BuildMappingTargets pipeline node, hence hidden.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000013'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-loxone-configuration
+    attributes:
+      - { id: System/Name, value: "Loxone configuration" }
+      - { id: System/Description, value: "Connection to a Loxone Miniserver via its REST API." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/LoxoneConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "server" }
+          - { id: System.UI/EntityFormSection.Title, value: "Miniserver" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "auth" }
+          - { id: System.UI/EntityFormSection.Title, value: "Authentication" }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "polling" }
+          - { id: System.UI/EntityFormSection.Title, value: "Polling" }
+          - { id: System.UI/EntityFormSection.Order, value: 2 }
+          - { id: System.UI/EntityFormSection.Collapsed, value: true }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipelines reference it by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "e.g. LoxoneOffice" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Host" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Host / IP" }
+          - { id: System.UI/EntityFormField.Help, value: "Host name or IP address of the Miniserver." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "192.168.1.100" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Port" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Port" }
+          - { id: System.UI/EntityFormField.Help, value: "TCP port of the Miniserver (default 80)." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "80" }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Default, value: "80" }
+          - { id: System.UI/EntityFormField.Min, value: 1 }
+          - { id: System.UI/EntityFormField.Max, value: 65535 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "IsSslEnabled" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Enable SSL" }
+          - { id: System.UI/EntityFormField.Help, value: "Connect via HTTPS instead of HTTP." }
+          - { id: System.UI/EntityFormField.Editor, value: "toggle" }
+          - { id: System.UI/EntityFormField.Default, value: "false" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Username" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Username" }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter Miniserver username" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Password" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Password" }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "PollIntervalSeconds" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "polling" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Poll interval (seconds)" }
+          - { id: System.UI/EntityFormField.Help, value: "Interval in seconds between polling cycles (default 30)." }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Min, value: 1 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "MappingTargets" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Host" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Username" }
+
+  # ---------------------------------------------------------------------------
+  # E-mail sender (SMTP) — mirrors the Studio email-sender-configuration-details page.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000014'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-email-sender-configuration
+    attributes:
+      - { id: System/Name, value: "E-mail sender configuration" }
+      - { id: System/Description, value: "SMTP server for outgoing e-mail delivery." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/EMailSenderConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "server" }
+          - { id: System.UI/EntityFormSection.Title, value: "SMTP server" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "auth" }
+          - { id: System.UI/EntityFormSection.Title, value: "Authentication" }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipelines reference it by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter configuration name" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Host" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "SMTP host" }
+          - { id: System.UI/EntityFormField.Help, value: "Host name of the SMTP server." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "smtp.example.com" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Port" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Port" }
+          - { id: System.UI/EntityFormField.Help, value: "TCP port of the SMTP server (e.g. 587 for STARTTLS, 465 for SSL)." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "587" }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Default, value: "587" }
+          - { id: System.UI/EntityFormField.Min, value: 1 }
+          - { id: System.UI/EntityFormField.Max, value: 65535 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "IsSslEnabled" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Enable SSL" }
+          - { id: System.UI/EntityFormField.Help, value: "Use an encrypted connection to the SMTP server." }
+          - { id: System.UI/EntityFormField.Editor, value: "toggle" }
+          - { id: System.UI/EntityFormField.Default, value: "true" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "SenderEmail" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 4 }
+          - { id: System.UI/EntityFormField.Label, value: "Sender e-mail" }
+          - { id: System.UI/EntityFormField.Help, value: "E-mail address used as the sender (From) of outgoing e-mails." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "noreply@example.com" }
+          - { id: System.UI/EntityFormField.Editor, value: "email" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Username" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Username" }
+          - { id: System.UI/EntityFormField.Placeholder, value: "Enter SMTP username" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Password" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Password" }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Host" }
+          - { id: System.UI/EntityFormColumn.Label, value: "SMTP host" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "SenderEmail" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Sender" }
+
+  # ---------------------------------------------------------------------------
+  # E-mail receiver (IMAP) — mirrors the Studio email-receiver-configuration-details page.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000015'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-email-receiver-configuration
+    attributes:
+      - { id: System/Name, value: "E-mail receiver configuration" }
+      - { id: System/Description, value: "IMAP mailbox polled for incoming e-mails." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/EMailReceiverConfiguration" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Category, value: "connections" }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: true }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "server" }
+          - { id: System.UI/EntityFormSection.Title, value: "IMAP server" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "auth" }
+          - { id: System.UI/EntityFormSection.Title, value: "Authentication" }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "mailbox" }
+          - { id: System.UI/EntityFormSection.Title, value: "Mailbox" }
+          - { id: System.UI/EntityFormSection.Order, value: 2 }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Name" }
+          - { id: System.UI/EntityFormField.Help, value: "Unique name of the configuration; pipelines reference it by this name. Cannot be changed after creation." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "e.g. EmailInvoiceImport" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Host" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "IMAP host" }
+          - { id: System.UI/EntityFormField.Help, value: "Host name of the IMAP server." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "outlook.office365.com" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Port" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Port" }
+          - { id: System.UI/EntityFormField.Help, value: "TCP port of the IMAP server (e.g. 993 for IMAPS)." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "993" }
+          - { id: System.UI/EntityFormField.Editor, value: "number" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Default, value: "993" }
+          - { id: System.UI/EntityFormField.Min, value: 1 }
+          - { id: System.UI/EntityFormField.Max, value: 65535 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "IsSslEnabled" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "server" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Enable SSL" }
+          - { id: System.UI/EntityFormField.Help, value: "Use an encrypted connection to the IMAP server." }
+          - { id: System.UI/EntityFormField.Editor, value: "toggle" }
+          - { id: System.UI/EntityFormField.Default, value: "true" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Username" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Username" }
+          - { id: System.UI/EntityFormField.Placeholder, value: "E-mail address / username" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Password" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "auth" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Password" }
+          - { id: System.UI/EntityFormField.Help, value: "Password or app password of the mailbox." }
+          - { id: System.UI/EntityFormField.Editor, value: "password" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Secret, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Folder" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "mailbox" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Folder" }
+          - { id: System.UI/EntityFormField.Help, value: "Mailbox folder to monitor for incoming e-mails." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "INBOX" }
+          - { id: System.UI/EntityFormField.Default, value: "INBOX" }
+      - id: System.UI/EntityForm.ListColumns
+        value:
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "rtWellKnownName" }
+          - { id: System.UI/EntityFormColumn.Label, value: "Name" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Host" }
+          - { id: System.UI/EntityFormColumn.Label, value: "IMAP host" }
+          - { id: System.UI/EntityFormColumn.Display, value: "mono" }
+        - ckRecordId: System.UI/EntityFormColumn
+          attributes:
+          - { id: System.UI/EntityFormColumn.AttributePath, value: "Username" }
