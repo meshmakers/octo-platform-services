@@ -60,15 +60,15 @@ src/PlatformServices/
 ├── Dto/TenantConfigurationDto.cs                  # 11-field response (OAuth client fields dropped in Phase 4; mcpServices added AB#4381)
 ├── Options/PlatformServiceUrlsOptions.cs          # bound from OCTO_PLATFORMSERVICES__* (URLs + broker)
 ├── Configuration/ConfigureDistributionEventHubOptions.cs  # broker wiring for the tenant-event host
-├── Services/DefaultConfigurationCreatorService.cs # blueprint-only tenant bootstrap (System.UI + TenantMode)
+├── Services/DefaultConfigurationCreatorService.cs # blueprint-only tenant bootstrap (System.UI.* + TenantMode)
 ├── Program.cs                                     # Observability + CORS + RuntimeEngine + ServiceInfrastructure + blueprints
 ├── Dockerfile                                     # mcr.microsoft.com/dotnet/aspnet:10.0-noble
 ├── appsettings.json
 ├── nlog.config
 └── Properties/launchSettings.json                 # 5024 http / 5025 https
-src/SystemUiCkModel/                               # System.UI CK model + 3 service-managed blueprints (moved from admin-panel)
-├── ConstructionKit/                               # System.UI-2.4.0 model YAML (incl. TreeNavigationConfiguration: Roles + Perspectives; MappingCoverageConfiguration: per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage')
-└── Blueprints/{System.UI.SystemCockpit,System.UI.TenantCockpit,System.TenantMode}/
+src/SystemUiCkModel/                               # System.UI CK model + 4 service-managed blueprints (moved from admin-panel)
+├── ConstructionKit/                               # System.UI-2.7.0 model YAML: UIElement, Dashboard, ProcessDiagram, SymbolLibrary/SymbolDefinition, Branding, TreeNavigationConfiguration (Roles + Perspectives), MappingCoverageConfiguration (per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage'), EntityForm (+ records EntityFormSection/Field/Column, AB#5521)
+└── Blueprints/{System.UI.SystemCockpit,System.UI.TenantCockpit,System.UI.EntityForms,System.TenantMode}/
 ```
 
 ### Local-dev ports
@@ -123,6 +123,61 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   `PosUpdateTenant` with `TenantUpdateScope.CacheOnly` for every tenant at 00:00Z. Until
   octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
   night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
+
+### `System.UI.EntityForms` blueprint (1.0.0, AB#5521)
+
+`System.UI/EntityForm` (System.UI **2.7.0**, Minor, no migration) describes how the Refinery Studio lists,
+creates and edits entities of a CK type: sections, fields, list columns and capabilities, as flat record
+arrays `Sections` / `Fields` / `ListColumns` (records `EntityFormSection` / `EntityFormField` /
+`EntityFormColumn`). The Studio renders generic Settings pages from it instead of one hand-written page per
+configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio-shell-and-entity-forms.md` §5).
+
+- **Where forms live.** Delivered forms are seed data of the service-managed blueprint
+  `src/SystemUiCkModel/Blueprints/System.UI.EntityForms/` (registered in `Program.cs` like the cockpits;
+  applied to every tenant because of the `System.UI.` prefix). Not in `defaultData.yaml` (a leftover nothing
+  reads) and not in the communication controller (it would need a System.UI dependency and race the
+  System.UI install). 1.0.0 ships `form-default` (target `System/Entity`, `IncludeDerivedTypes: true`,
+  `Priority: 0`, no `Category`) plus the six wave-1 forms (SFTP, Grafana, Discord, Loxone, E-Mail sender,
+  E-Mail receiver).
+- **Naming.** `rtWellKnownName` = `form-<kebab-type>`, e.g. `form-sftp-configuration` (no colon).
+- **Tenant overrides.** A tenant customises a delivered form by creating its **own** `EntityForm` for the same
+  `TargetCkTypeId` (empty `rtBlueprintSource`). Never edit a delivered `form-*` entity: a blueprint re-apply
+  upserts it (force re-apply rewrites every seeded attribute, see TenantMode above) and wipes the edit.
+- **Resolution (one algorithm, no special case).** (1) Pick exactly one form F for type T: forms with
+  `TargetCkTypeId = T`, else the nearest ancestor with a form where `IncludeDerivedTypes = true`;
+  `form-default` on `System/Entity` always matches. Ties: tenant form beats seeded, then higher `Priority`.
+  Forms are never merged. (2) Fields = F.Fields whose `AttributePath` exists on T (unknown paths skipped
+  silently), minus `Hidden`. (3) Unless `GenerateRemainingFields = false` (absent = true), all other
+  attributes of T are appended in model order into section `GeneratedSectionTitle` (default "Further
+  attributes"). (4) If `form-default` is deleted, the Studio falls back to a built-in constant equal to the
+  seed and logs a warning.
+- **Normative defaults.** No form → `form-default`. Abstract T → `CanCreate` forced false, list shows derived
+  instances, create asks for a concrete subtype. Singleton is never implied (only `Singleton` +
+  `SingletonWellKnownName`). No write permission → read-only, create/edit/delete hidden regardless of F. A
+  form appears on Settings home only if `Category` is set. Capability defaults when absent:
+  Create/Edit/Delete true, Duplicate/Export false. Associations become reference fields only when a form
+  lists them; `rtId` is never a field; system timestamps and `RtBlueprint*` are never editable; Secret
+  attributes/fields are write-only.
+- **String values, not CK enums.** `Editor` (auto|text|multiline|password|number|toggle|enum|datetime|url|
+  email|json|yaml|cron|reference|records; unknown = auto), `ReadOnly` (never|always|afterCreate), `Width`
+  (full|half) and `Display` (text|chip|date|mono) are Strings. System.UI uses no enums, and CK enums store
+  numeric keys, so every new value would force a Minor bump plus schema regeneration. `Required` is an
+  optional Boolean: absent = from the model's `isOptional`; `true` makes it stricter; `false` cannot loosen
+  a mandatory attribute.
+- **Record seed format** is the runtime import format (`ckRecordId` + `attributes`), not a `{ Key: x }`
+  shorthand:
+
+  ```yaml
+  - id: System.UI/EntityForm.Sections
+    value:
+      - ckRecordId: System.UI/EntityFormSection
+        attributes:
+          - { id: System.UI/EntityFormSection.Key, value: server }
+          - { id: System.UI/EntityFormSection.Title, value: Server }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+  ```
+- **Verify** after import: `runtime { systemUIEntityForm { items { rtWellKnownName targetCkTypeId
+  sections { key title } fields { attributePath editor secret } } } }`.
 
 ### Swagger UI / OpenAPI (AB#4388)
 
