@@ -1,5 +1,5 @@
 $schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
-blueprintId: System.UI.TenantCockpit-1.1.1
+blueprintId: System.UI.TenantCockpit-1.2.0
 description: |
   Service-managed blueprint seeding the default Tenant Cockpit dashboard for every
   non-system tenant. Provides a fixed Refinery Studio start page (rtWellKnownName
@@ -10,7 +10,7 @@ description: |
   and "Pipeline executions 24 h" (pipelineExecutions); the CK-model pie moves to
   rows 3-4. A re-apply rewrites the seeded widgets (position included) and keeps
   widgets the tenant added.
-  1.1.1 (AB#5558) replaces the technical board description with a user-facing
+  1.2.0 (AB#5558) replaces the technical board description with a user-facing
   one ("Status of this tenant at a glance") and gives "Needs attention" two rows
   (rows 1-2) so its finding cards are not cut off; the KPI row moves to row 3,
   the CK-model pie to rows 4-5. Auto-applied by the Admin Panel

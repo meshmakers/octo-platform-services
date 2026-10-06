@@ -16,7 +16,7 @@ entities:
       - id: System/Name-1
         value: Tenant Cockpit
       - id: System/Description-1
-        # User-facing (1.1.1, AB#5558): shown in UI › MeshBoards and the board manager.
+        # User-facing (1.2.0, AB#5558): shown in UI › MeshBoards and the board manager.
         value: Status of this tenant at a glance
       - id: System.UI/Dashboard.Columns-1
         value: 6
@@ -26,7 +26,7 @@ entities:
         value: 16
 
   # ---------------------------------------------------------------------------
-  # Default widgets. Layout on the 6-column board (1.1.1, AB#5558):
+  # Default widgets. Layout on the 6-column board (1.2.0, AB#5558):
   #   rows 1-2  Needs attention (attentionList, full width; two rows so up to
   #             six finding cards fit with their action links, 1.1.0 had one)
   #   row 3     Adapters online | CK models | Pipeline executions 24 h (2 cols each)

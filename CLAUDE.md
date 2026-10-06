@@ -124,7 +124,7 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
   night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
 
-### `System.UI.TenantCockpit` blueprint (1.1.1, AB#5558)
+### `System.UI.TenantCockpit` blueprint (1.2.0, AB#5558)
 
 Seeds the `cockpit` board (`System.UI/Dashboard`, rtWellKnownName `cockpit`, 6 columns) of every
 non-system tenant — the Refinery Studio's Home › Cockpit.
@@ -137,7 +137,7 @@ non-system tenant — the Refinery Studio's Home › Cockpit.
   octo-meshboard's `toPersistedConfig` writes — `cockpit-widget-registrations.spec.ts` in
   octo-frontend-libraries holds these rows as a fixture (and compares it with this file in a
   worktree pair): **change both together**. Each check runs only for viewers with its roles.
-- **1.1.1** gives "Needs attention" rows 1–2 (rowSpan 2: one 200 px row cut off the finding
+- **1.2.0** gives "Needs attention" rows 1–2 (rowSpan 2: one 200 px row cut off the finding
   cards' action links), KPIs row 3, pie rows 4–5 (fixture in octo-meshboard updated alongside),
   and replaces the technical board description with a user-facing one ("Status of this
   tenant at a glance"); `System.UI.SystemCockpit` **1.0.1** likewise ("Status of the OctoMesh
