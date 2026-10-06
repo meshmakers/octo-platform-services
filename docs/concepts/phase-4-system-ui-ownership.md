@@ -27,8 +27,8 @@ via the `BlueprintEmbed` MSBuild task + `BlueprintSourceGenerator` produces:
 
 - the `System.UI` CK model (`AddCkModelSystemUIV2()`), and
 - one `IBlueprintEmbeddedSource` + `AddBlueprint…V1()` DI extension per blueprint:
-  - `System.UI.SystemCockpit-1.0.0` — `requires.octo.isSystemTenant: "true"`
-  - `System.UI.TenantCockpit-1.0.0` (1.1.0 since AB#5558: cockpit widgets) — `requires.octo.isSystemTenant: "false"`
+  - `System.UI.SystemCockpit-1.0.0` (1.0.1 since AB#5558: user-facing description) — `requires.octo.isSystemTenant: "true"`
+  - `System.UI.TenantCockpit-1.0.0` (1.1.0 since AB#5558: cockpit widgets; 1.2.0: two-row attention list + user-facing description) — `requires.octo.isSystemTenant: "false"`
   - `System.TenantMode-1.0.0` — always applies, seed uses `${octo.environmentMode}`
 
 We do **not** hand-copy YAML or re-author seeds. We move the project and re-wire the

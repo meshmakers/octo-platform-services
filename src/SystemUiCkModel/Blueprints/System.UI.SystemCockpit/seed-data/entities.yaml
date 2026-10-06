@@ -14,7 +14,8 @@ entities:
       - id: System/Name-1
         value: System Cockpit
       - id: System/Description-1
-        value: The cockpit for overview of the OctoMesh Installation
+        # User-facing (1.0.1, AB#5558): shown in UI › MeshBoards and the board manager.
+        value: Status of the OctoMesh installation at a glance
       - id: System.UI/Dashboard.Columns-1
         value: 4
       - id: System.UI/Dashboard.RowHeight-1
