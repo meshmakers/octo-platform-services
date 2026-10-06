@@ -1,5 +1,5 @@
 $schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
-blueprintId: System.UI.EntityForms-1.2.0
+blueprintId: System.UI.EntityForms-1.3.0
 description: |
   Service-managed blueprint seeding the platform's System.UI/EntityForm entities
   (AB#5521) on every tenant. Ships "form-default" — the form on System/Entity with
@@ -12,6 +12,10 @@ description: |
   (Connections), AI configuration, AI agent configuration and AI quota limit (AI), and
   the wave-4 forms Tenant mode (singleton "TenantMode") and Tenant configuration
   (Tenant).
+  1.3.0 (AB#5547) adds the detail forms of the communication runtime objects Adapter,
+  Pool, Application and Data flow (no Settings category; they shape the detail pages):
+  controller / operator runtime state is listed Hidden, attributes of derived types
+  are generated under "Further attributes".
 
   Target types are referenced by their CK type id as a plain string
   (TargetCkTypeId), so this blueprint needs no System.Communication dependency; a

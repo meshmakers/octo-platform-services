@@ -124,7 +124,7 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
   night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
 
-### `System.UI.EntityForms` blueprint (1.2.0, AB#5521 / AB#5523 / AB#5524)
+### `System.UI.EntityForms` blueprint (1.3.0, AB#5521 / AB#5523 / AB#5524 / AB#5547)
 
 `System.UI/EntityForm` (System.UI **2.7.0**, Minor, no migration) describes how the Refinery Studio lists,
 creates and edits entities of a CK type: sections, fields, list columns and capabilities, as flat record
@@ -163,8 +163,28 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   - The Studio carries built-in copies of these entries (`settings-fallback-forms.ts`) that apply only
     where its resolution would otherwise end at `form-default`, i.e. until this version is rolled out
     by a cold start. Keep both in step when changing a wave-2/4 form here: the Studio checks its
-    copies against a snapshot of this seed (`entity-forms-seed-1.2.0.snapshot.ts`), which must be
+    copies against a snapshot of this seed (`entity-forms-seed-1.3.0.snapshot.ts`), which must be
     regenerated too.
+- **1.3.0 (AB#5547)** moves the detail forms of the communication runtime objects into the seed:
+  `…60` `form-adapter`, `…61` `form-pool`, `…62` `form-application`, `…63` `form-data-flow` (targets
+  `System.Communication/Adapter|Pool|Application|DataFlow`, `IncludeDerivedTypes: true`, no `Category` —
+  they shape the Studio's detail pages, not Settings entries; `CanDelete`/`CanDuplicate`/`CanExport: false`,
+  deletion and moves are page actions). `GenerateRemainingFields: true` with the section title "Further
+  attributes", so attributes of derived types (e.g. a mesh adapter subtype) still appear; every inherited
+  runtime-state attribute (`DeploymentState`, `StatusMessage`, `LastDeploymentError*`,
+  `CommunicationState*`, `ConfigurationState`, `LastConfigurationError*`, `LifecycleState`,
+  `LastActivityAt`, `OnDemandCapable`, `OnDemandBlockingReasons`, adapter `LastSyncedSequenceNumber`) and
+  the encrypted `Values` overrides are listed `Hidden: true`. Defaults: pool `Environment` = `Edge`,
+  adapter `LifecycleMode` = `AlwaysOn`, `IdleTimeoutMinutes` = `30` (visible only for `OnDemand`).
+  The pool (`ManagedBy`, role `System.Communication/Manages`) is `ReadOnly: afterCreate` on the adapter
+  (Move… re-homes it) and editable on the application; applications hide `LifecycleMode` /
+  `IdleTimeoutMinutes`. Attribute names are checked against `SystemCommunicationCkModel` in
+  octo-communication-controller-services.
+  - The Studio keeps identical built-in copies (`runtime-object-forms.ts`) as fallbacks only and checks
+    them against the snapshot. The fallbacks additionally set `referenceDisplayAttributes`
+    (`repositoryUrl`, `channel`) on the Helm repository picker; System.UI 2.7.0 has no such
+    `EntityFormField` attribute, so after the roll-out the seeded form shows the repository name only
+    until the CK model gains it.
 - **Naming.** `rtWellKnownName` = `form-<kebab-type>`, e.g. `form-sftp-configuration` (no colon).
 - **Tenant overrides.** A tenant customises a delivered form by creating its **own** `EntityForm` for the same
   `TargetCkTypeId` (empty `rtBlueprintSource`). Never edit a delivered `form-*` entity: a blueprint re-apply
