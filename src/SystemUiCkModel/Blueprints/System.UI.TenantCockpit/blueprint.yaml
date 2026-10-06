@@ -1,10 +1,15 @@
 $schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
-blueprintId: System.UI.TenantCockpit-1.0.0
+blueprintId: System.UI.TenantCockpit-1.1.0
 description: |
   Service-managed blueprint seeding the default Tenant Cockpit dashboard for every
   non-system tenant. Provides a fixed Refinery Studio start page (rtWellKnownName
   "cockpit") that ships with a CK-model overview tile by default; tenants can extend
-  the cockpit with additional widgets after creation. Auto-applied by the Admin Panel
+  the cockpit with additional widgets after creation.
+  1.1.0 (AB#5558) adds the octo-meshboard cockpit widgets: "Needs attention"
+  (attentionList), "Adapters online" (adapterStatus), "CK models" (ckModelState)
+  and "Pipeline executions 24 h" (pipelineExecutions); the CK-model pie moves to
+  rows 3-4. A re-apply rewrites the seeded widgets (position included) and keeps
+  widgets the tenant added. Auto-applied by the Admin Panel
   service on tenant Enable / startup; the OctoSystem tenant gets
   System.UI.SystemCockpit instead.
 

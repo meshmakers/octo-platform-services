@@ -124,6 +124,27 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
   night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
 
+### `System.UI.TenantCockpit` blueprint (1.1.0, AB#5558)
+
+Seeds the `cockpit` board (`System.UI/Dashboard`, rtWellKnownName `cockpit`, 6 columns) of every
+non-system tenant — the Refinery Studio's Home › Cockpit.
+
+- **1.1.0** adds the octo-meshboard cockpit widgets (`provideCockpitWidgets()`, AB#5558):
+  `…5c` "Needs attention" (`attentionList`, row 1, full width, `{"maxItems":6}` = all checks),
+  `…5d` "Adapters online" (`adapterStatus`), `…5e` "CK models" (`ckModelState`), `…5f` "Pipeline
+  executions 24 h" (`pipelineExecutions`) in row 2 (2 columns each); the CK-model pie (`…5b`) moves
+  to rows 3–4. The widgets have `DataSourceType static` and their `Config` JSON is exactly what
+  octo-meshboard's `toPersistedConfig` writes — `cockpit-widget-registrations.spec.ts` in
+  octo-frontend-libraries holds these rows as a fixture (and compares it with this file in a
+  worktree pair): **change both together**. Each check runs only for viewers with its roles.
+- **Roll-forward** as for TenantMode: the minor bump re-imports the seed on the next cold start;
+  the Upsert rewrites the seeded widgets including their position, widgets the tenant added stay.
+  A tenant widget placed where a new seeded widget lands is not moved by the import;
+  octo-meshboard resolves the overlap when the board loads (`resolveOverlaps` pushes a widget
+  down, display only until the board is saved via Customise board).
+- The Studio keeps its hard-wired Home strips only as a fallback for boards without any cockpit
+  widget (tenants before the roll-out, or a tenant that removed them).
+
 ### `System.UI.EntityForms` blueprint (1.4.0, AB#5521 / AB#5523 / AB#5524 / AB#5547)
 
 `System.UI/EntityForm` (System.UI **2.7.0**, Minor, no migration; 2.8.0 adds
