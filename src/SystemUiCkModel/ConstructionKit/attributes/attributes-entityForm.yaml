@@ -138,8 +138,8 @@ attributes:
     valueType: StringArray
     description: "For Editor 'records' (RecordArray attributes): the record attributes shown as grid columns, each entry 'Path:Label' (Label optional, e.g. 'Key:Key', 'DisplayName:Name'). Absent / empty = columns derived from the record's CK metadata."
   - id: EntityFormField.ReferenceDisplayAttributes
-    valueType: StringArray
-    description: "For Editor 'reference': attributes of the referenced entities shown next to their name in the picker and for the current value, by attribute name in camelCase (e.g. 'repositoryUrl', 'channel'); the picker reads exactly these attributes. List only non-secret attributes (a Secret attribute's value is never returned, so it would show nothing). Absent / empty = the name only."
+    valueType: String
+    description: "For Editor 'reference': comma-separated attributes of the referenced entities shown next to their name in the picker and for the current value, by attribute name in camelCase (e.g. 'repositoryUrl,channel'; a String, not a StringArray, because record values in blueprint seeds must be scalars); the picker reads exactly these attributes. List only non-secret attributes (a Secret attribute's value is never returned, so it would show nothing). Absent / empty = the name only."
   - id: EntityFormField.Hidden
     valueType: Boolean
     description: "Whether the field is omitted from the form (the attribute is neither shown nor generated). Absent = false."

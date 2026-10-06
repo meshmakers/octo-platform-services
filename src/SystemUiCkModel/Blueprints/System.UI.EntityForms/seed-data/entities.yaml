@@ -2216,10 +2216,7 @@ entities:
           - { id: System.UI/EntityFormField.Editor, value: "reference" }
           - { id: System.UI/EntityFormField.ReferenceCkTypeId, value: "System.Communication/HelmRepositoryConfiguration" }
           - { id: System.UI/EntityFormField.AssociationRoleId, value: "System.Communication/HelmRepository" }
-          - id: System.UI/EntityFormField.ReferenceDisplayAttributes
-            value:
-            - repositoryUrl
-            - channel
+          - { id: System.UI/EntityFormField.ReferenceDisplayAttributes, value: "repositoryUrl,channel" }
         - ckRecordId: System.UI/EntityFormField
           attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "ChartName" }
@@ -2543,10 +2540,7 @@ entities:
           - { id: System.UI/EntityFormField.Editor, value: "reference" }
           - { id: System.UI/EntityFormField.ReferenceCkTypeId, value: "System.Communication/HelmRepositoryConfiguration" }
           - { id: System.UI/EntityFormField.AssociationRoleId, value: "System.Communication/HelmRepository" }
-          - id: System.UI/EntityFormField.ReferenceDisplayAttributes
-            value:
-            - repositoryUrl
-            - channel
+          - { id: System.UI/EntityFormField.ReferenceDisplayAttributes, value: "repositoryUrl,channel" }
         - ckRecordId: System.UI/EntityFormField
           attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "ChartName" }

@@ -204,10 +204,10 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   octo-communication-controller-services.
   - The Studio keeps identical built-in copies (`runtime-object-forms.ts`) as fallbacks only and checks
     them against the snapshot (`entity-forms-seed-1.4.0.snapshot.ts`).
-- **1.4.0 (AB#5547)** sets `ReferenceDisplayAttributes: [repositoryUrl, channel]` on the `HelmRepository`
+- **1.4.0 (AB#5547)** sets `ReferenceDisplayAttributes: "repositoryUrl,channel"` on the `HelmRepository`
   reference field of `form-adapter` and `form-application`, so the delivered forms' Helm repository picker
   shows `name · URL · channel` like the Studio fallbacks. Needs **System.UI 2.8.0**
-  (`EntityFormField.ReferenceDisplayAttributes`, StringArray like `RecordColumns`): the dependency floor in
+  (`EntityFormField.ReferenceDisplayAttributes`, a comma-separated String — record values in blueprint seeds must be scalars, the seed's record converter cannot read a YAML sequence; the same applies to `RecordColumns` should a seed ever set it): the dependency floor in
   `blueprint.yaml` and the seed `dependencies` are 2.8.0. Entries are target attribute names in camelCase
   (the picker passes them verbatim as GraphQL `attributeNames`); list only non-secret attributes.
 - **Naming.** `rtWellKnownName` = `form-<kebab-type>`, e.g. `form-sftp-configuration` (no colon).
