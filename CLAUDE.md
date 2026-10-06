@@ -67,7 +67,7 @@ src/PlatformServices/
 ├── nlog.config
 └── Properties/launchSettings.json                 # 5024 http / 5025 https
 src/SystemUiCkModel/                               # System.UI CK model + 4 service-managed blueprints (moved from admin-panel)
-├── ConstructionKit/                               # System.UI-2.7.0 model YAML: UIElement, Dashboard, ProcessDiagram, SymbolLibrary/SymbolDefinition, Branding, TreeNavigationConfiguration (Roles + Perspectives), MappingCoverageConfiguration (per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage'), EntityForm (+ records EntityFormSection/Field/Column, AB#5521)
+├── ConstructionKit/                               # System.UI-2.8.0 model YAML: UIElement, Dashboard, ProcessDiagram, SymbolLibrary/SymbolDefinition, Branding, TreeNavigationConfiguration (Roles + Perspectives), MappingCoverageConfiguration (per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage'), EntityForm (+ records EntityFormSection/Field/Column, AB#5521)
 └── Blueprints/{System.UI.SystemCockpit,System.UI.TenantCockpit,System.UI.EntityForms,System.TenantMode}/
 ```
 
@@ -124,9 +124,10 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
   night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
 
-### `System.UI.EntityForms` blueprint (1.3.0, AB#5521 / AB#5523 / AB#5524 / AB#5547)
+### `System.UI.EntityForms` blueprint (1.4.0, AB#5521 / AB#5523 / AB#5524 / AB#5547)
 
-`System.UI/EntityForm` (System.UI **2.7.0**, Minor, no migration) describes how the Refinery Studio lists,
+`System.UI/EntityForm` (System.UI **2.7.0**, Minor, no migration; 2.8.0 adds
+`EntityFormField.ReferenceDisplayAttributes`, Minor, no migration) describes how the Refinery Studio lists,
 creates and edits entities of a CK type: sections, fields, list columns and capabilities, as flat record
 arrays `Sections` / `Fields` / `ListColumns` (records `EntityFormSection` / `EntityFormField` /
 `EntityFormColumn`). The Studio renders generic Settings pages from it instead of one hand-written page per
@@ -163,7 +164,7 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   - The Studio carries built-in copies of these entries (`settings-fallback-forms.ts`) that apply only
     where its resolution would otherwise end at `form-default`, i.e. until this version is rolled out
     by a cold start. Keep both in step when changing a wave-2/4 form here: the Studio checks its
-    copies against a snapshot of this seed (`entity-forms-seed-1.3.0.snapshot.ts`), which must be
+    copies against a snapshot of this seed (`entity-forms-seed-1.4.0.snapshot.ts`), which must be
     regenerated too.
 - **1.3.0 (AB#5547)** moves the detail forms of the communication runtime objects into the seed:
   `…60` `form-adapter`, `…61` `form-pool`, `…62` `form-application`, `…63` `form-data-flow` (targets
@@ -181,10 +182,13 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   `IdleTimeoutMinutes`. Attribute names are checked against `SystemCommunicationCkModel` in
   octo-communication-controller-services.
   - The Studio keeps identical built-in copies (`runtime-object-forms.ts`) as fallbacks only and checks
-    them against the snapshot. The fallbacks additionally set `referenceDisplayAttributes`
-    (`repositoryUrl`, `channel`) on the Helm repository picker; System.UI 2.7.0 has no such
-    `EntityFormField` attribute, so after the roll-out the seeded form shows the repository name only
-    until the CK model gains it.
+    them against the snapshot (`entity-forms-seed-1.4.0.snapshot.ts`).
+- **1.4.0 (AB#5547)** sets `ReferenceDisplayAttributes: [repositoryUrl, channel]` on the `HelmRepository`
+  reference field of `form-adapter` and `form-application`, so the delivered forms' Helm repository picker
+  shows `name · URL · channel` like the Studio fallbacks. Needs **System.UI 2.8.0**
+  (`EntityFormField.ReferenceDisplayAttributes`, StringArray like `RecordColumns`): the dependency floor in
+  `blueprint.yaml` and the seed `dependencies` are 2.8.0. Entries are target attribute names in camelCase
+  (the picker passes them verbatim as GraphQL `attributeNames`); list only non-secret attributes.
 - **Naming.** `rtWellKnownName` = `form-<kebab-type>`, e.g. `form-sftp-configuration` (no colon).
 - **Tenant overrides.** A tenant customises a delivered form by creating its **own** `EntityForm` for the same
   `TargetCkTypeId` (empty `rtBlueprintSource`). Never edit a delivered `form-*` entity: a blueprint re-apply

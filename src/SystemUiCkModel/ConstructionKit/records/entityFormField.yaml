@@ -59,6 +59,9 @@ records:
       - id: ${this}/EntityFormField.RecordColumns
         name: RecordColumns
         isOptional: true
+      - id: ${this}/EntityFormField.ReferenceDisplayAttributes
+        name: ReferenceDisplayAttributes
+        isOptional: true
       - id: ${this}/EntityFormField.Hidden
         name: Hidden
         isOptional: true
