@@ -16,7 +16,8 @@ entities:
       - id: System/Name-1
         value: Tenant Cockpit
       - id: System/Description-1
-        value: Tenant-scoped cockpit dashboard, used as Studio start page.
+        # User-facing (1.1.1, AB#5558): shown in UI › MeshBoards and the board manager.
+        value: Status of this tenant at a glance
       - id: System.UI/Dashboard.Columns-1
         value: 6
       - id: System.UI/Dashboard.RowHeight-1
