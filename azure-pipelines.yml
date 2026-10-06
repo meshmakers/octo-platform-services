@@ -1,5 +1,5 @@
 # Root-level CI pipeline for octo-platform-services, using shared templates
-# from octo-pipeline-templates@tpl-v1.0.0.
+# from octo-pipeline-templates@tpl-v1.0.1.
 #
 # Phase 1 scope (the only thing this service currently does): host the
 # tenant-scoped `_configuration` discovery endpoint that was previously
