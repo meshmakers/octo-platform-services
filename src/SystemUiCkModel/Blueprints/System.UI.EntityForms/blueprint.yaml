@@ -1,5 +1,5 @@
 $schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
-blueprintId: System.UI.EntityForms-1.4.0
+blueprintId: System.UI.EntityForms-1.4.1
 description: |
   Service-managed blueprint seeding the platform's System.UI/EntityForm entities
   (AB#5521) on every tenant. Ships "form-default" — the form on System/Entity with
@@ -17,7 +17,10 @@ description: |
   controller / operator runtime state is listed Hidden, attributes of derived types
   are generated under "Further attributes".
   1.4.0 (AB#5547) sets ReferenceDisplayAttributes (repositoryUrl, channel) on the
-  Helm repository picker of the adapter and application forms (System.UI 2.8.0).
+  Helm repository picker of the adapter and application forms (System.UI 2.9.0).
+  1.4.1 (AB#5528) raises the System.UI floor to 2.9.0 (wave-1 System 2.5.0 repin;
+  the studio-rebuild System.UI versions moved one minor up behind the 2.7.0 repin
+  release). The forms are unchanged.
 
   Target types are referenced by their CK type id as a plain string
   (TargetCkTypeId), so this blueprint needs no System.Communication dependency; a
@@ -34,11 +37,11 @@ description: |
 ckModelDependencies:
   # Satisfiability floor only. The install/upgrade target is driven by the engine's
   # IServiceManagedCkModelDescriptor (System.UI embedded version), registered in
-  # platform-services Program.cs — NOT by this range. 2.7.0 is the first System.UI
-  # version carrying System.UI/EntityForm and its records, 2.8.0 the first with
+  # platform-services Program.cs — NOT by this range. 2.8.0 is the first System.UI
+  # version carrying System.UI/EntityForm and its records, 2.9.0 the first with
   # EntityFormField.ReferenceDisplayAttributes (seeded since 1.4.0); keep in step
   # with the seed-data/entities.yaml `dependencies`.
-  - System.UI-[2.8.0,3.0)
+  - System.UI-[2.9.0,3.0)
 
 seedDataPath: seed-data/entities.yaml
 

@@ -16,10 +16,11 @@ $schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
 # 5x = tenant forms (1.2.0, AB#5524), 6x = runtime-object detail forms (1.3.0, AB#5547; Helm picker display
 # attributes since 1.4.0).
 dependencies:
-  # 2.7.0 introduces System.UI/EntityForm + its records, 2.8.0 adds
-  # EntityFormField.ReferenceDisplayAttributes (1.4.0); keep in step with the
+  # 2.8.0 introduces System.UI/EntityForm + its records, 2.9.0 adds
+  # EntityFormField.ReferenceDisplayAttributes (1.4.0; floor raised to 2.9.0 in
+  # 1.4.1, AB#5528); keep in step with the
   # ckModelDependencies floor in blueprint.yaml.
-  - System.UI-2.8.0
+  - System.UI-2.9.0
 entities:
   # ---------------------------------------------------------------------------
   # form-default — the end of the resolution chain. Targets System/Entity with
