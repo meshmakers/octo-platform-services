@@ -124,7 +124,7 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
   night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
 
-### `System.UI.TenantCockpit` blueprint (1.2.0, AB#5558)
+### `System.UI.TenantCockpit` blueprint (1.3.0, AB#5558)
 
 Seeds the `cockpit` board (`System.UI/Dashboard`, rtWellKnownName `cockpit`, 6 columns) of every
 non-system tenant — the Refinery Studio's Home › Cockpit.
@@ -144,6 +144,11 @@ non-system tenant — the Refinery Studio's Home › Cockpit.
   installation at a glance"). The Studio's Home shows neither name nor description (greeting +
   board tabs, the board embedded with `headerMode: 'compact'`); UI › MeshBoards and the board
   manager still do, so descriptions are user-facing text — never implementation notes.
+- **1.3.0** adds `…60` "Recently opened" (`recentItems`, rows 4–5, columns 4–6, `{"maxItems":8}`)
+  next to the CK-model pie, which widens to 3 columns (wireframe Home row "Construction Kit Models |
+  Recently opened"). The entries are per viewer (the Studio's Cmd+K history via the host source
+  `COCKPIT_RECENT_ITEMS`); the board stores only the row count. The Studio shows its separate
+  "Recently opened" panel only as a fallback when the cockpit lacks the widget.
 - **Roll-forward** as for TenantMode: the minor bump re-imports the seed on the next cold start;
   the Upsert rewrites the seeded widgets including their position, widgets the tenant added stay.
   A tenant widget placed where a new seeded widget lands is not moved by the import;
