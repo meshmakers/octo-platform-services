@@ -26,10 +26,11 @@ entities:
         value: 16
 
   # ---------------------------------------------------------------------------
-  # Default widgets. Layout on the 6-column board (1.1.0, AB#5558):
-  #   row 1     Needs attention (attentionList, full width)
-  #   row 2     Adapters online | CK models | Pipeline executions 24 h (2 cols each)
-  #   rows 3-4  Construction Kit Models pie (2 cols)
+  # Default widgets. Layout on the 6-column board (1.1.1, AB#5558):
+  #   rows 1-2  Needs attention (attentionList, full width; two rows so up to
+  #             six finding cards fit with their action links, 1.1.0 had one)
+  #   row 3     Adapters online | CK models | Pipeline executions 24 h (2 cols each)
+  #   rows 4-5  Construction Kit Models pie (2 cols)
   # The cockpit widgets have no data source (dataSourceType static); their
   # Config JSON is exactly what octo-meshboard's toPersistedConfig writes
   # (checked by cockpit-widget-registrations.spec.ts in octo-frontend-libraries,
@@ -50,7 +51,7 @@ entities:
       - id: System.UI/DashboardWidget.Col-1
         value: 1
       - id: System.UI/DashboardWidget.Row-1
-        value: 3
+        value: 4
       - id: System.UI/DashboardWidget.ColSpan-1
         value: 2
       - id: System.UI/DashboardWidget.RowSpan-1
@@ -83,7 +84,7 @@ entities:
       - id: System.UI/DashboardWidget.ColSpan-1
         value: 6
       - id: System.UI/DashboardWidget.RowSpan-1
-        value: 1
+        value: 2
       - id: System.UI/DashboardWidget.DataSourceType-1
         value: static
       - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
@@ -108,7 +109,7 @@ entities:
       - id: System.UI/DashboardWidget.Col-1
         value: 1
       - id: System.UI/DashboardWidget.Row-1
-        value: 2
+        value: 3
       - id: System.UI/DashboardWidget.ColSpan-1
         value: 2
       - id: System.UI/DashboardWidget.RowSpan-1
@@ -137,7 +138,7 @@ entities:
       - id: System.UI/DashboardWidget.Col-1
         value: 3
       - id: System.UI/DashboardWidget.Row-1
-        value: 2
+        value: 3
       - id: System.UI/DashboardWidget.ColSpan-1
         value: 2
       - id: System.UI/DashboardWidget.RowSpan-1
@@ -166,7 +167,7 @@ entities:
       - id: System.UI/DashboardWidget.Col-1
         value: 5
       - id: System.UI/DashboardWidget.Row-1
-        value: 2
+        value: 3
       - id: System.UI/DashboardWidget.ColSpan-1
         value: 2
       - id: System.UI/DashboardWidget.RowSpan-1

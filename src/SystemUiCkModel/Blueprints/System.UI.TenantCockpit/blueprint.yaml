@@ -11,7 +11,9 @@ description: |
   rows 3-4. A re-apply rewrites the seeded widgets (position included) and keeps
   widgets the tenant added.
   1.1.1 (AB#5558) replaces the technical board description with a user-facing
-  one ("Status of this tenant at a glance"). Auto-applied by the Admin Panel
+  one ("Status of this tenant at a glance") and gives "Needs attention" two rows
+  (rows 1-2) so its finding cards are not cut off; the KPI row moves to row 3,
+  the CK-model pie to rows 4-5. Auto-applied by the Admin Panel
   service on tenant Enable / startup; the OctoSystem tenant gets
   System.UI.SystemCockpit instead.
 

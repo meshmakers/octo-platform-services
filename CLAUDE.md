@@ -137,7 +137,9 @@ non-system tenant — the Refinery Studio's Home › Cockpit.
   octo-meshboard's `toPersistedConfig` writes — `cockpit-widget-registrations.spec.ts` in
   octo-frontend-libraries holds these rows as a fixture (and compares it with this file in a
   worktree pair): **change both together**. Each check runs only for viewers with its roles.
-- **1.1.1** replaces the technical board description with a user-facing one ("Status of this
+- **1.1.1** gives "Needs attention" rows 1–2 (rowSpan 2: one 200 px row cut off the finding
+  cards' action links), KPIs row 3, pie rows 4–5 (fixture in octo-meshboard updated alongside),
+  and replaces the technical board description with a user-facing one ("Status of this
   tenant at a glance"); `System.UI.SystemCockpit` **1.0.1** likewise ("Status of the OctoMesh
   installation at a glance"). The Studio's Home shows neither name nor description (greeting +
   board tabs, the board embedded with `headerMode: 'compact'`); UI › MeshBoards and the board
