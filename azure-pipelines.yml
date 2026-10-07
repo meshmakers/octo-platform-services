@@ -1,5 +1,5 @@
 # Root-level CI pipeline for octo-platform-services, using shared templates
-# from octo-pipeline-templates@tpl-v0.3.1.
+# from octo-pipeline-templates@tpl-v1.0.1.
 #
 # Phase 1 scope (the only thing this service currently does): host the
 # tenant-scoped `_configuration` discovery endpoint that was previously
@@ -42,7 +42,7 @@ resources:
       type: github
       name: meshmakers/octo-pipeline-templates
       endpoint: meshmakers-access-token
-      ref: refs/tags/tpl-v0.5.0
+      ref: refs/tags/tpl-v1.0.1
 
 trigger:
   batch: true
@@ -88,13 +88,6 @@ stages:
           - checkout: self
             clean: true
           - template: templates/steps/set-version.yml@pipelineTemplates
-          # CK SemVer honesty gate (AB#4420): System.UI is published DURING
-          # the dotnet build (/p:OctoPublishCatalog), so the gate must be able
-          # to fail first.
-          - template: templates/steps/validate-ck-versions.yml@pipelineTemplates
-            parameters:
-              constructionKitPaths:
-                - 'src/SystemUiCkModel/ConstructionKit'
           - template: templates/steps/download-ca.yml@pipelineTemplates
           - task: DotNetCoreCLI@2
             retryCountOnTaskFailure: 2
@@ -110,7 +103,7 @@ stages:
             inputs:
               command: 'build'
               projects: $(solutionFile)
-              arguments: '--no-restore --configuration $(buildConfiguration) /p:OctoNugetPrivateServer=$(nugetPrivateServer) /p:OctoPublishCatalog="$(effectivePublishCatalog)" /p:OctoPrivateGitHubApiKey=$(GitHubPAT) /p:OctoPublicGitHubApiKey=$(GitHubPAT)'
+              arguments: '--no-restore --configuration $(buildConfiguration) /p:OctoNugetPrivateServer=$(nugetPrivateServer) /p:OctoPublishCkModel=false /p:OctoPrivateGitHubApiKey=$(GitHubPAT) /p:OctoPublicGitHubApiKey=$(GitHubPAT)'
               publishWebProjects: false
               zipAfterPublish: false
               modifyOutputPath: false
@@ -124,6 +117,10 @@ stages:
                 **/*Tests.csproj
                 !**/*SystemTests.csproj
               testRunTitle: 'CI'
+          - template: templates/steps/validate-and-publish-ck-versions.yml@pipelineTemplates
+            parameters:
+              constructionKitPaths:
+                - 'src/SystemUiCkModel/ConstructionKit'
           # Multi-arch image (AB#4451): arm64 for Apple-Silicon kind clusters and
           # edge devices, amd64 for the managed clusters.
           - template: templates/steps/build-and-push-docker.yml@pipelineTemplates
