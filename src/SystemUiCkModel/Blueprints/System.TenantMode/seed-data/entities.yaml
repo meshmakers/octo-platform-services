@@ -1,6 +1,8 @@
 $schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
 dependencies:
-  - System-2.0.0
+  # 2.3.0 is the first System version carrying the two Publish*Observability attributes
+  # (AB#5432); must stay in step with the ckModelDependencies floor in blueprint.yaml.
+  - System-2.3.0
 entities:
   # ---------------------------------------------------------------------------
   # Tenant-mode configuration. rtWellKnownName "TenantMode" gives the runtime a
@@ -13,9 +15,23 @@ entities:
   # correct numeric key without YAML-level branching.
   #
   # MaintenanceLevel defaults to "Off" (= operational). Flip to UserApps or
-  # FullSystem from Studio or the API when entering a maintenance window — the
-  # attribute is not stamped rtBlueprintLocked, so user edits survive blueprint
-  # re-apply at the same version.
+  # FullSystem from Studio or the API when entering a maintenance window.
+  #
+  # PublishWorkloadObservability / PublishCkModelObservability (AB#5497): the System CK
+  # defaults both to false so a forgotten test tenant costs nothing, but on a platform
+  # that is the wrong default — every new tenant was dark until an operator remembered
+  # the switch. The seed therefore sets the PLATFORM default to true (1.1.0) without
+  # bumping the System CK (a System bump forces a re-release of every externally built
+  # adapter, AB#5491). An operator may still switch a tenant off in Studio.
+  #
+  # Caveat for every attribute here that is not marked isRuntimeState in the System CK:
+  # the tenant-online refresh (attach / restore / Enable / PosUpdateTenant with scope
+  # Full) re-applies this blueprint with force:true, and the Upsert import then rewrites
+  # every seeded attribute — MaintenanceLevel back to Off, both observability switches
+  # back to true. Operator edits survive a re-apply at the SAME version only on the
+  # non-force paths (cold start). The structural fix — stamping the three attributes
+  # isRuntimeState on the System CK so the import preserves them — is tracked in
+  # AB#5497 for the next planned System bump.
   # ---------------------------------------------------------------------------
   - rtId: '670200000000000000000010'
     ckTypeId: System/TenantModeConfiguration
@@ -25,3 +41,7 @@ entities:
         value: "${octo.environmentMode}"
       - id: System/MaintenanceLevel
         value: Off
+      - id: System/PublishWorkloadObservability
+        value: true
+      - id: System/PublishCkModelObservability
+        value: true

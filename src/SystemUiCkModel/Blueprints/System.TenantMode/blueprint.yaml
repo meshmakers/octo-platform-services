@@ -1,5 +1,5 @@
 $schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
-blueprintId: System.TenantMode-1.0.0
+blueprintId: System.TenantMode-1.1.0
 description: |
   Service-managed blueprint that seeds a System/TenantModeConfiguration entity
   (rtWellKnownName "TenantMode") on every tenant. The entity's EnvironmentMode is
@@ -9,17 +9,30 @@ description: |
   variant.
 
   MaintenanceLevel defaults to "Off" so a freshly seeded tenant is fully operational;
-  operators flip it to UserApps or FullSystem by updating the entity manually (the
-  attribute is not stamped rtBlueprintLocked, so user edits survive blueprint re-apply
-  at the same version — see "Entity Source Tracking" in the engine docs/blueprints.md).
+  operators flip it to UserApps or FullSystem by updating the entity manually.
 
-  Auto-applied by the Admin Panel service on tenant Enable / startup, alongside the
-  System.UI.*Cockpit blueprints. Following the OctoMesh "System.* = service-managed"
+  1.1.0 (AB#5497) additionally seeds PublishWorkloadObservability and
+  PublishCkModelObservability = true: the platform default is "observability on" for
+  every tenant, overriding the System CK's false default without a System CK bump.
+  An operator may switch a tenant off.
+
+  Caveat: the tenant-online refresh (attach / restore / Enable / full PosUpdateTenant)
+  re-applies this blueprint with force:true, and the Upsert import rewrites every
+  seeded attribute that is not isRuntimeState — MaintenanceLevel back to Off, the two
+  observability switches back to true. Operator edits survive only the non-force
+  re-apply at the same version (cold start). Stamping the attributes isRuntimeState
+  on the System CK is tracked in AB#5497 for the next planned System bump.
+
+  Auto-applied by platform-services on tenant Enable / startup, alongside the
+  System.UI.*Cockpit blueprints; a higher embedded version is rolled forward to every
+  tenant on the next cold start. Following the OctoMesh "System.* = service-managed"
   convention, Studio hides Install / Re-apply controls.
 
 ckModelDependencies:
   # System CK model carries the TenantModeConfiguration type plus the EnvironmentModes
-  # and MaintenanceLevels enums. Range floor is the lowest version that ships them.
-  - System-[2.0,3.0)
+  # and MaintenanceLevels enums. Range floor is the lowest version that ships everything
+  # the seed writes: 2.3.0 added PublishWorkloadObservability / PublishCkModelObservability
+  # (AB#5432). Keep in step with seed-data/entities.yaml `dependencies`.
+  - System-[2.3,3.0)
 
 seedDataPath: seed-data/entities.yaml

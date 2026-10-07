@@ -112,11 +112,27 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
     ///     not reset a maintenance-window MaintenanceLevel an operator just set).
     /// </summary>
     /// <remarks>
-    ///     Caveat carried over from admin-panel: <c>force=true</c> with <c>ImportStrategy.Upsert</c>
-    ///     rewrites every attribute in the seed, including <c>MaintenanceLevel</c> which is reset to
-    ///     Off. Attach / restore is rare enough that this is acceptable; the operator re-flips
-    ///     MaintenanceLevel after the refresh if needed. Failures are logged, never propagated — the
-    ///     tenant is already operational, a stale EnvironmentMode is a degradation, not a hard failure.
+    ///     <para>
+    ///         <c>force=true</c> with <c>ImportStrategy.Upsert</c> rewrites EVERY seeded attribute
+    ///         that is not marked <c>isRuntimeState</c> in the System CK — operator edits do NOT
+    ///         survive it: <c>MaintenanceLevel</c> goes back to Off and, since 1.1.0, the two
+    ///         observability switches go back to the seed default (true). Attach / restore / Enable
+    ///         are rare enough that this is acceptable; the operator re-flips the values after the
+    ///         refresh if needed.
+    ///     </para>
+    ///     <para>
+    ///         AB#5497: this hook also ran for every nightly <c>PosUpdateTenant</c> with scope
+    ///         <c>CacheOnly</c> (the bot-services autocomplete aggregation), which reset the
+    ///         observability opt-in on every tenant every night. The shared
+    ///         <c>PosCreatePosUpdateTenantConsumer</c> now skips <c>SetupAsync</c> for CacheOnly, so
+    ///         only genuine lifecycle events reach this path. The structural fix — stamping the
+    ///         operator-editable attributes <c>isRuntimeState</c> so the Upsert preserves them — is
+    ///         tracked in AB#5497 for the next planned System CK bump.
+    ///     </para>
+    ///     <para>
+    ///         Failures are logged, never propagated — the tenant is already operational, a stale
+    ///         EnvironmentMode is a degradation, not a hard failure.
+    ///     </para>
     /// </remarks>
     protected override async Task RefreshTenantStateAsync(string tenantId)
     {
