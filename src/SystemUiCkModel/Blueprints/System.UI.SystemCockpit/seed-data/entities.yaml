@@ -5,6 +5,7 @@ entities:
   # ---------------------------------------------------------------------------
   # Dashboard — the System Cockpit. rtWellKnownName "cockpit" makes Refinery
   # Studio resolve this entity as the start page after login.
+  # 1.1.0 (AB#5558): six columns like the Tenant Cockpit.
   # ---------------------------------------------------------------------------
   - rtId: 69553a0d8b72e7555662012f
     ckTypeId: System.UI/Dashboard-1
@@ -17,45 +18,31 @@ entities:
         # User-facing (1.0.1, AB#5558): shown in UI › MeshBoards and the board manager.
         value: Status of the OctoMesh installation at a glance
       - id: System.UI/Dashboard.Columns-1
-        value: 4
+        value: 6
       - id: System.UI/Dashboard.RowHeight-1
         value: 200
       - id: System.UI/Dashboard.Gap-1
         value: 16
 
   # ---------------------------------------------------------------------------
-  # Widgets — KPIs and service-health tiles attached to the cockpit dashboard
-  # via System/ParentChild associations.
+  # Widgets (1.1.0, AB#5558) on the 6-column board:
+  #   rows 1-2  Needs attention (attentionList, all checks; on the system tenant
+  #             also "Platform services with problems" and "Blueprint updates")
+  #   row 3     Tenants | CK models | Blueprint updates          (2 cols each)
+  #   row 4     Services healthy | Adapters online | Pipeline executions 24 h
+  #   row 5     Version | Error events | Fatal events
+  #   rows 6-7  Construction Kit Models pie (3 cols) | Recently opened (3 cols)
+  # Every seeded widget REUSES an rtId of the 1.0.x seed (the comment names the
+  # former widget), plus one new rtId for "Recently opened": a roll-forward
+  # rewrites each seeded entity in place, so no 1.0.x widget is left behind
+  # overlapping the new layout. Widgets an operator added are kept.
+  # The octo-meshboard cockpit widgets have no data source (dataSourceType
+  # static); their Config JSON is exactly what toPersistedConfig writes
+  # (checked by cockpit-widget-registrations.spec.ts in octo-frontend-libraries,
+  # keep both in step). All values are scalars (AB#5582). Every check runs only
+  # for viewers with its roles.
   # ---------------------------------------------------------------------------
-  - rtId: 69553a508b72e75556620130
-    ckTypeId: System.UI/DashboardWidget-1
-    associations:
-      - roleId: System/ParentChild-1
-        targetRtId: 69553a0d8b72e7555662012f
-        targetCkTypeId: System.UI/Dashboard-1
-        attributes: []
-    attributes:
-      - id: System/Name-1
-        value: Tenant count
-      - id: System.UI/DashboardWidget.Type-1
-        value: kpi
-      - id: System.UI/DashboardWidget.Col-1
-        value: 1
-      - id: System.UI/DashboardWidget.Row-1
-        value: 1
-      - id: System.UI/DashboardWidget.ColSpan-1
-        value: 1
-      - id: System.UI/DashboardWidget.RowSpan-1
-        value: 1
-      - id: System.UI/DashboardWidget.DataSourceType-1
-        value: runtimeEntity
-      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
-        value: System/Tenant
-      - id: System.UI/DashboardWidget.DataSourceRtId-1
-        value: ''
-      - id: System.UI/DashboardWidget.Config-1
-        value: '{"valueAttribute":"_count","icon":"chart"}'
-
+  # Was "Health Identity Services" (serviceHealth) up to 1.0.1.
   - rtId: 69553a508b72e75556620131
     ckTypeId: System.UI/DashboardWidget-1
     associations:
@@ -65,26 +52,57 @@ entities:
         attributes: []
     attributes:
       - id: System/Name-1
-        value: Health Identity Services
+        value: Needs attention
       - id: System.UI/DashboardWidget.Type-1
-        value: serviceHealth
+        value: attentionList
       - id: System.UI/DashboardWidget.Col-1
-        value: 2
+        value: 1
       - id: System.UI/DashboardWidget.Row-1
         value: 1
       - id: System.UI/DashboardWidget.ColSpan-1
-        value: 1
+        value: 6
       - id: System.UI/DashboardWidget.RowSpan-1
-        value: 1
+        value: 2
       - id: System.UI/DashboardWidget.DataSourceType-1
-        value: serviceCall
+        value: static
       - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
         value: ''
       - id: System.UI/DashboardWidget.DataSourceRtId-1
         value: ''
       - id: System.UI/DashboardWidget.Config-1
-        value: '{"callType":"healthCheck","serviceType":"identity","navigateOnClick":false,"showPulse":true}'
+        value: '{"maxItems":6}'
 
+  # Was "Tenant count" (generic kpi over System/Tenant) up to 1.0.1.
+  - rtId: 69553a508b72e75556620130
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Tenants
+      - id: System.UI/DashboardWidget.Type-1
+        value: tenantCount
+      - id: System.UI/DashboardWidget.Col-1
+        value: 1
+      - id: System.UI/DashboardWidget.Row-1
+        value: 3
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 2
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: static
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"showDetail":true}'
+
+  # Was "Health Asset Repository Services" (serviceHealth) up to 1.0.1.
   - rtId: 69553a6a8b72e75556620134
     ckTypeId: System.UI/DashboardWidget-1
     associations:
@@ -94,55 +112,27 @@ entities:
         attributes: []
     attributes:
       - id: System/Name-1
-        value: Health Asset Repository Services
+        value: CK models
       - id: System.UI/DashboardWidget.Type-1
-        value: serviceHealth
+        value: ckModelState
       - id: System.UI/DashboardWidget.Col-1
         value: 3
       - id: System.UI/DashboardWidget.Row-1
-        value: 1
+        value: 3
       - id: System.UI/DashboardWidget.ColSpan-1
-        value: 1
+        value: 2
       - id: System.UI/DashboardWidget.RowSpan-1
         value: 1
       - id: System.UI/DashboardWidget.DataSourceType-1
-        value: serviceCall
+        value: static
       - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
         value: ''
       - id: System.UI/DashboardWidget.DataSourceRtId-1
         value: ''
       - id: System.UI/DashboardWidget.Config-1
-        value: '{"callType":"healthCheck","serviceType":"asset-repository","navigateOnClick":false,"showPulse":true}'
+        value: '{"showDetail":true}'
 
-  - rtId: 69553acb8b72e75556620136
-    ckTypeId: System.UI/DashboardWidget-1
-    associations:
-      - roleId: System/ParentChild-1
-        targetRtId: 69553a0d8b72e7555662012f
-        targetCkTypeId: System.UI/Dashboard-1
-        attributes: []
-    attributes:
-      - id: System/Name-1
-        value: Construction Kit Model Status
-      - id: System.UI/DashboardWidget.Type-1
-        value: pieChart
-      - id: System.UI/DashboardWidget.Col-1
-        value: 1
-      - id: System.UI/DashboardWidget.Row-1
-        value: 4
-      - id: System.UI/DashboardWidget.ColSpan-1
-        value: 2
-      - id: System.UI/DashboardWidget.RowSpan-1
-        value: 2
-      - id: System.UI/DashboardWidget.DataSourceType-1
-        value: constructionKitQuery
-      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
-        value: ''
-      - id: System.UI/DashboardWidget.DataSourceRtId-1
-        value: ''
-      - id: System.UI/DashboardWidget.Config-1
-        value: '{"chartType":"donut","categoryField":"","valueField":"","showLabels":true,"showLegend":true,"legendPosition":"right","ckQueryTarget":"models","ckGroupBy":"modelState"}'
-
+  # Was "Health Bot Services" (serviceHealth) up to 1.0.1.
   - rtId: 69553aef8b72e75556620138
     ckTypeId: System.UI/DashboardWidget-1
     associations:
@@ -152,26 +142,27 @@ entities:
         attributes: []
     attributes:
       - id: System/Name-1
-        value: Health Bot Services
+        value: Blueprint updates
       - id: System.UI/DashboardWidget.Type-1
-        value: serviceHealth
+        value: blueprintUpdates
       - id: System.UI/DashboardWidget.Col-1
-        value: 4
+        value: 5
       - id: System.UI/DashboardWidget.Row-1
-        value: 1
+        value: 3
       - id: System.UI/DashboardWidget.ColSpan-1
-        value: 1
+        value: 2
       - id: System.UI/DashboardWidget.RowSpan-1
         value: 1
       - id: System.UI/DashboardWidget.DataSourceType-1
-        value: serviceCall
+        value: static
       - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
         value: ''
       - id: System.UI/DashboardWidget.DataSourceRtId-1
         value: ''
       - id: System.UI/DashboardWidget.Config-1
-        value: '{"callType":"healthCheck","serviceType":"bot","navigateOnClick":false,"showPulse":true}'
+        value: '{"showDetail":true}'
 
+  # Was "Health Communication Controller Services" (serviceHealth) up to 1.0.1; replaces the four health tiles.
   - rtId: 69553b0b8b72e7555662013a
     ckTypeId: System.UI/DashboardWidget-1
     associations:
@@ -181,26 +172,27 @@ entities:
         attributes: []
     attributes:
       - id: System/Name-1
-        value: Health Communication Controller Services
+        value: Services healthy
       - id: System.UI/DashboardWidget.Type-1
-        value: serviceHealth
+        value: servicesHealth
       - id: System.UI/DashboardWidget.Col-1
-        value: 5
+        value: 1
       - id: System.UI/DashboardWidget.Row-1
-        value: 1
+        value: 4
       - id: System.UI/DashboardWidget.ColSpan-1
-        value: 1
+        value: 2
       - id: System.UI/DashboardWidget.RowSpan-1
         value: 1
       - id: System.UI/DashboardWidget.DataSourceType-1
-        value: serviceCall
+        value: static
       - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
         value: ''
       - id: System.UI/DashboardWidget.DataSourceRtId-1
         value: ''
       - id: System.UI/DashboardWidget.Config-1
-        value: '{"callType":"healthCheck","serviceType":"communication-controller","navigateOnClick":false,"showPulse":true}'
+        value: '{"showDetail":true}'
 
+  # Was "Migration Status" (table) up to 1.0.1.
   - rtId: 69553b8e8b72e7555662013c
     ckTypeId: System.UI/DashboardWidget-1
     associations:
@@ -210,9 +202,9 @@ entities:
         attributes: []
     attributes:
       - id: System/Name-1
-        value: Migration Status
+        value: Adapters online
       - id: System.UI/DashboardWidget.Type-1
-        value: table
+        value: adapterStatus
       - id: System.UI/DashboardWidget.Col-1
         value: 3
       - id: System.UI/DashboardWidget.Row-1
@@ -220,16 +212,17 @@ entities:
       - id: System.UI/DashboardWidget.ColSpan-1
         value: 2
       - id: System.UI/DashboardWidget.RowSpan-1
-        value: 2
+        value: 1
       - id: System.UI/DashboardWidget.DataSourceType-1
-        value: runtimeEntity
+        value: static
       - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
-        value: System/TenantConfiguration
+        value: ''
       - id: System.UI/DashboardWidget.DataSourceRtId-1
         value: ''
       - id: System.UI/DashboardWidget.Config-1
-        value: '{"columns":[{"field":"rtWellKnownName","title":"Rt Well Known Name"},{"field":"configurationValue","title":"Configuration Value"}],"sorting":[],"filters":[{"attributePath":"rtWellKnownName","operator":"LIKE","comparisonValue":"Migration"}],"pageSize":10,"sortable":true}'
+        value: '{"showDetail":true}'
 
+  # Was "Communication" (statusIndicator) up to 1.0.1.
   - rtId: 69553bc38b72e7555662013e
     ckTypeId: System.UI/DashboardWidget-1
     associations:
@@ -239,26 +232,57 @@ entities:
         attributes: []
     attributes:
       - id: System/Name-1
-        value: Communication
+        value: Pipeline executions 24 h
       - id: System.UI/DashboardWidget.Type-1
-        value: statusIndicator
+        value: pipelineExecutions
       - id: System.UI/DashboardWidget.Col-1
-        value: 4
+        value: 5
       - id: System.UI/DashboardWidget.Row-1
-        value: 2
+        value: 4
       - id: System.UI/DashboardWidget.ColSpan-1
-        value: 1
+        value: 2
       - id: System.UI/DashboardWidget.RowSpan-1
         value: 1
       - id: System.UI/DashboardWidget.DataSourceType-1
-        value: serviceCall
+        value: static
       - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
         value: ''
       - id: System.UI/DashboardWidget.DataSourceRtId-1
         value: ''
       - id: System.UI/DashboardWidget.Config-1
-        value: '{"callType":"modelAvailable","modelName":"System.Communication","trueLabel":"ENABLED","falseLabel":"DISABLED","trueColor":"#10b981","falseColor":"#ef4444"}'
+        value: '{"showDetail":true,"showSparkline":true}'
 
+  # Was "Reporting" (statusIndicator) up to 1.0.1.
+  - rtId: 69553ceb8b72e75556620142
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Version
+      - id: System.UI/DashboardWidget.Type-1
+        value: versionInfo
+      - id: System.UI/DashboardWidget.Col-1
+        value: 1
+      - id: System.UI/DashboardWidget.Row-1
+        value: 5
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 2
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 1
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: static
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"showDetail":true}'
+
+  # Kept from 1.0.1 (generic kpi), moved to row 5.
   - rtId: 69553ceb8b72e75556620140
     ckTypeId: System.UI/DashboardWidget-1
     associations:
@@ -272,11 +296,11 @@ entities:
       - id: System.UI/DashboardWidget.Type-1
         value: kpi
       - id: System.UI/DashboardWidget.Col-1
-        value: 2
+        value: 3
       - id: System.UI/DashboardWidget.Row-1
-        value: 2
+        value: 5
       - id: System.UI/DashboardWidget.ColSpan-1
-        value: 1
+        value: 2
       - id: System.UI/DashboardWidget.RowSpan-1
         value: 1
       - id: System.UI/DashboardWidget.DataSourceType-1
@@ -288,6 +312,7 @@ entities:
       - id: System.UI/DashboardWidget.Config-1
         value: '{"valueAttribute":"_count","icon":"chart","filters":[{"attributePath":"level","operator":"EQUALS","comparisonValue":"Error"}]}'
 
+  # Kept from 1.0.1 (generic kpi), moved to row 5.
   - rtId: 69553ceb8b72e75556620141
     ckTypeId: System.UI/DashboardWidget-1
     associations:
@@ -301,11 +326,11 @@ entities:
       - id: System.UI/DashboardWidget.Type-1
         value: kpi
       - id: System.UI/DashboardWidget.Col-1
-        value: 3
+        value: 5
       - id: System.UI/DashboardWidget.Row-1
-        value: 2
+        value: 5
       - id: System.UI/DashboardWidget.ColSpan-1
-        value: 1
+        value: 2
       - id: System.UI/DashboardWidget.RowSpan-1
         value: 1
       - id: System.UI/DashboardWidget.DataSourceType-1
@@ -317,7 +342,8 @@ entities:
       - id: System.UI/DashboardWidget.Config-1
         value: '{"valueAttribute":"_count","icon":"chart","filters":[{"attributePath":"level","operator":"EQUALS","comparisonValue":"Critical"}]}'
 
-  - rtId: 69553ceb8b72e75556620142
+  # Kept from 1.0.1, moved to rows 6-7.
+  - rtId: 69553acb8b72e75556620136
     ckTypeId: System.UI/DashboardWidget-1
     associations:
       - roleId: System/ParentChild-1
@@ -326,22 +352,52 @@ entities:
         attributes: []
     attributes:
       - id: System/Name-1
-        value: Reporting
+        value: Construction Kit Models
       - id: System.UI/DashboardWidget.Type-1
-        value: statusIndicator
+        value: pieChart
       - id: System.UI/DashboardWidget.Col-1
         value: 1
       - id: System.UI/DashboardWidget.Row-1
-        value: 2
+        value: 6
       - id: System.UI/DashboardWidget.ColSpan-1
-        value: 1
+        value: 3
       - id: System.UI/DashboardWidget.RowSpan-1
-        value: 1
+        value: 2
       - id: System.UI/DashboardWidget.DataSourceType-1
-        value: serviceCall
+        value: constructionKitQuery
       - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
         value: ''
       - id: System.UI/DashboardWidget.DataSourceRtId-1
         value: ''
       - id: System.UI/DashboardWidget.Config-1
-        value: '{"callType":"modelAvailable","modelName":"System.Reporting","trueLabel":"ENABLED","falseLabel":"DISABLED","trueColor":"#10b981","falseColor":"#ef4444"}'
+        value: '{"chartType":"donut","categoryField":"","valueField":"","showLabels":true,"showLegend":true,"legendPosition":"right","ckQueryTarget":"models","ckGroupBy":"modelState"}'
+
+  # New in 1.1.0.
+  - rtId: 69553ceb8b72e75556620143
+    ckTypeId: System.UI/DashboardWidget-1
+    associations:
+      - roleId: System/ParentChild-1
+        targetRtId: 69553a0d8b72e7555662012f
+        targetCkTypeId: System.UI/Dashboard-1
+        attributes: []
+    attributes:
+      - id: System/Name-1
+        value: Recently opened
+      - id: System.UI/DashboardWidget.Type-1
+        value: recentItems
+      - id: System.UI/DashboardWidget.Col-1
+        value: 4
+      - id: System.UI/DashboardWidget.Row-1
+        value: 6
+      - id: System.UI/DashboardWidget.ColSpan-1
+        value: 3
+      - id: System.UI/DashboardWidget.RowSpan-1
+        value: 2
+      - id: System.UI/DashboardWidget.DataSourceType-1
+        value: static
+      - id: System.UI/DashboardWidget.DataSourceCkTypeId-1
+        value: ''
+      - id: System.UI/DashboardWidget.DataSourceRtId-1
+        value: ''
+      - id: System.UI/DashboardWidget.Config-1
+        value: '{"maxItems":8}'
