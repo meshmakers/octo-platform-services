@@ -46,7 +46,11 @@ resources:
       # ($(MajorVersion).$(MinorVersion).*) instead of letting `dotnet tool install`
       # resolve the globally-highest stable version, which on the 0.2 dev lane means
       # the 3.4 release compiler (3.4.115 > 0.2.x) validating a 0.2 CK model.
-      ref: refs/tags/tpl-v0.5.3
+      # tpl-v0.5.6 backports the lane catalog (AB#5412) onto this line, exactly as in
+      # octo-communication-controller-services: it adds the publishCkModelsToLaneCatalog
+      # opt-in and retargets the SemVer gate at meshmakers/octo-catalog-dev on test/*.
+      # It touches update-build-number and validate-ck-versions only.
+      ref: refs/tags/tpl-v0.5.6
 
 trigger:
   batch: true
@@ -89,6 +93,12 @@ stages:
             parameters:
               octoCoreLibVersionOverride: ${{ replace(parameters.octoCoreLibVersion, 'auto', '') }}
               octoCommVersionOverride: ${{ replace(parameters.octoCommVersion, 'auto', '') }}
+              # AB#5412 / AB#4924: on refs/heads/test/* the System.UI publish and the SemVer gate
+              # use the lane catalog meshmakers/octo-catalog-dev. Without it the lane's System.UI
+              # (2.7.0, the System 2.5 repin) is gated against main's PrivateGitHubCatalog, where
+              # the studio rebuild has since published 2.9.0, and fails with OCTO-CK101 (seen in
+              # build 50202). No effect on main / r-tags.
+              publishCkModelsToLaneCatalog: true
           - checkout: self
             clean: true
           - template: templates/steps/set-version.yml@pipelineTemplates
