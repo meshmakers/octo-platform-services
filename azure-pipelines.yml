@@ -1,5 +1,5 @@
 # Root-level CI pipeline for octo-platform-services, using shared templates
-# from octo-pipeline-templates@tpl-v0.3.1.
+# from octo-pipeline-templates@tpl-v1.0.1.
 #
 # Phase 1 scope (the only thing this service currently does): host the
 # tenant-scoped `_configuration` discovery endpoint that was previously
@@ -42,15 +42,7 @@ resources:
       type: github
       name: meshmakers/octo-pipeline-templates
       endpoint: meshmakers-access-token
-      # tpl-v0.5.3 derives the octo-ckc version from this build's own version line
-      # ($(MajorVersion).$(MinorVersion).*) instead of letting `dotnet tool install`
-      # resolve the globally-highest stable version, which on the 0.2 dev lane means
-      # the 3.4 release compiler (3.4.115 > 0.2.x) validating a 0.2 CK model.
-      # tpl-v0.5.6 backports the lane catalog (AB#5412) onto this line, exactly as in
-      # octo-communication-controller-services: it adds the publishCkModelsToLaneCatalog
-      # opt-in and retargets the SemVer gate at meshmakers/octo-catalog-dev on test/*.
-      # It touches update-build-number and validate-ck-versions only.
-      ref: refs/tags/tpl-v0.5.6
+      ref: refs/tags/tpl-v1.1.1
 
 trigger:
   batch: true
@@ -59,6 +51,15 @@ trigger:
       - dev/*
       - test/*
       - main
+  # Docs-only commits must not start CI (AB#5719). Excluded paths are
+  # never consumed by the build; a root README.md change reaches the
+  # packed NuGet readme with the next code commit.
+  paths:
+    exclude:
+      - '**/*.md'
+      - '*.md'
+      - '.claude/'
+      - 'docs/'
   tags:
     exclude:
       - '*'
@@ -93,38 +94,27 @@ stages:
             parameters:
               octoCoreLibVersionOverride: ${{ replace(parameters.octoCoreLibVersion, 'auto', '') }}
               octoCommVersionOverride: ${{ replace(parameters.octoCommVersion, 'auto', '') }}
-              # AB#5412 / AB#4924: on refs/heads/test/* the System.UI publish and the SemVer gate
-              # use the lane catalog meshmakers/octo-catalog-dev. Without it the lane's System.UI
-              # (2.7.0, the System 2.5 repin) is gated against main's PrivateGitHubCatalog, where
-              # the studio rebuild has since published 2.9.0, and fails with OCTO-CK101 (seen in
-              # build 50202). No effect on main / r-tags.
-              publishCkModelsToLaneCatalog: true
           - checkout: self
             clean: true
           - template: templates/steps/set-version.yml@pipelineTemplates
-          # CK SemVer honesty gate (AB#4420): System.UI is published DURING
-          # the dotnet build (/p:OctoPublishCatalog), so the gate must be able
-          # to fail first.
-          - template: templates/steps/validate-ck-versions.yml@pipelineTemplates
-            parameters:
-              constructionKitPaths:
-                - 'src/SystemUiCkModel/ConstructionKit'
           - template: templates/steps/download-ca.yml@pipelineTemplates
+          # Fresh package list for the private feed only; nuget.org stays cached.
+          # Replaces restore --force and noCache (AB#5720).
+          - template: templates/steps/purge-private-nuget-http-cache.yml@pipelineTemplates
           - task: DotNetCoreCLI@2
             retryCountOnTaskFailure: 2
             displayName: 'Restore NuGet packages'
             inputs:
               command: 'restore'
               projects: '$(solutionFile)'
-              restoreArguments: '--force /p:OctoNugetPrivateServer=$(nugetPrivateServer)'
-              noCache: true
+              restoreArguments: '/p:OctoNugetPrivateServer=$(nugetPrivateServer)'
           - task: DotNetCoreCLI@2
             retryCountOnTaskFailure: 2
             displayName: 'Build'
             inputs:
               command: 'build'
               projects: $(solutionFile)
-              arguments: '--no-restore --configuration $(buildConfiguration) /p:OctoNugetPrivateServer=$(nugetPrivateServer) /p:OctoPublishCatalog="$(effectivePublishCatalog)" /p:OctoPrivateGitHubApiKey=$(GitHubPAT) /p:OctoPublicGitHubApiKey=$(GitHubPAT)'
+              arguments: '--no-restore --configuration $(buildConfiguration) /p:OctoNugetPrivateServer=$(nugetPrivateServer) /p:OctoPublishCkModel=false /p:OctoPrivateGitHubApiKey=$(GitHubPAT) /p:OctoPublicGitHubApiKey=$(GitHubPAT)'
               publishWebProjects: false
               zipAfterPublish: false
               modifyOutputPath: false
@@ -138,6 +128,10 @@ stages:
                 **/*Tests.csproj
                 !**/*SystemTests.csproj
               testRunTitle: 'CI'
+          - template: templates/steps/validate-and-publish-ck-versions.yml@pipelineTemplates
+            parameters:
+              constructionKitPaths:
+                - 'src/SystemUiCkModel/ConstructionKit'
           # Multi-arch image (AB#4451): arm64 for Apple-Silicon kind clusters and
           # edge devices, amd64 for the managed clusters.
           - template: templates/steps/build-and-push-docker.yml@pipelineTemplates
