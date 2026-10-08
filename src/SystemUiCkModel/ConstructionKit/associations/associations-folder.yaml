@@ -1,0 +1,8 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+associationRoles:
+  - id: FolderItem
+    description: "Places an item (e.g. a persistent query) in a folder of the Studio's library."
+    inboundName: Folder
+    inboundMultiplicity: ZeroOrOne
+    outboundName: Items
+    outboundMultiplicity: N

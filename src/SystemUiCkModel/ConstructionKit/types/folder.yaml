@@ -1,0 +1,23 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+types:
+  - typeId: Folder
+    derivedFromCkTypeId: ${this}/UIElement
+    isFinal: false
+    isAbstract: false
+    description: A folder of the Studio's library. Folders nest through System/ParentChild and hold items (e.g. persistent queries) through FolderItem.
+    attributes:
+      - id: ${System}/Name
+        name: Name
+      - id: ${System}/Description
+        name: Description
+        isOptional: true
+      - id: ${this}/Folder.Scope
+        name: Scope
+      - id: ${this}/Folder.SortOrder
+        name: SortOrder
+        isOptional: true
+    associations:
+      - id: ${System}/ParentChild
+        targetCkTypeId: ${this}/Folder
+      - id: ${this}/FolderItem
+        targetCkTypeId: ${System}/PersistentQuery
