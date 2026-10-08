@@ -1,8 +1,14 @@
 "$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
 associationRoles:
   - id: FolderItem
-    description: "Places an item (e.g. a persistent query) in a folder of the Studio's library."
+    description: "Places an item (e.g. a persistent query) in a folder of the Studio's library. An item sits in at most one folder; the runtime enforces this on mutations, but RT import does not — importers must not create duplicate memberships."
     inboundName: Folder
     inboundMultiplicity: ZeroOrOne
     outboundName: Items
     outboundMultiplicity: N
+  - id: FolderParent
+    description: "Links a subfolder to its parent folder in the Studio's library. Top-level folders have no FolderParent edge. RT import does not enforce the ZeroOrOne multiplicity — importers must not create a second parent."
+    inboundName: Children
+    inboundMultiplicity: N
+    outboundName: Parent
+    outboundMultiplicity: ZeroOrOne

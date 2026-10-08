@@ -4,7 +4,7 @@ types:
     derivedFromCkTypeId: ${this}/UIElement
     isFinal: false
     isAbstract: false
-    description: A folder of the Studio's library. Folders nest through System/ParentChild and hold items (e.g. persistent queries) through FolderItem.
+    description: A folder of the Studio's library. Folders nest through FolderParent (top-level folders have no parent) and hold items (e.g. persistent queries) through FolderItem. Deleting a folder does not cascade - clients must move its subfolders and items up to the parent first.
     attributes:
       - id: ${System}/Name
         name: Name
@@ -17,7 +17,7 @@ types:
         name: SortOrder
         isOptional: true
     associations:
-      - id: ${System}/ParentChild
+      - id: ${this}/FolderParent
         targetCkTypeId: ${this}/Folder
       - id: ${this}/FolderItem
         targetCkTypeId: ${System}/PersistentQuery

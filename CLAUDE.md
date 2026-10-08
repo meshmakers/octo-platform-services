@@ -67,7 +67,7 @@ src/PlatformServices/
 ├── nlog.config
 └── Properties/launchSettings.json                 # 5024 http / 5025 https
 src/SystemUiCkModel/                               # System.UI CK model + 4 service-managed blueprints (moved from admin-panel)
-├── ConstructionKit/                               # System.UI-2.10.0 model YAML, System floor [2.5,3.0) since 2.7.0 (AB#5528, wave-1 System 2.5.0 repin): UIElement, Dashboard, ProcessDiagram, SymbolLibrary/SymbolDefinition, Branding, TreeNavigationConfiguration (Roles + Perspectives), MappingCoverageConfiguration (per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage'), EntityForm (+ records EntityFormSection/Field/Column, AB#5521), Folder + association role FolderItem (Studio library folders, 2.10.0, AB#3444)
+├── ConstructionKit/                               # System.UI-2.10.0 model YAML, System floor [2.5,3.0) since 2.7.0 (AB#5528, wave-1 System 2.5.0 repin): UIElement, Dashboard, ProcessDiagram, SymbolLibrary/SymbolDefinition, Branding, TreeNavigationConfiguration (Roles + Perspectives), MappingCoverageConfiguration (per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage'), EntityForm (+ records EntityFormSection/Field/Column, AB#5521), Folder + association roles FolderItem/FolderParent (Studio library folders, 2.10.0, AB#3444)
 └── Blueprints/{System.UI.SystemCockpit,System.UI.TenantCockpit,System.UI.EntityForms,System.TenantMode}/
 ```
 
@@ -157,24 +157,28 @@ non-system tenant — the Refinery Studio's Home › Cockpit.
 - The Studio keeps its hard-wired Home strips only as a fallback for boards without any cockpit
   widget (tenants before the roll-out, or a tenant that removed them).
 
-### `System.UI/Folder` + `System.UI/FolderItem` (System.UI 2.10.0, AB#3444)
+### `System.UI/Folder` + `System.UI/FolderItem` / `System.UI/FolderParent` (System.UI 2.10.0, AB#3444)
 
 Folders of the Refinery Studio library (concept `wave3-concepts/data-explorer-and-queries-concept.md` §3.4).
 Minor, purely additive, no migration, System floor unchanged. `Folder` (derives from `UIElement`) has `Name`,
 optional `Description`, `Folder.Scope` (String, e.g. `Queries`; folders of different scopes are separate
-trees) and optional `Folder.SortOrder` (Int). Subfolders use `System/ParentChild` → `Folder`; the role
+trees) and optional `Folder.SortOrder` (Int). Subfolders use the role `FolderParent` (Folder → Folder,
+outbound `Parent` ZeroOrOne, inbound `Children` N); top-level folders have no `FolderParent` edge. The role
 `FolderItem` (Folder → `System/PersistentQuery`, outbound `Items` N, inbound `Folder` ZeroOrOne) places a
-query in a folder. No blueprint seeds folders, and no blueprint needed a bump (EntityForms/cockpits pin ranges).
+query in a folder. Deliberately NOT `System/ParentChild`: its outbound multiplicity is `One`, and the engine
+rejects inserting an entity whose type declares it without a parent edge, so root folders would be impossible. No blueprint seeds folders, and no blueprint needed a bump (EntityForms/cockpits pin ranges).
 
 Engine behaviour (verified in `octo-construction-kit-engine`, `GraphRuleEngine`):
-- **Multiplicity is enforced** on every `ApplyChanges` write: a second `FolderItem` edge to the same query is
-  rejected (`AssociationCardinalityViolationOnModification`). Moving a query = Delete(old) + Create(new)
-  in ONE mutation. RT import (`ImportRtModelCommand`) bypasses this check.
-- **`System/ParentChild` is outbound `One`**: inserting an entity whose type declares it without a
-  ParentChild Create in the same batch is rejected (`AssociationCardinalityViolationOnCreate`). As
-  modelled, a root `Folder` (no parent) cannot be created — see the open decision in the AB#3444 report.
-- **Delete** removes every edge of the deleted entity (both directions); no cascade — children of a deleted
-  folder remain without a parent, a deleted query drops its `FolderItem` edge.
+- **Multiplicity is enforced** on every `ApplyChanges` write: a second `FolderItem` edge to the same query (or
+  a second `FolderParent` of a folder) is rejected (`AssociationCardinalityViolationOnModification`). Moving =
+  Delete(old) + Create(new) in ONE mutation.
+- **RT import does NOT enforce it** (`ImportRtModelCommand` writes edges without the rule engine): importers
+  must not create duplicate `FolderItem` / `FolderParent` memberships.
+- **Only outbound `One` is mandatory on insert** (`GraphRuleEngine` filters `Multiplicity == One`), so a
+  `Folder` without a `FolderParent` edge (ZeroOrOne) can be created.
+- **Delete does not cascade**: it removes every edge of the deleted entity (both directions). Subfolders of a
+  deleted folder silently become top-level and its queries end up in no folder — clients must move children
+  (subfolders and items) up to the parent before deleting. A deleted query drops its `FolderItem` edge.
 - **Studio "Export Query"** exports edges only when both ends are exported, so folder membership does not
   travel with a query (intended: imported queries land in "no folder").
 
