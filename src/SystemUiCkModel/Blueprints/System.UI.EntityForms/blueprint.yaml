@@ -1,5 +1,5 @@
 $schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
-blueprintId: System.UI.EntityForms-1.4.1
+blueprintId: System.UI.EntityForms-1.5.0
 description: |
   Service-managed blueprint seeding the platform's System.UI/EntityForm entities
   (AB#5521) on every tenant. Ships "form-default" — the form on System/Entity with
@@ -21,10 +21,18 @@ description: |
   1.4.1 (AB#5528) raises the System.UI floor to 2.9.0 (wave-1 System 2.5.0 repin;
   the studio-rebuild System.UI versions moved one minor up behind the 2.7.0 repin
   release). The forms are unchanged.
+  1.5.0 (AB#5884) makes the communication detail forms work on System.Communication
+  3.x AND 4.x (4.0.0 renamed Pool -> DeploymentSite, Manages/ManagedBy -> Hosts/HostedBy):
+  the adapter and application forms gain a HostedBy (DeploymentSite, role Hosts) field
+  next to the existing ManagedBy (Pool, role Manages) field — the Studio skips a field
+  whose association role is absent from the tenant's type, so exactly one renders — and
+  the new form-deployment-site targets System.Communication/DeploymentSite (TargetCkTypeId
+  is a single type id, so form-pool keeps its stable name and stays unchanged for 3.x).
 
   Target types are referenced by their CK type id as a plain string
   (TargetCkTypeId), so this blueprint needs no System.Communication dependency; a
-  form whose type is absent in a tenant simply never resolves.
+  form whose type is absent in a tenant simply never resolves — which is what lets
+  form-pool (3.x) and form-deployment-site (4.x) ship side by side.
 
   Tenants customise a form by creating their OWN EntityForm for the same
   TargetCkTypeId — tenant forms win over these seeded ones. Do not edit the seeded

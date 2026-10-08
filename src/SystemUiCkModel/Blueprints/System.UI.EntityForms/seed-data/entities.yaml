@@ -14,7 +14,14 @@ $schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
 # Fixed rtIds 6703000000000000000000xx: 01 = form-default, 1x = wave-1 connection forms,
 # 2x = wave-3 connection forms (1.1.0), 3x = wave-2 connection forms, 4x = AI forms,
 # 5x = tenant forms (1.2.0, AB#5524), 6x = runtime-object detail forms (1.3.0, AB#5547; Helm picker display
-# attributes since 1.4.0).
+# attributes since 1.4.0; 64 = form-deployment-site since 1.5.0, AB#5884).
+#
+# System.Communication 3.x / 4.x (1.5.0, AB#5884): 4.0.0 renamed Pool -> DeploymentSite and
+# Manages/ManagedBy -> Hosts/HostedBy. The adapter and application forms carry BOTH reference
+# fields (ManagedBy / role Manages and HostedBy / role Hosts, same section and order); the
+# Studio's entity-form resolver skips a field whose association role does not exist on the
+# tenant's type (with a warning), so exactly one of them renders on either major. form-pool
+# (3.x) and form-deployment-site (4.x) coexist; only the one whose target type exists resolves.
 dependencies:
   # 2.8.0 introduces System.UI/EntityForm + its records, 2.9.0 adds
   # EntityFormField.ReferenceDisplayAttributes (1.4.0; floor raised to 2.9.0 in
@@ -2209,6 +2216,17 @@ entities:
           - { id: System.UI/EntityFormField.AssociationRoleId, value: "System.Communication/Manages" }
         - ckRecordId: System.UI/EntityFormField
           attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "HostedBy" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "general" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Deployment site" }
+          - { id: System.UI/EntityFormField.Help, value: "Deployment site whose operator deploys this adapter. Use Move… on the overview to change it later." }
+          - { id: System.UI/EntityFormField.Editor, value: "reference" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "afterCreate" }
+          - { id: System.UI/EntityFormField.ReferenceCkTypeId, value: "System.Communication/DeploymentSite" }
+          - { id: System.UI/EntityFormField.AssociationRoleId, value: "System.Communication/Hosts" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "HelmRepository" }
           - { id: System.UI/EntityFormField.SectionKey, value: "helm" }
           - { id: System.UI/EntityFormField.Order, value: 0 }
@@ -2345,7 +2363,9 @@ entities:
 
   # ---------------------------------------------------------------------------
   # Pool — detail form of System.Communication/Pool (AB#5547). Environment defaults to
-  # Edge; deployment and communication state are hidden runtime state.
+  # Edge; deployment and communication state are hidden runtime state. System.Communication
+  # 3.x only; 4.x tenants resolve form-deployment-site below (AB#5884). The well-known name
+  # stays stable (boards / links may reference it).
   # ---------------------------------------------------------------------------
   - rtId: '670300000000000000000061'
     ckTypeId: System.UI/EntityForm
@@ -2392,6 +2412,126 @@ entities:
           - { id: System.UI/EntityFormField.SectionKey, value: "general" }
           - { id: System.UI/EntityFormField.Order, value: 1 }
           - { id: System.UI/EntityFormField.Help, value: "Cloud pools are deployed by the central Communication Operator (\"Deploy pool\"); edge pools are installed and run by an external operator." }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Default, value: "Edge" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Description" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "general" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Editor, value: "multiline" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "DeploymentState" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "StatusMessage" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "LastDeploymentError" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "LastDeploymentErrorTimestamp" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "CommunicationState" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "CommunicationStateTimestamp" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "ConfigurationState" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "LastConfigurationError" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "LastConfigurationErrorTimestamp" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "RtBlueprintSource" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "system" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "Blueprint source" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "always" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "RtBlueprintLocked" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "system" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Blueprint locked" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "always" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "RtBlueprintAppliedAt" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "system" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Blueprint applied at" }
+          - { id: System.UI/EntityFormField.ReadOnly, value: "always" }
+
+  # ---------------------------------------------------------------------------
+  # Deployment site — detail form of System.Communication/DeploymentSite (AB#5884, 1.5.0).
+  # System.Communication 4.0.0 renamed Pool -> DeploymentSite (and Manages/ManagedBy ->
+  # Hosts/HostedBy). EntityForm.TargetCkTypeId is a single type id, so form-pool cannot
+  # target both types; this is a separate form with the same fields as form-pool, which
+  # stays unchanged under its stable well-known name for 3.x tenants. On a tenant only one
+  # of the two types exists, so only one of the two forms ever resolves.
+  # ---------------------------------------------------------------------------
+  - rtId: '670300000000000000000064'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: form-deployment-site
+    attributes:
+      - { id: System/Name, value: "Deployment site" }
+      - { id: System/Description, value: "Detail form of deployment sites (System.Communication 4.x; formerly pools): name, environment (Edge / Cloud) and description. Runtime state is hidden." }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "System.Communication/DeploymentSite" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: true }
+      - { id: System.UI/EntityForm.Priority, value: 0 }
+      - { id: System.UI/EntityForm.CanCreate, value: true }
+      - { id: System.UI/EntityForm.CanEdit, value: true }
+      - { id: System.UI/EntityForm.CanDelete, value: false }
+      - { id: System.UI/EntityForm.CanDuplicate, value: false }
+      - { id: System.UI/EntityForm.CanExport, value: false }
+      - { id: System.UI/EntityForm.GenerateRemainingFields, value: true }
+      - { id: System.UI/EntityForm.GeneratedSectionTitle, value: "Further attributes" }
+      - id: System.UI/EntityForm.Sections
+        value:
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "general" }
+          - { id: System.UI/EntityFormSection.Title, value: "General" }
+          - { id: System.UI/EntityFormSection.Order, value: 0 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "system" }
+          - { id: System.UI/EntityFormSection.Title, value: "System" }
+          - { id: System.UI/EntityFormSection.Order, value: 99 }
+          - { id: System.UI/EntityFormSection.Collapsed, value: true }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Name" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "general" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Environment" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "general" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Help, value: "Cloud deployment sites are deployed by the central Communication Operator (\"Deploy deployment site\"); edge deployment sites are installed and run by an external operator." }
           - { id: System.UI/EntityFormField.Required, value: true }
           - { id: System.UI/EntityFormField.Width, value: "half" }
           - { id: System.UI/EntityFormField.Default, value: "Edge" }
@@ -2531,6 +2671,16 @@ entities:
           - { id: System.UI/EntityFormField.Editor, value: "reference" }
           - { id: System.UI/EntityFormField.ReferenceCkTypeId, value: "System.Communication/Pool" }
           - { id: System.UI/EntityFormField.AssociationRoleId, value: "System.Communication/Manages" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "HostedBy" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "general" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "Deployment site" }
+          - { id: System.UI/EntityFormField.Help, value: "Deployment site whose operator deploys this application." }
+          - { id: System.UI/EntityFormField.Editor, value: "reference" }
+          - { id: System.UI/EntityFormField.ReferenceCkTypeId, value: "System.Communication/DeploymentSite" }
+          - { id: System.UI/EntityFormField.AssociationRoleId, value: "System.Communication/Hosts" }
         - ckRecordId: System.UI/EntityFormField
           attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "HelmRepository" }

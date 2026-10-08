@@ -157,7 +157,7 @@ non-system tenant — the Refinery Studio's Home › Cockpit.
 - The Studio keeps its hard-wired Home strips only as a fallback for boards without any cockpit
   widget (tenants before the roll-out, or a tenant that removed them).
 
-### `System.UI.EntityForms` blueprint (1.4.1, AB#5521 / AB#5523 / AB#5524 / AB#5547 / AB#5528)
+### `System.UI.EntityForms` blueprint (1.5.0, AB#5521 / AB#5523 / AB#5524 / AB#5547 / AB#5528 / AB#5884)
 
 `System.UI/EntityForm` (System.UI **2.8.0**, Minor, no migration; 2.9.0 adds
 `EntityFormField.ReferenceDisplayAttributes`, Minor, no migration — both shifted one minor up behind
@@ -226,6 +226,19 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
 - **1.4.1 (AB#5528)** only raises the System.UI floor (`blueprint.yaml` + seed `dependencies`) to 2.9.0
   after the studio-rebuild System.UI versions moved one minor up (2.7.0 is the System 2.5 repin
   release from `main`). The forms are unchanged; the patch bump rolls the new floor forward.
+- **1.5.0 (AB#5884)** makes the communication detail forms work on **System.Communication 3.x and 4.x**
+  (4.0.0 renamed `Pool` -> `DeploymentSite` and `Manages`/`ManagedBy` -> `Hosts`/`HostedBy`, no alias).
+  `form-adapter` / `form-application` carry **both** reference fields in `general`, order 1: `ManagedBy`
+  (`Pool`, role `System.Communication/Manages`) and `HostedBy` (`DeploymentSite`, role
+  `System.Communication/Hosts`, label "Deployment site", same `ReadOnly` as the pool field). The Studio's
+  resolver (octo-ui/entity-forms `entity-form-resolver.ts`) skips a `reference` field whose
+  `AssociationRoleId` is not a role of the tenant's type, with a warning, so exactly one renders per major.
+  `TargetCkTypeId` is a single type id, so `form-pool` (`…61`, unchanged, stable name) cannot also target
+  `DeploymentSite`: the new `…64` `form-deployment-site` (same fields) does; only the form whose type exists
+  in the tenant resolves. Neither form has an association field (the Studio fallback has none either), so
+  no `Hosts`/`Manages` field on the site/pool form. Still no `System.Communication` dependency — and none may
+  be added: it would have to admit both majors. The Studio snapshot `entity-forms-seed-1.4.1.snapshot.ts`
+  needs refreshing to 1.5.0.
 - **Naming.** `rtWellKnownName` = `form-<kebab-type>`, e.g. `form-sftp-configuration` (no colon).
 - **Tenant overrides.** A tenant customises a delivered form by creating its **own** `EntityForm` for the same
   `TargetCkTypeId` (empty `rtBlueprintSource`). Never edit a delivered `form-*` entity: a blueprint re-apply
