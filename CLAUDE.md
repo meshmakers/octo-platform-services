@@ -60,15 +60,15 @@ src/PlatformServices/
 ├── Dto/TenantConfigurationDto.cs                  # 11-field response (OAuth client fields dropped in Phase 4; mcpServices added AB#4381)
 ├── Options/PlatformServiceUrlsOptions.cs          # bound from OCTO_PLATFORMSERVICES__* (URLs + broker)
 ├── Configuration/ConfigureDistributionEventHubOptions.cs  # broker wiring for the tenant-event host
-├── Services/DefaultConfigurationCreatorService.cs # blueprint-only tenant bootstrap (System.UI + TenantMode)
+├── Services/DefaultConfigurationCreatorService.cs # blueprint-only tenant bootstrap (System.UI.* + TenantMode)
 ├── Program.cs                                     # Observability + CORS + RuntimeEngine + ServiceInfrastructure + blueprints
 ├── Dockerfile                                     # mcr.microsoft.com/dotnet/aspnet:10.0-noble
 ├── appsettings.json
 ├── nlog.config
 └── Properties/launchSettings.json                 # 5024 http / 5025 https
-src/SystemUiCkModel/                               # System.UI CK model + 3 service-managed blueprints (moved from admin-panel)
-├── ConstructionKit/                               # System.UI-2.7.0 model YAML, System floor [2.5,3.0) since 2.7.0 (AB#5528, wave-1 System 2.5.0 repin) (incl. TreeNavigationConfiguration: Roles + Perspectives; MappingCoverageConfiguration: per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage')
-└── Blueprints/{System.UI.SystemCockpit,System.UI.TenantCockpit,System.TenantMode}/
+src/SystemUiCkModel/                               # System.UI CK model + 4 service-managed blueprints (moved from admin-panel)
+├── ConstructionKit/                               # System.UI-2.9.0 model YAML, System floor [2.5,3.0) since 2.7.0 (AB#5528, wave-1 System 2.5.0 repin): UIElement, Dashboard, ProcessDiagram, SymbolLibrary/SymbolDefinition, Branding, TreeNavigationConfiguration (Roles + Perspectives), MappingCoverageConfiguration (per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage'), EntityForm (+ records EntityFormSection/Field/Column, AB#5521)
+└── Blueprints/{System.UI.SystemCockpit,System.UI.TenantCockpit,System.UI.EntityForms,System.TenantMode}/
 ```
 
 ### Local-dev ports
@@ -123,6 +123,161 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   `PosUpdateTenant` with `TenantUpdateScope.CacheOnly` for every tenant at 00:00Z. Until
   octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
   night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
+
+### `System.UI.TenantCockpit` blueprint (1.3.0, AB#5558)
+
+Seeds the `cockpit` board (`System.UI/Dashboard`, rtWellKnownName `cockpit`, 6 columns) of every
+non-system tenant — the Refinery Studio's Home › Cockpit.
+
+- **1.1.0** adds the octo-meshboard cockpit widgets (`provideCockpitWidgets()`, AB#5558):
+  `…5c` "Needs attention" (`attentionList`, row 1, full width, `{"maxItems":6}` = all checks),
+  `…5d` "Adapters online" (`adapterStatus`), `…5e` "CK models" (`ckModelState`), `…5f` "Pipeline
+  executions 24 h" (`pipelineExecutions`) in row 2 (2 columns each); the CK-model pie (`…5b`) moves
+  to rows 3–4. The widgets have `DataSourceType static` and their `Config` JSON is exactly what
+  octo-meshboard's `toPersistedConfig` writes — `cockpit-widget-registrations.spec.ts` in
+  octo-frontend-libraries holds these rows as a fixture (and compares it with this file in a
+  worktree pair): **change both together**. Each check runs only for viewers with its roles.
+- **1.2.0** gives "Needs attention" rows 1–2 (rowSpan 2: one 200 px row cut off the finding
+  cards' action links), KPIs row 3, pie rows 4–5 (fixture in octo-meshboard updated alongside),
+  and replaces the technical board description with a user-facing one ("Status of this
+  tenant at a glance"); `System.UI.SystemCockpit` **1.0.1** likewise ("Status of the OctoMesh
+  installation at a glance"). The Studio's Home shows neither name nor description (greeting +
+  board tabs, the board embedded with `headerMode: 'compact'`); UI › MeshBoards and the board
+  manager still do, so descriptions are user-facing text — never implementation notes.
+- **1.3.0** adds `…60` "Recently opened" (`recentItems`, rows 4–5, columns 4–6, `{"maxItems":8}`)
+  next to the CK-model pie, which widens to 3 columns (wireframe Home row "Construction Kit Models |
+  Recently opened"). The entries are per viewer (the Studio's Cmd+K history via the host source
+  `COCKPIT_RECENT_ITEMS`); the board stores only the row count. The Studio shows its separate
+  "Recently opened" panel only as a fallback when the cockpit lacks the widget.
+- **Roll-forward** as for TenantMode: the minor bump re-imports the seed on the next cold start;
+  the Upsert rewrites the seeded widgets including their position, widgets the tenant added stay.
+  A tenant widget placed where a new seeded widget lands is not moved by the import;
+  octo-meshboard resolves the overlap when the board loads (`resolveOverlaps` pushes a widget
+  down, display only until the board is saved via Customise board).
+- The Studio keeps its hard-wired Home strips only as a fallback for boards without any cockpit
+  widget (tenants before the roll-out, or a tenant that removed them).
+
+### `System.UI.EntityForms` blueprint (1.5.0, AB#5521 / AB#5523 / AB#5524 / AB#5547 / AB#5528 / AB#5884)
+
+`System.UI/EntityForm` (System.UI **2.8.0**, Minor, no migration; 2.9.0 adds
+`EntityFormField.ReferenceDisplayAttributes`, Minor, no migration — both shifted one minor up behind
+the System 2.5 repin release System.UI 2.7.0 from `main`, AB#5528, which has no EntityForm) describes how the Refinery Studio lists,
+creates and edits entities of a CK type: sections, fields, list columns and capabilities, as flat record
+arrays `Sections` / `Fields` / `ListColumns` (records `EntityFormSection` / `EntityFormField` /
+`EntityFormColumn`). The Studio renders generic Settings pages from it instead of one hand-written page per
+configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio-shell-and-entity-forms.md` §5).
+
+- **Where forms live.** Delivered forms are seed data of the service-managed blueprint
+  `src/SystemUiCkModel/Blueprints/System.UI.EntityForms/` (registered in `Program.cs` like the cockpits;
+  applied to every tenant because of the `System.UI.` prefix). Not in `defaultData.yaml` (a leftover nothing
+  reads) and not in the communication controller (it would need a System.UI dependency and race the
+  System.UI install). 1.0.0 ships `form-default` (target `System/Entity`, `IncludeDerivedTypes: true`,
+  `Priority: 0`, no `Category`) plus the six wave-1 forms (SFTP, Grafana, Discord, Loxone, E-Mail sender,
+  E-Mail receiver). 1.1.0 adds the wave-3 forms WeClapp, EDA (exact type only) and Energy Community
+  (`Category: connections`, rtIds `…20`–`…22`). Bump the blueprint version on every seed change: the next
+  cold start rolls the higher embedded version forward on every tenant (no `Program.cs` change, the DI
+  extension is keyed on the major version). Until then the Studio still shows these types under
+  Settings › Connections › *All configurations* (form-default).
+- **1.2.0 (AB#5524)** adds waves 2 and 4 and retires the last hand-written Studio configuration pages:
+  `…30`–`…34` SAP, Microsoft Graph, finAPI (`form-finapi-configuration`), Helm repository, Service
+  accounts (`connections`); `…40`–`…42` AI configuration, AI agent configuration, AI quota limit (`ai`;
+  agent config and quota limit are created by the AI service, so `CanCreate`/`CanDelete: false`);
+  `…50`–`…51` Tenant mode and Tenant configuration (`tenant`). Credentials (SAP `Password`, Graph / finAPI
+  `ClientSecret`, finAPI / Helm `Password`, AI `ApiKey`, service account `ClientSecret`) are
+  `Editor: password` + `Secret: true` (write-only in the Studio). Helm repository shows the inbound
+  `System.Communication/HelmRepository` association as a read-only `Used by` reference field.
+  - **Tenant mode** is the only singleton: `Singleton: true`, `SingletonWellKnownName: TenantMode` (the
+    entity `System.TenantMode` seeds); the former page's field hints are `Help` texts.
+  - **Tenant configuration** and **AI configuration** are deliberately *lists*, not singletons as the
+    concept's wave 4 says: `TenantConfiguration` is the engine's key/value store (one entity per key,
+    `TenantContext.SetConfigurationAsync`), and pipelines reference several named `AiConfiguration`s via
+    `ApiKeyConfigurationName`. A singleton form would hide all but one entry.
+  - **Service accounts** stay a hand-written Studio page (rotation flow, concept §5.9). The form gives
+    them a Settings entry and list columns; `CanEdit: false` makes every generic view read-only — the
+    Studio routes list / create / edit of this entry to its custom page.
+  - The Studio carries built-in copies of these entries (`settings-fallback-forms.ts`) that apply only
+    where its resolution would otherwise end at `form-default`, i.e. until this version is rolled out
+    by a cold start. Keep both in step when changing a wave-2/4 form here: the Studio checks its
+    copies against a snapshot of this seed (`entity-forms-seed-1.4.1.snapshot.ts`), which must be
+    regenerated too.
+- **1.3.0 (AB#5547)** moves the detail forms of the communication runtime objects into the seed:
+  `…60` `form-adapter`, `…61` `form-pool`, `…62` `form-application`, `…63` `form-data-flow` (targets
+  `System.Communication/Adapter|Pool|Application|DataFlow`, `IncludeDerivedTypes: true`, no `Category` —
+  they shape the Studio's detail pages, not Settings entries; `CanDelete`/`CanDuplicate`/`CanExport: false`,
+  deletion and moves are page actions). `GenerateRemainingFields: true` with the section title "Further
+  attributes", so attributes of derived types (e.g. a mesh adapter subtype) still appear; every inherited
+  runtime-state attribute (`DeploymentState`, `StatusMessage`, `LastDeploymentError*`,
+  `CommunicationState*`, `ConfigurationState`, `LastConfigurationError*`, `LifecycleState`,
+  `LastActivityAt`, `OnDemandCapable`, `OnDemandBlockingReasons`, adapter `LastSyncedSequenceNumber`) and
+  the encrypted `Values` overrides are listed `Hidden: true`. Defaults: pool `Environment` = `Edge`,
+  adapter `LifecycleMode` = `AlwaysOn`, `IdleTimeoutMinutes` = `30` (visible only for `OnDemand`).
+  The pool (`ManagedBy`, role `System.Communication/Manages`) is `ReadOnly: afterCreate` on the adapter
+  (Move… re-homes it) and editable on the application; applications hide `LifecycleMode` /
+  `IdleTimeoutMinutes`. Attribute names are checked against `SystemCommunicationCkModel` in
+  octo-communication-controller-services.
+  - The Studio keeps identical built-in copies (`runtime-object-forms.ts`) as fallbacks only and checks
+    them against the snapshot (`entity-forms-seed-1.4.1.snapshot.ts`).
+- **1.4.0 (AB#5547)** sets `ReferenceDisplayAttributes: "repositoryUrl,channel"` on the `HelmRepository`
+  reference field of `form-adapter` and `form-application`, so the delivered forms' Helm repository picker
+  shows `name · URL · channel` like the Studio fallbacks. Needs **System.UI 2.9.0**
+  (`EntityFormField.ReferenceDisplayAttributes`, a comma-separated String — record values in blueprint seeds must be scalars, the seed's record converter cannot read a YAML sequence; the same applies to `RecordColumns` should a seed ever set it): the dependency floor in
+  `blueprint.yaml` and the seed `dependencies` are 2.9.0. Entries are target attribute names in camelCase
+  (the picker passes them verbatim as GraphQL `attributeNames`); list only non-secret attributes.
+- **1.4.1 (AB#5528)** only raises the System.UI floor (`blueprint.yaml` + seed `dependencies`) to 2.9.0
+  after the studio-rebuild System.UI versions moved one minor up (2.7.0 is the System 2.5 repin
+  release from `main`). The forms are unchanged; the patch bump rolls the new floor forward.
+- **1.5.0 (AB#5884)** makes the communication detail forms work on **System.Communication 3.x and 4.x**
+  (4.0.0 renamed `Pool` -> `DeploymentSite` and `Manages`/`ManagedBy` -> `Hosts`/`HostedBy`, no alias).
+  `form-adapter` / `form-application` carry **both** reference fields in `general`, order 1: `ManagedBy`
+  (`Pool`, role `System.Communication/Manages`) and `HostedBy` (`DeploymentSite`, role
+  `System.Communication/Hosts`, label "Deployment site", same `ReadOnly` as the pool field). The Studio's
+  resolver (octo-ui/entity-forms `entity-form-resolver.ts`) skips a `reference` field whose
+  `AssociationRoleId` is not a role of the tenant's type, with a warning, so exactly one renders per major.
+  `TargetCkTypeId` is a single type id, so `form-pool` (`…61`, unchanged, stable name) cannot also target
+  `DeploymentSite`: the new `…64` `form-deployment-site` (same fields) does; only the form whose type exists
+  in the tenant resolves. Neither form has an association field (the Studio fallback has none either), so
+  no `Hosts`/`Manages` field on the site/pool form. Still no `System.Communication` dependency — and none may
+  be added: it would have to admit both majors. The Studio snapshot `entity-forms-seed-1.4.1.snapshot.ts`
+  needs refreshing to 1.5.0.
+- **Naming.** `rtWellKnownName` = `form-<kebab-type>`, e.g. `form-sftp-configuration` (no colon).
+- **Tenant overrides.** A tenant customises a delivered form by creating its **own** `EntityForm` for the same
+  `TargetCkTypeId` (empty `rtBlueprintSource`). Never edit a delivered `form-*` entity: a blueprint re-apply
+  upserts it (force re-apply rewrites every seeded attribute, see TenantMode above) and wipes the edit.
+- **Resolution (one algorithm, no special case).** (1) Pick exactly one form F for type T: forms with
+  `TargetCkTypeId = T`, else the nearest ancestor with a form where `IncludeDerivedTypes = true`;
+  `form-default` on `System/Entity` always matches. Ties: tenant form beats seeded, then higher `Priority`.
+  Forms are never merged. (2) Fields = F.Fields whose `AttributePath` exists on T (unknown paths skipped
+  silently), minus `Hidden`. (3) Unless `GenerateRemainingFields = false` (absent = true), all other
+  attributes of T are appended in model order into section `GeneratedSectionTitle` (default "Further
+  attributes"). (4) If `form-default` is deleted, the Studio falls back to a built-in constant equal to the
+  seed and logs a warning.
+- **Normative defaults.** No form → `form-default`. Abstract T → `CanCreate` forced false, list shows derived
+  instances, create asks for a concrete subtype. Singleton is never implied (only `Singleton` +
+  `SingletonWellKnownName`). No write permission → read-only, create/edit/delete hidden regardless of F. A
+  form appears on Settings home only if `Category` is set. Capability defaults when absent:
+  Create/Edit/Delete true, Duplicate/Export false. Associations become reference fields only when a form
+  lists them; `rtId` is never a field; system timestamps and `RtBlueprint*` are never editable; Secret
+  attributes/fields are write-only.
+- **String values, not CK enums.** `Editor` (auto|text|multiline|password|number|toggle|enum|datetime|url|
+  email|json|yaml|cron|reference|records; unknown = auto), `ReadOnly` (never|always|afterCreate), `Width`
+  (full|half) and `Display` (text|chip|date|mono) are Strings. System.UI uses no enums, and CK enums store
+  numeric keys, so every new value would force a Minor bump plus schema regeneration. `Required` is an
+  optional Boolean: absent = from the model's `isOptional`; `true` makes it stricter; `false` cannot loosen
+  a mandatory attribute.
+- **Record seed format** is the runtime import format (`ckRecordId` + `attributes`), not a `{ Key: x }`
+  shorthand:
+
+  ```yaml
+  - id: System.UI/EntityForm.Sections
+    value:
+      - ckRecordId: System.UI/EntityFormSection
+        attributes:
+          - { id: System.UI/EntityFormSection.Key, value: server }
+          - { id: System.UI/EntityFormSection.Title, value: Server }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+  ```
+- **Verify** after import: `runtime { systemUIEntityForm { items { rtWellKnownName targetCkTypeId
+  sections { key title } fields { attributePath editor secret } } } }`.
 
 ### Swagger UI / OpenAPI (AB#4388)
 
@@ -202,10 +357,10 @@ Public URI per environment:
 
 ## CI / CD
 
-Root-level `azure-pipelines.yml` follows the Phase 4a Layer-2 pattern: pulls shared templates from `octo-pipeline-templates@tpl-v0.4.11`, builds + tests + pushes Docker image (private always, public on release tag), tags `:main-latest` on main. No Helm chart (the chart lives in `octo-helm-core`).
+Root-level `azure-pipelines.yml` follows the Phase 4a Layer-2 pattern: pulls shared templates from `octo-pipeline-templates@tpl-v1.1.0`, builds + tests + pushes Docker image (private always, public on release tag), tags `:main-latest` on main. No Helm chart (the chart lives in `octo-helm-core`).
 
-Since Phase 4 / AB#4261 the build also **publishes the `System.UI` CK library + catalog** (moved from the retired `octo-frontend-admin-panel`):
-- the `Build` step passes `/p:OctoPublishCatalog="$(effectivePublishCatalog)"` so the CK catalog is published to the schema registry on release builds (same GitHub-PAT credentials already wired for the build);
+Since Phase 4 / AB#4261 the pipeline also **publishes the `System.UI` CK library + catalog** (moved from the retired `octo-frontend-admin-panel`):
+- the shared `validate-and-publish-ck-versions` step publishes it after the tests — `main` to the private catalog, `r*` tags to the private **and** the public one, never replacing a published version (AB#5121). The `Build` step passes `/p:OctoPublishCkModel=false`: it compiles the model and publishes it nowhere;
 - `handle-artifacts.yml` is given `constructionKitLibraryPaths: src/SystemUiCkModel/bin/$(buildConfiguration)/$(artifactsFrameworkVersion)/octo-ck-libraries/SystemUiCkModel`, so the `local` build artifact carries the generated `SystemUiCkModel` library docs.
 
 This is what lets `octo-documentation`'s `collect-docs.yml` harvester pick up the `System.UI` library docs from `octo-platform-services-CI` — it replaces the removed `octo-frontend-admin-panel-CI` (`frontendAdmin`) producer.

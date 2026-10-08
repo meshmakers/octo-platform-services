@@ -1,0 +1,67 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+types:
+  - typeId: EntityForm
+    derivedFromCkTypeId: ${this}/UIElement
+    isFinal: false
+    isAbstract: false
+    description: "Describes how the Refinery Studio lists, creates and edits entities of TargetCkTypeId (and, with IncludeDerivedTypes, its subtypes). Resolution: exact type first (tenant forms win over seeded ones, then Priority), then the nearest base type with IncludeDerivedTypes. The seeded form 'form-default' on System/Entity ends the chain, so every type has a form. Attributes a form does not mention are generated from CK metadata unless GenerateRemainingFields = false. Derives from UIElement (same as Branding, TreeNavigationConfiguration) — consistent with SystemUiCkModel convention."
+    attributes:
+      - id: ${System}/Name
+        name: Name
+        isOptional: true
+      - id: ${System}/Description
+        name: Description
+        isOptional: true
+      - id: ${this}/EntityForm.TargetCkTypeId
+        name: TargetCkTypeId
+      - id: ${this}/EntityForm.IncludeDerivedTypes
+        name: IncludeDerivedTypes
+        isOptional: true
+      - id: ${this}/EntityForm.Category
+        name: Category
+        isOptional: true
+      - id: ${this}/EntityForm.Icon
+        name: Icon
+        isOptional: true
+      - id: ${this}/EntityForm.Priority
+        name: Priority
+        isOptional: true
+      - id: ${this}/EntityForm.CanCreate
+        name: CanCreate
+        isOptional: true
+      - id: ${this}/EntityForm.CanEdit
+        name: CanEdit
+        isOptional: true
+      - id: ${this}/EntityForm.CanDelete
+        name: CanDelete
+        isOptional: true
+      - id: ${this}/EntityForm.CanDuplicate
+        name: CanDuplicate
+        isOptional: true
+      - id: ${this}/EntityForm.CanExport
+        name: CanExport
+        isOptional: true
+      - id: ${this}/EntityForm.Singleton
+        name: Singleton
+        isOptional: true
+      - id: ${this}/EntityForm.SingletonWellKnownName
+        name: SingletonWellKnownName
+        isOptional: true
+      - id: ${this}/EntityForm.CustomComponent
+        name: CustomComponent
+        isOptional: true
+      - id: ${this}/EntityForm.GenerateRemainingFields
+        name: GenerateRemainingFields
+        isOptional: true
+      - id: ${this}/EntityForm.GeneratedSectionTitle
+        name: GeneratedSectionTitle
+        isOptional: true
+      - id: ${this}/EntityForm.Sections
+        name: Sections
+        isOptional: true
+      - id: ${this}/EntityForm.Fields
+        name: Fields
+        isOptional: true
+      - id: ${this}/EntityForm.ListColumns
+        name: ListColumns
+        isOptional: true

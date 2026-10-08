@@ -1,5 +1,5 @@
 $schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
-blueprintId: System.UI.SystemCockpit-1.0.0
+blueprintId: System.UI.SystemCockpit-1.0.1
 description: |
   Service-managed blueprint seeding the System Cockpit dashboard for the OctoSystem
   tenant. Provides a fixed Refinery Studio start page (rtWellKnownName "cockpit") with
@@ -8,6 +8,8 @@ description: |
   tenant receives this blueprint — non-system tenants get System.UI.TenantCockpit instead.
   Following the OctoMesh "System.* = service-managed" convention, Studio hides Install /
   Re-apply controls for this blueprint.
+  1.0.1 (AB#5558): user-facing board description ("Status of the OctoMesh
+  installation at a glance") instead of a technical one.
 
 ckModelDependencies:
   # Satisfiability floor only. The install/upgrade target is driven by the engine's
