@@ -1,15 +1,28 @@
 $schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
-blueprintId: System.UI.SystemCockpit-1.0.1
+blueprintId: System.UI.SystemCockpit-1.1.0
 description: |
   Service-managed blueprint seeding the System Cockpit dashboard for the OctoSystem
   tenant. Provides a fixed Refinery Studio start page (rtWellKnownName "cockpit") with
-  KPI tiles for tenant count, service health checks, CK model status and event counters.
+  the octo-meshboard cockpit widgets about the installation: attention list, tenants,
+  CK models, blueprint updates, platform service health, adapters, pipeline
+  executions, version, event counters, the CK-model pie and recently opened.
   Auto-applied by the Admin Panel service on tenant Enable / startup; only the system
   tenant receives this blueprint — non-system tenants get System.UI.TenantCockpit instead.
   Following the OctoMesh "System.* = service-managed" convention, Studio hides Install /
   Re-apply controls for this blueprint.
   1.0.1 (AB#5558): user-facing board description ("Status of the OctoMesh
   installation at a glance") instead of a technical one.
+  1.1.0 (AB#5558): the board becomes a cockpit like the Tenant Cockpit (6 columns):
+  "Needs attention" (attentionList; on the system tenant it also checks platform
+  service health and blueprint updates), KPI rows "Tenants | CK models | Blueprint
+  updates", "Services healthy | Adapters online | Pipeline executions 24 h" and
+  "Version | Error events | Fatal events", then the CK-model pie next to "Recently
+  opened". The four service-health tiles, the tenant-count KPI, the migration table
+  and the Communication / Reporting indicators are replaced; every seeded widget
+  reuses an rtId of 1.0.x, so a roll-forward rewrites them in place and leaves no
+  stale tile behind. Needs Refinery Studio / octo-meshboard with the system cockpit
+  widget types (tenantCount, blueprintUpdates, servicesHealth, versionInfo); older
+  clients show these four tiles as unknown widgets.
 
 ckModelDependencies:
   # Satisfiability floor only. The install/upgrade target is driven by the engine's
