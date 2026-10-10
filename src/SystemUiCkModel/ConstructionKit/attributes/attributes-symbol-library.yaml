@@ -3,16 +3,20 @@ attributes:
   # SymbolLibrary attributes
   - id: SymbolLibrary.Version
     valueType: String
+    ownership: SeedOwned
     description: Library version for tracking changes (e.g., "1.0.0").
 
   - id: SymbolLibrary.Author
     valueType: String
+    ownership: SeedOwned
     description: Author name or identifier.
 
   - id: SymbolLibrary.IsBuiltIn
     valueType: Boolean
+    ownership: SeedOwned
     description: Whether this is a system-provided built-in library.
 
   - id: SymbolLibrary.IsReadOnly
     valueType: Boolean
+    ownership: SeedOwned
     description: Whether this library is read-only (cannot be modified by users).

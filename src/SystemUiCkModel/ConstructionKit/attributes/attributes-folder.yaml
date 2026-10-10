@@ -3,8 +3,10 @@ attributes:
   # Folder attributes
   - id: Folder.Scope
     valueType: String
+    ownership: SeedOwned
     description: Library section the folder belongs to (e.g. "Queries"). Folders of different scopes form separate trees.
 
   - id: Folder.SortOrder
     valueType: Int
+    ownership: SeedOwned
     description: Optional position of the folder among its siblings (ascending); folders without a value sort by name.

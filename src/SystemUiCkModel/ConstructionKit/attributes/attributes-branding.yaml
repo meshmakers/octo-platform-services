@@ -3,9 +3,11 @@ attributes:
   # --- Branding: naming ---
   - id: Branding.AppName
     valueType: String
+    ownership: SeedOwned
     description: "Full display name of the application (e.g. 'Maco Application')."
   - id: Branding.AppTitle
     valueType: String
+    ownership: SeedOwned
     description: "Text rendered into the browser tab (document.title)."
 
   # --- Branding: logos (binary assets) ---
@@ -17,55 +19,69 @@ attributes:
   # construction-kit element schema enum.
   - id: Branding.HeaderLogo
     valueType: Binary
+    ownership: SeedOwned
     description: "Logo displayed in the page header/topbar."
   - id: Branding.FooterLogo
     valueType: Binary
+    ownership: SeedOwned
     description: "Logo displayed in the page footer."
   - id: Branding.Favicon
     valueType: Binary
+    ownership: SeedOwned
     description: "Browser favicon."
 
   # --- Branding: themes (records) ---
   - id: Branding.LightTheme
     valueType: Record
     valueCkRecordId: ${this}/ThemePalette
+    ownership: SeedOwned
     description: "Color palette applied when the user/system selects the light theme."
   - id: Branding.DarkTheme
     valueType: Record
     valueCkRecordId: ${this}/ThemePalette
+    ownership: SeedOwned
     description: "Color palette applied when the user/system selects the dark theme. Leave unset for single-theme apps."
 
   # --- ThemePalette: base colors (hex strings like #RRGGBB) ---
   - id: ThemePalette.PrimaryColor
     valueType: String
+    ownership: SeedOwned
     description: "Base for the primary Kendo color family; full palette generated via HSL math."
   - id: ThemePalette.SecondaryColor
     valueType: String
+    ownership: SeedOwned
     description: "Base for the secondary Kendo color family."
   - id: ThemePalette.TertiaryColor
     valueType: String
+    ownership: SeedOwned
     description: "Base for the tertiary Kendo color family."
   - id: ThemePalette.NeutralColor
     valueType: String
+    ownership: SeedOwned
     description: "Base for the neutral family (base/border/subtle)."
   - id: ThemePalette.BackgroundColor
     valueType: String
+    ownership: SeedOwned
     description: "Page/surface background color (not derived from any palette base)."
 
   # --- ThemePalette: gradients (records) ---
   - id: ThemePalette.HeaderGradient
     valueType: Record
     valueCkRecordId: ${this}/ThemeGradient
+    ownership: SeedOwned
     description: "Gradient applied to the header/topbar. Rendered as linear-gradient(90deg, start, end)."
   - id: ThemePalette.FooterGradient
     valueType: Record
     valueCkRecordId: ${this}/ThemeGradient
+    ownership: SeedOwned
     description: "Gradient applied to the footer. Rendered as linear-gradient(90deg, start, end)."
 
   # --- ThemeGradient: endpoints ---
   - id: ThemeGradient.StartColor
     valueType: String
+    ownership: SeedOwned
     description: "Gradient start color (hex)."
   - id: ThemeGradient.EndColor
     valueType: String
+    ownership: SeedOwned
     description: "Gradient end color (hex)."
