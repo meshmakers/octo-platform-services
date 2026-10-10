@@ -157,6 +157,18 @@ non-system tenant — the Refinery Studio's Home › Cockpit.
 - The Studio keeps its hard-wired Home strips only as a fallback for boards without any cockpit
   widget (tenants before the roll-out, or a tenant that removed them).
 
+### Ownership markers are enforced by the build (AB#6327)
+
+`SystemUiCkModel.csproj` sets `OctoEnforceRuntimeStateMarkers=true`: the `CkLintRuntimeStateMarkers` task (CK MsBuildTasks
+package) fails the build with `OCTO-CK001` when an attribute in `ConstructionKit/attributes/*.yaml` declares no `ownership`
+(or the deprecated `isRuntimeState`). AB#6327 restated the existing behaviour: all 128 attributes got `ownership: SeedOwned`.
+Same resolved ownership, so `octo-ckc ValidateVersion` reports "no bump required" and System.UI stays 2.10.0.
+The 12 `Dashboard.*` / `DashboardWidget.*` attributes carry the inline comment "ownership under review in AB#6328 (audit F9,
+dashboard policy decision pending)": the app blueprints seed dashboards, so a seed version bump resets a board a tenant
+customised. Changing them is a behaviour change (System.UI minor) and belongs to AB#6328.
+**Review question for every new attribute:** could an operator or user type this value in the product? Yes → `TenantOwned`
+(or `Secret` for a credential); a service writes it → `RuntimeState`; the product ships and corrects it → `SeedOwned`.
+
 ### `System.UI/Folder` + `System.UI/FolderItem` / `System.UI/FolderParent` (System.UI 2.10.0, AB#3444)
 
 Folders of the Refinery Studio library (concept `wave3-concepts/data-explorer-and-queries-concept.md` §3.4).

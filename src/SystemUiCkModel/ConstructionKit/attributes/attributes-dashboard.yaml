@@ -3,39 +3,51 @@ attributes:
   # Dashboard attributes (Name, Description from System)
   - id: Dashboard.Columns
     valueType: Int
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Number of columns in the dashboard grid layout.
   - id: Dashboard.RowHeight
     valueType: Int
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Height of each row in pixels.
   - id: Dashboard.Gap
     valueType: Int
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Gap between widgets in pixels.
 
   # DashboardWidget attributes (Name from System used as Title)
   - id: DashboardWidget.Type
     valueType: String
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Widget type identifier (entityCard, kpi, entityWithAssociations, table).
   - id: DashboardWidget.Col
     valueType: Int
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Column position in the grid (1-based).
   - id: DashboardWidget.Row
     valueType: Int
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Row position in the grid (1-based).
   - id: DashboardWidget.ColSpan
     valueType: Int
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Number of columns the widget spans.
   - id: DashboardWidget.RowSpan
     valueType: Int
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Number of rows the widget spans.
   - id: DashboardWidget.DataSourceType
     valueType: String
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Type of data source (runtimeEntity, systemQuery, static).
   - id: DashboardWidget.DataSourceCkTypeId
     valueType: String
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Construction kit type ID for the data source.
   - id: DashboardWidget.DataSourceRtId
     valueType: String
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: Runtime entity ID for the data source (optional).
   - id: DashboardWidget.Config
     valueType: String
+    ownership: SeedOwned  # ownership under review in AB#6328 (audit F9, dashboard policy decision pending)
     description: JSON configuration for widget-specific settings.
