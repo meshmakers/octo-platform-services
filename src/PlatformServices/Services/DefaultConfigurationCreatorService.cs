@@ -40,14 +40,17 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
     private readonly ISystemContext _systemContext;
     private readonly IBlueprintService _blueprintService;
     private readonly IEnumerable<IBlueprintEmbeddedSource> _embeddedBlueprintSources;
+    private readonly DefaultFilesRootService _defaultFilesRootService;
 
     public DefaultConfigurationCreatorService(
         ILogger<DefaultConfigurationCreatorService> logger,
         ISystemContext systemContext,
         IBlueprintService blueprintService,
-        IEnumerable<IBlueprintEmbeddedSource> embeddedBlueprintSources)
+        IEnumerable<IBlueprintEmbeddedSource> embeddedBlueprintSources,
+        DefaultFilesRootService defaultFilesRootService)
         : base(logger, blueprintService, embeddedBlueprintSources)
     {
+        _defaultFilesRootService = defaultFilesRootService;
         _logger = logger;
         _systemContext = systemContext;
         _blueprintService = blueprintService;
@@ -93,6 +96,13 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
         var tenantContext = tenantId == _systemContext.TenantId
             ? _systemContext
             : await _systemContext.GetChildTenantContextAsync(tenantId).ConfigureAwait(false);
+
+        // AB#6480: System.Files is installed by the engine's service-managed descriptor when the tenant is
+        // resolved (above and inside the helper); the default root "Files" is ensured right after the install.
+        // Never throws (a failed install only logs) and is independent of the blueprint apply below, so the
+        // two failure domains do not block each other. Runs for every tenant setup - create, attach, restore,
+        // full update and the cold-start iteration - and is a no-op when the root already exists.
+        await _defaultFilesRootService.EnsureDefaultRootAsync(tenantId).ConfigureAwait(false);
 
         // After a tenant restore the DB exists but the CK cache has not been loaded yet; the
         // blueprint apply needs it to resolve types / well-known names.

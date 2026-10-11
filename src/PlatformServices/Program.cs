@@ -5,6 +5,7 @@ using Meshmakers.Octo.Backend.PlatformServices.Configuration;
 using Meshmakers.Octo.Backend.PlatformServices.Options;
 using Meshmakers.Octo.Backend.PlatformServices.Services;
 using Meshmakers.Octo.Communication.Contracts;
+using Meshmakers.Octo.ConstructionKit.Models.System.Files.Generated.System.Files.v1;
 using Meshmakers.Octo.Runtime.Contracts.Blueprints;
 using Meshmakers.Octo.Runtime.Contracts.MongoDb.Configuration;
 using Meshmakers.Octo.Runtime.Contracts.MongoDb.Extensions;
@@ -122,6 +123,15 @@ try
     builder.Services.AddSingleton<IServiceManagedCkModelDescriptor>(
         _ => new ServiceManagedCkModelDescriptor(
             SystemUiCkModel.Generated.System.UI.v2.SystemUICkIds.CkModelId));
+    // AB#6480: System.Files (platform file system) is installed by this service, like System.UI - the
+    // descriptor is the ONLY install mechanism (asset-repo and report-services import nothing). The engine
+    // imports it on tenant resolve at the embedded version with a downgrade guard, so a tenant that already
+    // has System.Files-1.0.0 (imported by asset-repo before) is skipped. The default root "Files" is ensured
+    // by DefaultConfigurationCreatorService.SetupTenantAsync right after.
+    builder.Services.AddCkModelSystemFilesV1();
+    builder.Services.AddSingleton<IServiceManagedCkModelDescriptor>(
+        _ => new ServiceManagedCkModelDescriptor(SystemFilesCkIds.CkModelId));
+    builder.Services.AddSingleton<DefaultFilesRootService>();
     builder.Services.AddBlueprintSystemUISystemCockpitV1();
     builder.Services.AddBlueprintSystemUITenantCockpitV1();
     // AB#5521: seeded EntityForms (form-default + wave-1 configuration forms), every tenant.

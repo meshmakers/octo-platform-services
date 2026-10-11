@@ -24,6 +24,7 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="Meshmakers.Octo.Backend.PlatformServices.ContractTests" />
+        <InternalsVisibleTo Include="Meshmakers.Octo.Backend.PlatformServices.IntegrationTests" />
     </ItemGroup>
 
     <ItemGroup>
@@ -37,6 +38,10 @@
         <PackageReference Include="Meshmakers.Octo.Services.Swagger" Version="$(OctoCoreLibVersion)" />
         <PackageReference Include="Meshmakers.Octo.Runtime.Engine.MongoDb" Version="$(OctoCoreLibVersion)" />
         <PackageReference Include="Meshmakers.Octo.Communication.Contracts" Version="$(OctoCoreLibVersion)" />
+        <!-- System.Files CK model (platform file system, AB#6480): source lives in octo-construction-kit-engine
+             and is published by the engine libs train. Installed into every tenant by this service
+             (service-managed descriptor in Program.cs), no longer by the asset repository. -->
+        <PackageReference Include="Meshmakers.Octo.ConstructionKit.Models.System.Files" Version="$(OctoCoreLibVersion)" />
     </ItemGroup>
 
     <ItemGroup>

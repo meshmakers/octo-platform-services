@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-**octo-platform-services** is an ASP.NET Core service that (1) serves the public, tenant-scoped `_configuration` discovery endpoint for OctoMesh's external clients (Refinery Studio, Office Integration, PowerBI / Power Query), (2) exposes read-only tenant/blueprint/drift observability endpoints, and (3) — since Phase 4 — **owns the `System.UI` CK model and its service-managed blueprints** (the cockpit dashboards + the cross-cutting `System.TenantMode` seed), applying them on every tenant lifecycle event. All three concerns were previously hosted by `octo-frontend-admin-panel`; this repo is the consolidation point so the legacy Admin Panel can be retired.
+**octo-platform-services** is an ASP.NET Core service that (1) serves the public, tenant-scoped `_configuration` discovery endpoint for OctoMesh's external clients (Refinery Studio, Office Integration, PowerBI / Power Query), (2) exposes read-only tenant/blueprint/drift observability endpoints, and (3) — since Phase 4 — **owns the `System.UI` CK model and its service-managed blueprints** (the cockpit dashboards + the cross-cutting `System.TenantMode` seed), applying them on every tenant lifecycle event, and installs the `System.Files` CK model + its default root (AB#6480). All three concerns were previously hosted by `octo-frontend-admin-panel`; this repo is the consolidation point so the legacy Admin Panel can be retired.
 
 Phase history:
 - **Phase 1 (done)**: extracted the `_configuration` discovery endpoint.
@@ -95,6 +95,39 @@ src/SystemUiCkModel/                               # System.UI CK model + 4 serv
 - `Meshmakers.Octo.Services.Infrastructure` — `AddOctoServiceInfrastructure` (distribution event hub tenant-event host + `IDefaultConfigurationCreatorService` lifecycle) and `InfrastructureCommon.ClaimScope`.
 
 Phase-1 NOTE (now obsolete): the service used to avoid Infrastructure / the CK runtime to stay slim. Phase 4 owns the System.UI blueprints, which requires both. It still does **not** seed identity data — see §"What changed in Phase 4" and the config-creator's class doc.
+
+### `System.Files` CK model install and the default root (AB#6480)
+
+platform-services installs the **System.Files** CK model (platform file system; source in
+octo-construction-kit-engine, package `Meshmakers.Octo.ConstructionKit.Models.System.Files` from the libs train)
+into every tenant and creates its default root `Files`. asset-repo and report-services import nothing for it.
+
+- **Install = `ServiceManagedCkModelDescriptor` only** (`Program.cs`, same mechanism as System.UI): the engine imports
+  the model at its embedded version on tenant resolve, once per process and tenant, with a downgrade guard. A tenant
+  that already has `System.Files-1.0.0` (installed by asset-repo before) is skipped: no second import, no ERROR, no
+  entity change. System.Files has no seed, so there is no blueprint. There is deliberately **no** explicit install in
+  `SetupTenantAsync`: nothing in asset-repo needs the model during its own setup, so the order of the services at a
+  tenant start is irrelevant.
+- **Default root = `DefaultFilesRootService`**, called from `DefaultConfigurationCreatorService.SetupTenantAsync`
+  right after the tenant is resolved (that resolve installs the model), before the blueprint apply: a plain
+  `System.Files/FolderRoot` with `name` and well-known name `Files` (no protection flag on the entity - the asset-repo
+  mutation guard protects roots by type; owner = the admin session). It is what asset-repo created at its tenant start
+  before. `SetupTenantAsync` runs for new tenants, attach/restore (PosCreate), full updates (PosUpdate), and the
+  cold-start iteration of **all** tenants including the system tenant; a CacheOnly update skips the setup (shared
+  consumer, AB#5497) and the nightly TenantMode re-apply only force-applies the `System.TenantMode` blueprint, so
+  neither touches System.Files.
+- **Idempotent and never throwing**: one indexed query when the root exists (matched case-insensitively on the
+  well-known name, as the file API resolves roots). Every pod runs the setup, so two pods can seed `Files` at once (no
+  unique index on well-known names): the oldest root wins, empty younger duplicates are erased (also on a later run),
+  a duplicate with content is kept and logged. If the install failed (e.g. System model too old, `ResolveFailed`) the
+  root is not created, a warning is logged and the next tenant setup / start retries; the setup itself does not fail.
+- **Edge**: edge clusters run the communication operator and adapters only; the tenant database, asset-repo and
+  platform-services are central, so edge pools use the System.Files of the central tenant. A self-contained
+  installation with asset-repo but `platformServices.deploy: false` never gets System.Files
+  (`SYSTEM_FILES_MISSING` in the file API) - deploy platform-services or import the model with octo-cli.
+- Tests: `tests/PlatformServices.IntegrationTests` (Testcontainers MongoDB): install-once + root for a new and for
+  the system tenant, idempotent repeated setup, tenant that already has the model and a root (left untouched), model
+  missing then installed, concurrent pods, duplicate clean-up.
 
 ### `System.TenantMode` blueprint (1.1.0, AB#5497)
 
@@ -391,6 +424,8 @@ Public URI per environment:
 ### Tests
 
 `tests/PlatformServices.ContractTests/` snapshot-locks the rendered `TenantConfigurationDto` JSON (11-field set + JSON property names + trailing slashes) plus controller tests for the observability endpoints. Any DTO drift fails CI loudly — that is intentional. The baseline reflects the Phase 4 ten-field contract (the four OAuth client fields were removed) plus the additive `mcpServices` field (AB#4381).
+
+`tests/PlatformServices.IntegrationTests/` (xUnit v3 + Testcontainers MongoDB, needs Docker) wires the same DI as `Program.cs` against a real replica set and runs the real `DefaultConfigurationCreatorService.SetupAsync` on fresh child tenants: System.Files install + default root (AB#6480). `dotnet test Octo.PlatformServices.sln -c DebugL`.
 
 ## CI / CD
 
