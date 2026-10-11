@@ -61,6 +61,11 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
         {
             tenantContext = await systemContext.FindTenantContextAsync(tenantId).ConfigureAwait(false);
         }
+        catch (TenantException e) when (e.IsTenantNotFound)
+        {
+            // Not wrapped: the setup-retry loop drops an entry for a tenant that no longer exists (AB#4829).
+            throw;
+        }
         catch (Exception e)
         {
             throw new SystemFilesSetupException(tenantId,
@@ -105,6 +110,10 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
 
             await RemoveConcurrentDuplicatesAsync(repository, tenantContext).ConfigureAwait(false);
         }
+        catch (TenantException e) when (e.IsTenantNotFound)
+        {
+            throw;
+        }
         catch (Exception e)
         {
             throw new SystemFilesSetupException(tenantContext.TenantId,
@@ -114,29 +123,60 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
 
     private async Task EnsureModelInstalledAsync(ITenantContext tenantContext)
     {
-        bool installed;
+        if (await IsInstalledAsync(tenantContext).ConfigureAwait(false))
+        {
+            return;
+        }
+
+        // The engine's service-managed import runs once per process and tenant and only logs a failure (a transient
+        // error stays unnoticed until a restart), so a retry that merely re-checked would see the same state.
+        // Attempt the import again here - the call has no per-process guard and the downgrade guard keeps it safe.
+        logger.LogWarning("System.Files is not installed in tenant '{TenantId}' after the tenant resolve; importing it again",
+            tenantContext.TenantId);
+        Exception? importError = null;
         try
         {
-            installed = await tenantContext.IsCkModelSatisfiedAsync(SystemFilesCkIds.CkModelId).ConfigureAwait(false);
+            await tenantContext.ImportCkModelWithDowngradeGuardAsync(SystemFilesCkIds.CkModelId).ConfigureAwait(false);
+        }
+        catch (TenantException e) when (e.IsTenantNotFound)
+        {
+            throw;
+        }
+        catch (Exception e)
+        {
+            importError = e;
+        }
+
+        if (await IsInstalledAsync(tenantContext).ConfigureAwait(false))
+        {
+            logger.LogInformation("System.Files imported into tenant '{TenantId}' by the retry", tenantContext.TenantId);
+            return;
+        }
+
+        // Name the most likely cause so the retry record is actionable.
+        var systemFloor = new CkModelId(SystemFloorModelId);
+        var cause = await tenantContext.IsCkModelSatisfiedAsync(systemFloor).ConfigureAwait(false)
+            ? "the import did not leave an Available model (see the engine log of the import for the cause, e.g. ResolveFailed)"
+            : $"the tenant's System model is older than {SystemFloorModelId} (System.Files depends on System-[2.5,3.0))";
+        throw new SystemFilesSetupException(tenantContext.TenantId,
+            importError == null ? cause : $"{cause}; the re-import failed: {importError.Message}", importError);
+    }
+
+    private static async Task<bool> IsInstalledAsync(ITenantContext tenantContext)
+    {
+        try
+        {
+            return await tenantContext.IsCkModelSatisfiedAsync(SystemFilesCkIds.CkModelId).ConfigureAwait(false);
+        }
+        catch (TenantException e) when (e.IsTenantNotFound)
+        {
+            throw;
         }
         catch (Exception e)
         {
             throw new SystemFilesSetupException(tenantContext.TenantId,
                 $"the installed state of the model could not be read ({e.Message})", e);
         }
-
-        if (installed)
-        {
-            return;
-        }
-
-        // The engine's service-managed import logs its own cause and does not throw (missing dependency, ResolveFailed).
-        // Name the most likely one so the retry record is actionable.
-        var systemFloor = new CkModelId(SystemFloorModelId);
-        var cause = await tenantContext.IsCkModelSatisfiedAsync(systemFloor).ConfigureAwait(false)
-            ? "the import did not leave an Available model (see the engine log of the import for the cause, e.g. ResolveFailed)"
-            : $"the tenant's System model is older than {SystemFloorModelId} (System.Files depends on System-[2.5,3.0))";
-        throw new SystemFilesSetupException(tenantContext.TenantId, cause);
     }
 
     /// <summary>Lowest System version System.Files accepts (<c>System-[2.5,3.0)</c>).</summary>

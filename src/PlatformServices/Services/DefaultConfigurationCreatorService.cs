@@ -188,13 +188,17 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
         {
             await RefreshTenantModeAsync(tenantId).ConfigureAwait(false);
         }
-        finally
+        catch
         {
-            // AB#6480: the System.Files failure of SetupTenantAsync is thrown after the TenantMode refresh.
-            if (PendingFilesFailures.TryRemove(tenantId, out var filesFailure))
-            {
-                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(filesFailure).Throw();
-            }
+            // The refresh's own failure wins; the Files failure is retried with the whole setup anyway.
+            PendingFilesFailures.TryRemove(tenantId, out _);
+            throw;
+        }
+
+        // AB#6480: the System.Files failure of SetupTenantAsync is thrown after the TenantMode refresh.
+        if (PendingFilesFailures.TryRemove(tenantId, out var filesFailure))
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(filesFailure).Throw();
         }
     }
 

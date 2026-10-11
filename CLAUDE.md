@@ -123,16 +123,22 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   logged; a failed clean-up only logs.
 - **A failed install is fatal for that tenant's setup (Gerald's decision).** The engine's descriptor import logs its
   cause and does not throw (missing dependency, `ResolveFailed`), so `DefaultFilesRootService` checks
-  `IsCkModelSatisfiedAsync(System.Files-1.0.0)` afterwards and throws `SystemFilesSetupException` ("System.Files could not
+  `IsCkModelSatisfiedAsync(System.Files-1.0.0)` afterwards, imports again if it is missing (`ImportCkModelWithDowngradeGuardAsync`:
+  the descriptor's per-process guard is spent after one failed attempt, so a retry that only re-checked would heal nothing)
+  and only then throws `SystemFilesSetupException` ("System.Files could not
   be set up for tenant 'x': <cause, e.g. the tenant's System model is older than System-2.5.0>. Model: System.Files-1.0.0").
   The creator passes the engine's `ITenantSetupRetryStore` to the base, so `SetupAsync` records the failure durably and the
   background loop (`FailedTenantRetryBackgroundService`: first run 30 s after start, every 30 s) re-runs the setup: constant
   60 s between attempts per tenant, **10 attempts**, a 5 min lease (single-flight across pods), 10 tenants per tick; after the
   budget the entry stays for an operator (a new tenant event, a restart or a successful setup clears/resets it). No
   exponential backoff, no unbounded retry. One tenant never blocks another (the cold-start loop catches per tenant and
-  records the retry).
+  records the retry). A tenant that no longer exists keeps its bare `TenantException` (`IsTenantNotFound`), so the retry loop
+  drops the entry (AB#4829) instead of retrying it 10 times.
 - **The other steps are not blocked.** In `SetupTenantAsync` the Files failure is caught, the System.UI/TenantMode blueprint
-  apply still runs, and the failure is thrown last: on lifecycle events after `RefreshTenantStateAsync` (the TenantMode
+  apply still runs, and the failure is thrown last. Both paths are real: `DeferTenantStart` is a per-instance flag, set true only on the instance of
+  `DefaultConfigurationInitializationService` (cold start; never reset - only the Standardized base resets it) while
+  `IDefaultConfigurationCreatorService` is registered transient, so the event consumers and the retry loop get fresh instances
+  with `false`. Cold start: thrown at the end of `SetupTenantAsync`; lifecycle events and retries: after `RefreshTenantStateAsync` (the TenantMode
   force-refresh, which the base skips when the setup throws), on the cold-start iteration at the end of
   `SetupTenantAsync`. Exception: the **system tenant** only logs the error - its setup is unguarded in the host start,
   a throw would fail the whole service.

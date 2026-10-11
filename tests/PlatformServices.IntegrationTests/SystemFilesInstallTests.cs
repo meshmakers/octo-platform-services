@@ -101,6 +101,16 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
 
     private const string ServiceId = "Meshmakers.Octo.Backend.PlatformServices";
 
+    /// <summary>
+    ///     A service whose CK model imports fail from the second one on: per tenant resolve the descriptor imports System.UI
+    ///     (call 1, passes) and then System.Files (call 2+, fails) - a persistent failure of the System.Files import.
+    /// </summary>
+    private ServiceProvider FailingFilesImportPod(out FlakyTenantNotifications flaky, string? systemTenantId = null)
+    {
+        flaky = new FlakyTenantNotifications { FailFromCall = 2 };
+        return fixture.BuildProvider(includeSystemFiles: true, systemTenantId, flaky);
+    }
+
     [Fact]
     public async Task Setup_WhenTheImportLeavesNoModel_Throws_RecordsTheRetry_AndDoesNotBlockTheOtherSteps()
     {
@@ -108,13 +118,10 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
         // ResolveFailed): the model stays missing after the tenant resolve.
         var failing = await fixture.CreateTenantAsync();
         var healthy = await fixture.CreateTenantAsync();
-        await using var withoutFiles = fixture.BuildProvider(includeSystemFiles: false);
+        await using var withoutFiles = FailingFilesImportPod(out _);
         var creator = withoutFiles.GetRequiredService<IDefaultConfigurationCreatorService>();
         // The other tenant already has the model (e.g. installed by asset-repo before).
-        var healthyContext = await withoutFiles.GetRequiredService<ISystemContext>().FindTenantContextAsync(healthy);
-        var importResult = new OperationResult();
-        await healthyContext.ImportCkModelAsync(SystemFilesCkIds.CkModelId, importResult);
-        importResult.HasErrors.Should().BeFalse();
+        await (await fixture.SystemContext.FindTenantContextAsync(healthy)).ImportCkModelWithDowngradeGuardAsync(SystemFilesCkIds.CkModelId);
         fixture.Logs.Clear();
 
         var failure = await Assert.ThrowsAsync<SystemFilesSetupException>(() => creator.SetupAsync(failing));
@@ -142,17 +149,14 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
     public async Task Setup_RetrySucceedsOnceTheModelIsResolvable_AndClearsTheRetryRecord()
     {
         var tenantId = await fixture.CreateTenantAsync();
-        await using var withoutFiles = fixture.BuildProvider(includeSystemFiles: false);
+        await using var withoutFiles = FailingFilesImportPod(out _);
         var creator = withoutFiles.GetRequiredService<IDefaultConfigurationCreatorService>();
         await Assert.ThrowsAsync<SystemFilesSetupException>(() => creator.SetupAsync(tenantId));
         var store = withoutFiles.GetRequiredService<ITenantSetupRetryStore>();
         (await store.ListAsync(ServiceId, TestContext.Current.CancellationToken)).Should().Contain(r => r.TenantId == tenantId);
 
-        // The model becomes resolvable (here: installed by hand; in production the catalog / System model heals).
-        var context = await withoutFiles.GetRequiredService<ISystemContext>().FindTenantContextAsync(tenantId);
-        var importResult = new OperationResult();
-        await context.ImportCkModelAsync(SystemFilesCkIds.CkModelId, importResult);
-        importResult.HasErrors.Should().BeFalse();
+        // The model becomes resolvable (here: another service installs it; in production the catalog / System model heals).
+        await (await fixture.SystemContext.FindTenantContextAsync(tenantId)).ImportCkModelWithDowngradeGuardAsync(SystemFilesCkIds.CkModelId);
 
         await creator.SetupAsync(tenantId); // what the retry loop does
 
@@ -161,10 +165,47 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
     }
 
     [Fact]
+    public async Task Setup_FirstImportFailsTransiently_TheRetryReimportsAndHeals()
+    {
+        // The engine's service-managed import is guarded per process and tenant and only runs once: when it hits a
+        // transient error the guard is spent and no later resolve imports again (a retry that merely re-checked would
+        // see the same state until a restart). The retry therefore imports explicitly.
+        var tenantId = await fixture.CreateTenantAsync();
+        await using var pod = FailingFilesImportPod(out var flaky);
+        var creator = pod.GetRequiredService<IDefaultConfigurationCreatorService>();
+
+        // Attempt 1: the descriptor import and the explicit re-import both hit the transient error.
+        var failure = await Assert.ThrowsAsync<SystemFilesSetupException>(() => creator.SetupAsync(tenantId));
+        failure.Message.Should().Contain("re-import failed");
+        (await fixture.GetCkModelRecordsAsync(tenantId, FilesModel)).Should().BeEmpty("the import failed");
+        (await fixture.GetCkModelRecordsAsync(tenantId, "System.UI")).Should().NotBeEmpty("the failure hit System.Files only");
+
+        // The error is gone; the descriptor's guard is spent for this process and tenant.
+        flaky.FailFromCall = 0;
+        await creator.SetupAsync(tenantId); // attempt 2 = the retry loop
+
+        (await fixture.GetCkModelRecordsAsync(tenantId, FilesModel)).Should().ContainSingle();
+        (await fixture.GetFileSystemEntitiesAsync(tenantId)).Should().ContainSingle();
+        var store = pod.GetRequiredService<ITenantSetupRetryStore>();
+        (await store.ListAsync(ServiceId, TestContext.Current.CancellationToken)).Should().NotContain(r => r.TenantId == tenantId);
+    }
+
+    [Fact]
+    public async Task Setup_DeletedTenant_KeepsTheNotFoundSemanticsForTheRetryLoop()
+    {
+        var rootService = fixture.Provider.GetRequiredService<DefaultFilesRootService>();
+
+        var ex = await Assert.ThrowsAsync<TenantException>(
+            () => rootService.EnsureInstalledWithDefaultRootAsync($"gone{Guid.NewGuid():N}"));
+
+        ex.IsTenantNotFound.Should().BeTrue("the retry loop drops entries of tenants that no longer exist (AB#4829); a wrapper would hide it");
+    }
+
+    [Fact]
     public async Task Setup_ColdStart_FailureIsThrownAfterTheOtherSteps()
     {
         var tenantId = await fixture.CreateTenantAsync();
-        await using var withoutFiles = fixture.BuildProvider(includeSystemFiles: false);
+        await using var withoutFiles = FailingFilesImportPod(out _);
         var creator = withoutFiles.GetRequiredService<IDefaultConfigurationCreatorService>();
         creator.DeferTenantStart = true; // the cold-start iteration: no TenantMode refresh follows
 
@@ -177,10 +218,15 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
     public async Task Setup_SystemTenantWithoutTheModel_DoesNotThrow()
     {
         // A throw would fail the unguarded system-tenant step of the host start and take every other step down.
-        // Own system tenant (own database) without the System.Files descriptor.
-        await using var isolated = fixture.BuildProvider(includeSystemFiles: false, $"octosystem{Guid.NewGuid():N}");
+        // Own system tenant (own database); its System.Files import fails.
+        var systemTenantId = $"octosystem{Guid.NewGuid():N}";
+        await using (var creating = fixture.BuildProvider(includeSystemFiles: false, systemTenantId))
+        {
+            await creating.GetRequiredService<ISystemContext>().CreateSystemTenantAsync();
+        }
+
+        await using var isolated = FailingFilesImportPod(out _, systemTenantId);
         var systemContext = isolated.GetRequiredService<ISystemContext>();
-        await systemContext.CreateSystemTenantAsync();
 
         await isolated.GetRequiredService<IDefaultConfigurationCreatorService>().SetupAsync(systemContext.TenantId);
 

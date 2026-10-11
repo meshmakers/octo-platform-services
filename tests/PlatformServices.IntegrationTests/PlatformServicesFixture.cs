@@ -71,10 +71,11 @@ public sealed class PlatformServicesFixture : IAsyncLifetime
 
     /// <summary>
     ///     A service provider wired like Program.cs. <paramref name="includeSystemFiles" /> false leaves out the
-    ///     System.Files descriptor: a service that resolves tenants with it never installs the model (the state of
-    ///     a tenant whose System.Files is not installed yet).
+    ///     System.Files model and its descriptor: the service's catalog does not know the model, so every import of it fails
+    ///     (the state of a tenant whose System.Files cannot be installed).
     /// </summary>
-    public ServiceProvider BuildProvider(bool includeSystemFiles, string? systemTenantId = null)
+    public ServiceProvider BuildProvider(bool includeSystemFiles, string? systemTenantId = null,
+        ITenantNotifications? tenantNotifications = null)
     {
         systemTenantId ??= SystemTenantId;
         var services = new ServiceCollection();
@@ -94,7 +95,7 @@ public sealed class PlatformServicesFixture : IAsyncLifetime
             o.Keys["test1"] = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
             o.ActiveKeyId = "test1";
         });
-        services.AddSingleton<ITenantNotifications, DefaultTenantNotifications>();
+        services.AddSingleton(tenantNotifications ?? new DefaultTenantNotifications());
         services.AddLogging(b =>
         {
             b.ClearProviders();
@@ -107,9 +108,9 @@ public sealed class PlatformServicesFixture : IAsyncLifetime
         services.AddCkModelSystemUIV2();
         services.AddSingleton<IServiceManagedCkModelDescriptor>(_ =>
             new ServiceManagedCkModelDescriptor(SystemUiCkModel.Generated.System.UI.v2.SystemUICkIds.CkModelId));
-        services.AddCkModelSystemFilesV1();
         if (includeSystemFiles)
         {
+            services.AddCkModelSystemFilesV1();
             services.AddSingleton<IServiceManagedCkModelDescriptor>(_ =>
                 new ServiceManagedCkModelDescriptor(SystemFilesCkIds.CkModelId));
         }
@@ -208,4 +209,41 @@ public sealed class CapturingLoggerProvider : ILoggerProvider
             entries.Enqueue((logLevel, category, message));
         }
     }
+}
+
+/// <summary>
+///     Fails <c>NotifyPreTenantUpdateAsync</c> calls (counted from arming) once (<see cref="FailOnCall" />) or persistently (<see cref="FailFromCall" />) (a transient error during
+///     a CK model import: the engine notifies before it imports). Everything else does nothing.
+/// </summary>
+public sealed class FlakyTenantNotifications : ITenantNotifications
+{
+    private int _calls;
+
+    /// <summary>1-based call number that throws once; 0 = never.</summary>
+    public int FailOnCall { get; set; }
+
+    /// <summary>1-based call number from which every call throws (a persistent failure); 0 = never.</summary>
+    public int FailFromCall { get; set; }
+
+    public Task NotifyPreTenantUpdateAsync(string tenantId, Guid correlationId)
+    {
+        if (FailOnCall == 0 && FailFromCall == 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        var call = Interlocked.Increment(ref _calls);
+        if (call == FailOnCall || (FailFromCall > 0 && call >= FailFromCall))
+        {
+            throw new InvalidOperationException("simulated transient failure during the CK model import");
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task NotifyPreTenantCreateAsync(string tenantId, Guid correlationId) => Task.CompletedTask;
+    public Task NotifyPosTenantCreateAsync(string tenantId, Guid correlationId) => Task.CompletedTask;
+    public Task NotifyPosTenantUpdateAsync(string tenantId, Guid correlationId) => Task.CompletedTask;
+    public Task NotifyPreTenantDeleteAsync(string tenantId, Guid correlationId) => Task.CompletedTask;
+    public Task NotifyPosTenantDeleteAsync(string tenantId, Guid correlationId) => Task.CompletedTask;
 }
