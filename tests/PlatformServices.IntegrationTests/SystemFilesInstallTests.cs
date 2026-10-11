@@ -229,9 +229,10 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
     }
 
     [Fact]
-    public async Task Setup_SystemTenantWithoutTheModel_DoesNotThrow()
+    public async Task Setup_SystemTenantWithoutTheModel_FailsHard_AB6576()
     {
-        // A throw would fail the unguarded system-tenant step of the host start and take every other step down.
+        // AB#6576: the system tenant fails hard. The host start runs its setup unguarded (DefaultConfigurationInitializationService),
+        // so the throw makes the service start fail visibly instead of hiding a broken System.Files release.
         // Own system tenant (own database); its System.Files import fails.
         var systemTenantId = $"octosystem{Guid.NewGuid():N}";
         await using (var creating = fixture.BuildProvider(includeSystemFiles: false, systemTenantId))
@@ -241,10 +242,36 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
 
         await using var isolated = FailingFilesImportPod(out _, systemTenantId);
         var systemContext = isolated.GetRequiredService<ISystemContext>();
+        var creator = isolated.GetRequiredService<IDefaultConfigurationCreatorService>();
+        creator.DeferTenantStart = true; // the host start (cold-start initialization)
 
-        await isolated.GetRequiredService<IDefaultConfigurationCreatorService>().SetupAsync(systemContext.TenantId);
+        var ex = await Assert.ThrowsAsync<SystemFilesSetupException>(() => creator.SetupAsync(systemContext.TenantId));
 
+        ex.Message.Should().Contain("System.Files").And.Contain("System.Files-1.0.0").And.Contain(systemContext.TenantId);
         (await systemContext.IsCkModelSatisfiedAsync(SystemFilesCkIds.CkModelId)).Should().BeFalse();
+        // The other steps were not skipped: they run before the throw.
+        (await fixture.GetCkModelRecordsAsync(systemContext.TenantId, "System.UI")).Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task Setup_SystemTenantWithTheModel_StartsAsBefore_AB6576()
+    {
+        // Healthy system tenant: System.Files installs (or is already installed) and the setup does not throw.
+        var systemTenantId = $"octosystem{Guid.NewGuid():N}";
+        await using (var creating = fixture.BuildProvider(includeSystemFiles: false, systemTenantId))
+        {
+            await creating.GetRequiredService<ISystemContext>().CreateSystemTenantAsync();
+        }
+
+        await using var pod = fixture.BuildProvider(includeSystemFiles: true, systemTenantId);
+        var systemContext = pod.GetRequiredService<ISystemContext>();
+        var creator = pod.GetRequiredService<IDefaultConfigurationCreatorService>();
+        creator.DeferTenantStart = true;
+
+        await creator.SetupAsync(systemContext.TenantId);
+        await creator.SetupAsync(systemContext.TenantId); // idempotent on restart
+
+        (await systemContext.IsCkModelSatisfiedAsync(SystemFilesCkIds.CkModelId)).Should().BeTrue();
     }
 
     [Fact]
