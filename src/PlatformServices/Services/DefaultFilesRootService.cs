@@ -25,8 +25,9 @@ namespace Meshmakers.Octo.Backend.PlatformServices.Services;
 ///     </para>
 ///     <para>
 ///         Idempotent: one indexed query when the root exists (matched case-insensitively on the well-known name,
-///         as the file API resolves roots). Never throws - a tenant whose System model is too old for System.Files
-///         (the install failed) logs a warning and is retried by the next lifecycle event or start.
+///         as the file API resolves roots). A failed install or root creation is fatal for the tenant's setup: it
+///         throws a <see cref="SystemFilesSetupException" /> (model, tenant, cause) so that the durable setup-retry
+///         queue retries it; the caller isolates the other setup steps from that failure.
 ///     </para>
 ///     <para>
 ///         Every pod runs the tenant setup (broadcast events), so two pods can seed <c>Files</c> at the same time
@@ -49,29 +50,34 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
         [new("System.Files/Folder"), new("System.Files/FileSystemItem")];
 
     /// <summary>
-    ///     <see cref="EnsureDefaultRootAsync(ITenantContext)" /> for a tenant id. Resolving the tenant through the
-    ///     system context triggers the service-managed System.Files install (once per process and tenant).
-    ///     Never throws.
+    ///     Resolves the tenant (which triggers the service-managed System.Files install, once per process and
+    ///     tenant), verifies the model is usable and ensures the default root. Throws
+    ///     <see cref="SystemFilesSetupException" /> when the model is not installed or the root cannot be created.
     /// </summary>
-    public async Task<bool> EnsureDefaultRootAsync(string tenantId)
+    public async Task EnsureInstalledWithDefaultRootAsync(string tenantId)
     {
+        ITenantContext tenantContext;
         try
         {
-            return await EnsureDefaultRootAsync(await systemContext.FindTenantContextAsync(tenantId).ConfigureAwait(false))
-                .ConfigureAwait(false);
+            tenantContext = await systemContext.FindTenantContextAsync(tenantId).ConfigureAwait(false);
         }
         catch (Exception e)
         {
-            logger.LogWarning(e, "Default file root 'Files': tenant '{TenantId}' not resolvable", tenantId);
-            return false;
+            throw new SystemFilesSetupException(tenantId,
+                $"the tenant could not be resolved, so the service-managed import did not run ({e.Message})", e);
         }
+
+        await EnsureDefaultRootAsync(tenantContext).ConfigureAwait(false);
     }
 
     /// <summary>
-    ///     Creates the root <c>Files</c> when it is missing. Never throws; answers whether the root exists.
+    ///     Creates the root <c>Files</c> when it is missing. Throws <see cref="SystemFilesSetupException" /> when
+    ///     System.Files is not installed (with the likely cause) or the root cannot be created.
     /// </summary>
-    public async Task<bool> EnsureDefaultRootAsync(ITenantContext tenantContext)
+    public async Task EnsureDefaultRootAsync(ITenantContext tenantContext)
     {
+        await EnsureModelInstalledAsync(tenantContext).ConfigureAwait(false);
+
         try
         {
             var repository = tenantContext.GetTenantRepositoryAsAdmin();
@@ -85,7 +91,7 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
 
             if (existing.Count > 0)
             {
-                return true;
+                return;
             }
 
             var root = await repository.CreateTransientRtEntityAsync<RtFolderRoot>().ConfigureAwait(false);
@@ -98,16 +104,43 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
                 tenantContext.TenantId);
 
             await RemoveConcurrentDuplicatesAsync(repository, tenantContext).ConfigureAwait(false);
-            return true;
         }
         catch (Exception e)
         {
-            logger.LogWarning(e,
-                "Default file root 'Files' could not be ensured for tenant '{TenantId}' (is System.Files installed?); retried at the next tenant setup",
-                tenantContext.TenantId);
-            return false;
+            throw new SystemFilesSetupException(tenantContext.TenantId,
+                $"the default root '{DefaultRootName}' could not be created ({e.Message})", e);
         }
     }
+
+    private async Task EnsureModelInstalledAsync(ITenantContext tenantContext)
+    {
+        bool installed;
+        try
+        {
+            installed = await tenantContext.IsCkModelSatisfiedAsync(SystemFilesCkIds.CkModelId).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            throw new SystemFilesSetupException(tenantContext.TenantId,
+                $"the installed state of the model could not be read ({e.Message})", e);
+        }
+
+        if (installed)
+        {
+            return;
+        }
+
+        // The engine's service-managed import logs its own cause and does not throw (missing dependency, ResolveFailed).
+        // Name the most likely one so the retry record is actionable.
+        var systemFloor = new CkModelId(SystemFloorModelId);
+        var cause = await tenantContext.IsCkModelSatisfiedAsync(systemFloor).ConfigureAwait(false)
+            ? "the import did not leave an Available model (see the engine log of the import for the cause, e.g. ResolveFailed)"
+            : $"the tenant's System model is older than {SystemFloorModelId} (System.Files depends on System-[2.5,3.0))";
+        throw new SystemFilesSetupException(tenantContext.TenantId, cause);
+    }
+
+    /// <summary>Lowest System version System.Files accepts (<c>System-[2.5,3.0)</c>).</summary>
+    private const string SystemFloorModelId = "System-2.5.0";
 
     private static async Task<IReadOnlyList<RtEntity>> FindRootsAsync(ITenantRepository repository,
         IOctoSession session)
@@ -166,4 +199,21 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
             }
         }
     }
+}
+
+/// <summary>
+///     System.Files could not be installed or its default root could not be created for a tenant. Fatal for that
+///     tenant's setup: the durable setup-retry queue retries it (constant 60 s interval, 10 attempts, then it waits for
+///     an operator, a tenant event or a restart).
+/// </summary>
+internal sealed class SystemFilesSetupException : Exception
+{
+    public SystemFilesSetupException(string tenantId, string cause, Exception? inner = null)
+        : base($"System.Files could not be set up for tenant '{tenantId}': {cause}. Model: {SystemFilesCkIds.CkModelId}.",
+            inner)
+    {
+        TenantId = tenantId;
+    }
+
+    public string TenantId { get; }
 }

@@ -74,9 +74,9 @@ public sealed class PlatformServicesFixture : IAsyncLifetime
     ///     System.Files descriptor: a service that resolves tenants with it never installs the model (the state of
     ///     a tenant whose System.Files is not installed yet).
     /// </summary>
-    public ServiceProvider BuildProvider(bool includeSystemFiles)
+    public ServiceProvider BuildProvider(bool includeSystemFiles, string? systemTenantId = null)
     {
-        var systemTenantId = SystemTenantId;
+        systemTenantId ??= SystemTenantId;
         var services = new ServiceCollection();
         services.AddRuntimeEngine().AddMongoDbRuntimeRepository().AddMongoBlueprintSupport();
         services.Configure<OctoSystemConfiguration>(c =>

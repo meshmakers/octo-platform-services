@@ -116,18 +116,32 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   cold-start iteration of **all** tenants including the system tenant; a CacheOnly update skips the setup (shared
   consumer, AB#5497) and the nightly TenantMode re-apply only force-applies the `System.TenantMode` blueprint, so
   neither touches System.Files.
-- **Idempotent and never throwing**: one indexed query when the root exists (matched case-insensitively on the
-  well-known name, as the file API resolves roots). Every pod runs the setup, so two pods can seed `Files` at once (no
-  unique index on well-known names): the root wins that the file API answers (exact-case `Files` first, then the oldest - the order of asset-repo's `FindRootAsync`), empty others are erased (also on a later run),
-  a duplicate with content is kept and logged. If the install failed (e.g. System model too old, `ResolveFailed`) the
-  root is not created, a warning is logged and the next tenant setup / start retries; the setup itself does not fail.
+- **Idempotent**: one indexed query when the root exists (matched case-insensitively on the well-known name, as the
+  file API resolves roots). Every pod runs the setup, so two pods can seed `Files` at once (no unique index on
+  well-known names): the root wins that the file API answers (exact-case `Files` first, then the oldest - the order of
+  asset-repo's `FindRootAsync`), empty others are erased (also on a later run), a duplicate with content is kept and
+  logged; a failed clean-up only logs.
+- **A failed install is fatal for that tenant's setup (Gerald's decision).** The engine's descriptor import logs its
+  cause and does not throw (missing dependency, `ResolveFailed`), so `DefaultFilesRootService` checks
+  `IsCkModelSatisfiedAsync(System.Files-1.0.0)` afterwards and throws `SystemFilesSetupException` ("System.Files could not
+  be set up for tenant 'x': <cause, e.g. the tenant's System model is older than System-2.5.0>. Model: System.Files-1.0.0").
+  The creator passes the engine's `ITenantSetupRetryStore` to the base, so `SetupAsync` records the failure durably and the
+  background loop (`FailedTenantRetryBackgroundService`: first run 30 s after start, every 30 s) re-runs the setup: constant
+  60 s between attempts per tenant, **10 attempts**, a 5 min lease (single-flight across pods), 10 tenants per tick; after the
+  budget the entry stays for an operator (a new tenant event, a restart or a successful setup clears/resets it). No
+  exponential backoff, no unbounded retry. One tenant never blocks another (the cold-start loop catches per tenant and
+  records the retry).
+- **The other steps are not blocked.** In `SetupTenantAsync` the Files failure is caught, the System.UI/TenantMode blueprint
+  apply still runs, and the failure is thrown last: on lifecycle events after `RefreshTenantStateAsync` (the TenantMode
+  force-refresh, which the base skips when the setup throws), on the cold-start iteration at the end of
+  `SetupTenantAsync`. Exception: the **system tenant** only logs the error - its setup is unguarded in the host start,
+  a throw would fail the whole service.
 - **Edge**: edge clusters run the communication operator and adapters only; the tenant database, asset-repo and
   platform-services are central, so edge pools use the System.Files of the central tenant. A self-contained
   installation with asset-repo but `platformServices.deploy: false` never gets System.Files
   (`SYSTEM_FILES_MISSING` in the file API) - deploy platform-services or import the model with octo-cli.
 - Tests: `tests/PlatformServices.IntegrationTests` (Testcontainers MongoDB): install-once + root for a new and for
-  the system tenant, idempotent repeated setup, tenant that already has the model and a root (left untouched), model
-  missing then installed, concurrent pods, duplicate clean-up.
+  the system tenant, idempotent repeated setup, tenant that already has the model and a root (left untouched), failing install (setup throws, retry recorded, System.UI and the TenantMode refresh still run, another tenant unaffected, retry succeeds once the model is resolvable, cold-start path, system-tenant exemption), concurrent pods, duplicate clean-up.
 
 ### `System.TenantMode` blueprint (1.1.0, AB#5497)
 
