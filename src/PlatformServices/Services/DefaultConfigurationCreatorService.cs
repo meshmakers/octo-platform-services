@@ -148,7 +148,8 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
                     "System.Files could not be set up in the SYSTEM tenant '{TenantId}'; failing the setup so the service start fails visibly",
                     tenantId);
                 MarkAsFilesFailure(tenantId, filesFailure);
-                throw filesFailure;
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(filesFailure).Throw();
+                return; // not reached: Throw() rethrows with the original stack trace
             }
 
             if (DeferTenantStart)
