@@ -1,6 +1,8 @@
+using System.Collections.Concurrent;
 using Meshmakers.Octo.ConstructionKit.Contracts.BlueprintCatalogs;
 using Meshmakers.Octo.Runtime.Contracts.Blueprints;
 using Meshmakers.Octo.Runtime.Contracts.MongoDb;
+using Meshmakers.Octo.Runtime.Contracts.MongoDb.TenantLifecycle;
 using Meshmakers.Octo.Services.Infrastructure.Services;
 
 namespace Meshmakers.Octo.Backend.PlatformServices.Services;
@@ -40,14 +42,24 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
     private readonly ISystemContext _systemContext;
     private readonly IBlueprintService _blueprintService;
     private readonly IEnumerable<IBlueprintEmbeddedSource> _embeddedBlueprintSources;
+    private readonly DefaultFilesRootService _defaultFilesRootService;
+
+    // A System.Files failure of a tenant, kept until the end of its setup (see SetupTenantAsync / RefreshTenantStateAsync).
+    private static readonly ConcurrentDictionary<string, Exception> PendingFilesFailures = new();
 
     public DefaultConfigurationCreatorService(
         ILogger<DefaultConfigurationCreatorService> logger,
         ISystemContext systemContext,
         IBlueprintService blueprintService,
-        IEnumerable<IBlueprintEmbeddedSource> embeddedBlueprintSources)
-        : base(logger, blueprintService, embeddedBlueprintSources)
+        IEnumerable<IBlueprintEmbeddedSource> embeddedBlueprintSources,
+        DefaultFilesRootService defaultFilesRootService,
+        ITenantSetupRetryStore tenantSetupRetryStore)
+        // AB#6480: the durable setup-retry queue retries a tenant whose System.Files setup failed (the setup throws). Only
+        // those: the wrapper keeps every other setup failure (System.UI, TenantMode) out of the queue, as before.
+        : base(logger, blueprintService, embeddedBlueprintSources,
+            new SystemFilesOnlyTenantSetupRetryStore(tenantSetupRetryStore))
     {
+        _defaultFilesRootService = defaultFilesRootService;
         _logger = logger;
         _systemContext = systemContext;
         _blueprintService = blueprintService;
@@ -94,6 +106,26 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
             ? _systemContext
             : await _systemContext.GetChildTenantContextAsync(tenantId).ConfigureAwait(false);
 
+        PendingFilesFailures.TryRemove(tenantId, out _);
+
+        // AB#6480: System.Files is installed by the engine's service-managed descriptor when the tenant is resolved
+        // and the default root "Files" is ensured right after. A failure here is FATAL for the tenant's setup (the
+        // setup throws, the durable retry queue retries), but it must not block the other steps: System.UI and
+        // System.TenantMode are still applied below, and the failure is thrown only at the end - after the TenantMode
+        // refresh of RefreshTenantStateAsync on lifecycle events (the refresh is skipped when the setup throws).
+        Exception? filesFailure = null;
+        try
+        {
+            await _defaultFilesRootService.EnsureInstalledWithDefaultRootAsync(tenantId).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            filesFailure = ex;
+            _logger.LogError(ex,
+                "System.Files setup failed for tenant '{TenantId}'; the other setup steps continue and the setup is retried",
+                tenantId);
+        }
+
         // After a tenant restore the DB exists but the CK cache has not been loaded yet; the
         // blueprint apply needs it to resolve types / well-known names.
         await tenantContext.LoadCacheForTenantAsync().ConfigureAwait(false);
@@ -101,6 +133,25 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
         // throwOnFailure: true — a failed seed on Setup must surface immediately, not leave a tenant
         // half-provisioned.
         await ApplyServiceManagedBlueprintsAsync(tenantId, throwOnFailure: true).ConfigureAwait(false);
+
+        if (filesFailure != null)
+        {
+            // The system tenant's setup is not guarded by the cold-start loop (a failure there fails the host start and
+            // would take System.UI and everything else down), so it only logs; child tenants throw.
+            if (tenantId == _systemContext.TenantId)
+            {
+                return;
+            }
+
+            if (DeferTenantStart)
+            {
+                // Cold start: no RefreshTenantStateAsync follows, so this is the last step.
+                MarkAsFilesFailure(tenantId, filesFailure);
+                throw filesFailure;
+            }
+
+            PendingFilesFailures[tenantId] = filesFailure;
+        }
     }
 
     /// <summary>
@@ -135,6 +186,36 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
     ///     </para>
     /// </remarks>
     protected override async Task RefreshTenantStateAsync(string tenantId)
+    {
+        try
+        {
+            await RefreshTenantModeAsync(tenantId).ConfigureAwait(false);
+        }
+        catch
+        {
+            // The refresh's own failure wins; the Files failure is retried with the whole setup anyway.
+            PendingFilesFailures.TryRemove(tenantId, out _);
+            throw;
+        }
+
+        // AB#6480: the System.Files failure of SetupTenantAsync is thrown after the TenantMode refresh.
+        if (PendingFilesFailures.TryRemove(tenantId, out var filesFailure))
+        {
+            MarkAsFilesFailure(tenantId, filesFailure);
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(filesFailure).Throw();
+        }
+    }
+
+    /// <summary>Tells the retry-store wrapper that the failure the base is about to record is the System.Files one.</summary>
+    private static void MarkAsFilesFailure(string tenantId, Exception failure)
+    {
+        if (failure is SystemFilesSetupException)
+        {
+            SystemFilesOnlyTenantSetupRetryStore.MarkFilesFailure(tenantId);
+        }
+    }
+
+    private async Task RefreshTenantModeAsync(string tenantId)
     {
         var tenantMode = _embeddedBlueprintSources
             .Where(s => string.Equals(s.BlueprintId.Name, TenantModeBlueprintName, StringComparison.Ordinal))
