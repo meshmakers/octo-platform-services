@@ -30,8 +30,8 @@ namespace Meshmakers.Octo.Backend.PlatformServices.Services;
 ///     </para>
 ///     <para>
 ///         Every pod runs the tenant setup (broadcast events), so two pods can seed <c>Files</c> at the same time
-///         (no unique index on well-known names). The oldest root wins (the one the file API answers); empty
-///         younger duplicates are erased, a duplicate with content is kept and logged.
+///         (no unique index on well-known names). The root wins that the file API answers (exact-case spelling first,
+///         then the oldest - the order of the asset repository's <c>FindRootAsync</c>); empty others are erased, a duplicate with content is kept and logged.
 ///     </para>
 /// </remarks>
 internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILogger<DefaultFilesRootService> logger)
@@ -115,7 +115,8 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
         var options = RtEntityQueryOptions.Create();
         options.FieldMatchRegex(nameof(RtEntity.RtWellKnownName), $"(?i)^{Regex.Escape(DefaultRootWellKnownName)}$");
         var result = await repository.GetRtEntitiesByTypeAsync(session, FolderRootType, options).ConfigureAwait(false);
-        // Deterministic when duplicates exist: exact case first, then the oldest.
+        // Deterministic when duplicates exist, and the same order as the asset repository's FindRootAsync (the root the
+        // file API answers must be the one that is kept): exact-case spelling first, then the oldest.
         return result.Items
             .OrderByDescending(r => string.Equals(r.RtWellKnownName, DefaultRootWellKnownName, StringComparison.Ordinal))
             .ThenBy(r => r.RtCreationDateTime ?? DateTime.MaxValue)

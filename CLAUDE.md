@@ -118,7 +118,7 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   neither touches System.Files.
 - **Idempotent and never throwing**: one indexed query when the root exists (matched case-insensitively on the
   well-known name, as the file API resolves roots). Every pod runs the setup, so two pods can seed `Files` at once (no
-  unique index on well-known names): the oldest root wins, empty younger duplicates are erased (also on a later run),
+  unique index on well-known names): the root wins that the file API answers (exact-case `Files` first, then the oldest - the order of asset-repo's `FindRootAsync`), empty others are erased (also on a later run),
   a duplicate with content is kept and logged. If the install failed (e.g. System model too old, `ResolveFailed`) the
   root is not created, a warning is logged and the next tenant setup / start retries; the setup itself does not fail.
 - **Edge**: edge clusters run the communication operator and adapters only; the tenant database, asset-repo and
