@@ -248,8 +248,11 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
 /// </summary>
 internal sealed class SystemFilesSetupException : Exception
 {
+    /// <summary>Start of every message; the retry store wrapper uses it as the fallback marker of a System.Files failure.</summary>
+    public const string MessagePrefix = "System.Files could not be set up for tenant";
+
     public SystemFilesSetupException(string tenantId, string cause, Exception? inner = null)
-        : base($"System.Files could not be set up for tenant '{tenantId}': {cause}. Model: {SystemFilesCkIds.CkModelId}.",
+        : base($"{MessagePrefix} '{tenantId}': {cause}. Model: {SystemFilesCkIds.CkModelId}.",
             inner)
     {
         TenantId = tenantId;

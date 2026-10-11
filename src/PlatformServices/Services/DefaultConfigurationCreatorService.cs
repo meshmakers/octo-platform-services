@@ -54,8 +54,10 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
         IEnumerable<IBlueprintEmbeddedSource> embeddedBlueprintSources,
         DefaultFilesRootService defaultFilesRootService,
         ITenantSetupRetryStore tenantSetupRetryStore)
-        // AB#6480: the durable setup-retry queue retries a tenant whose System.Files setup failed (the setup throws).
-        : base(logger, blueprintService, embeddedBlueprintSources, tenantSetupRetryStore)
+        // AB#6480: the durable setup-retry queue retries a tenant whose System.Files setup failed (the setup throws). Only
+        // those: the wrapper keeps every other setup failure (System.UI, TenantMode) out of the queue, as before.
+        : base(logger, blueprintService, embeddedBlueprintSources,
+            new SystemFilesOnlyTenantSetupRetryStore(tenantSetupRetryStore))
     {
         _defaultFilesRootService = defaultFilesRootService;
         _logger = logger;
@@ -144,6 +146,7 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
             if (DeferTenantStart)
             {
                 // Cold start: no RefreshTenantStateAsync follows, so this is the last step.
+                MarkAsFilesFailure(tenantId, filesFailure);
                 throw filesFailure;
             }
 
@@ -198,7 +201,17 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
         // AB#6480: the System.Files failure of SetupTenantAsync is thrown after the TenantMode refresh.
         if (PendingFilesFailures.TryRemove(tenantId, out var filesFailure))
         {
+            MarkAsFilesFailure(tenantId, filesFailure);
             System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(filesFailure).Throw();
+        }
+    }
+
+    /// <summary>Tells the retry-store wrapper that the failure the base is about to record is the System.Files one.</summary>
+    private static void MarkAsFilesFailure(string tenantId, Exception failure)
+    {
+        if (failure is SystemFilesSetupException)
+        {
+            SystemFilesOnlyTenantSetupRetryStore.MarkFilesFailure(tenantId);
         }
     }
 

@@ -134,6 +134,13 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   exponential backoff, no unbounded retry. One tenant never blocks another (the cold-start loop catches per tenant and
   records the retry). A tenant that no longer exists keeps its bare `TenantException` (`IsTenantNotFound`), so the retry loop
   drops the entry (AB#4829) instead of retrying it 10 times.
+- **Only System.Files failures are retried.** The base records *every* exception of `SetupTenantAsync` in the store it gets, so
+  the creator passes a `SystemFilesOnlyTenantSetupRetryStore` wrapper: `RecordFailureAsync` is forwarded for a System.Files
+  failure (typed marker set right before the `SystemFilesSetupException` is thrown; the exception's message prefix as fallback)
+  and for a tenant that is already queued (a retry in progress still counts its attempt and releases the lease); claim, clear,
+  release and list are forwarded unchanged. Not retried, exactly as before: System.UI / TenantMode blueprint failures and every
+  other setup error (logged, thrown, picked up by the next event or restart). Bounds of the retry: first tick 30 s after start,
+  tick every 30 s, 60 s between attempts per tenant, 10 attempts, then the entry waits for an operator.
 - **The other steps are not blocked.** In `SetupTenantAsync` the Files failure is caught, the System.UI/TenantMode blueprint
   apply still runs, and the failure is thrown last. Both paths are real: `DeferTenantStart` is a per-instance flag, set true only on the instance of
   `DefaultConfigurationInitializationService` (cold start; never reset - only the Standardized base resets it) while

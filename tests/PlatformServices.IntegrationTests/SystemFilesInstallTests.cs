@@ -191,6 +191,20 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
     }
 
     [Fact]
+    public async Task Setup_OtherFailure_IsNotRecordedInTheRetryQueue_AsBefore()
+    {
+        // A setup failure that is not about System.Files (here: the tenant does not exist) throws as before and is not queued;
+        // only System.Files failures take part in the durable retry (AB#6480).
+        var missing = $"gone{Guid.NewGuid():N}";
+        var creator = fixture.Creator;
+
+        await Assert.ThrowsAsync<TenantException>(() => creator.SetupAsync(missing));
+
+        var store = fixture.Provider.GetRequiredService<ITenantSetupRetryStore>();
+        (await store.ListAsync(ServiceId, TestContext.Current.CancellationToken)).Should().NotContain(r => r.TenantId == missing);
+    }
+
+    [Fact]
     public async Task Setup_DeletedTenant_KeepsTheNotFoundSemanticsForTheRetryLoop()
     {
         var rootService = fixture.Provider.GetRequiredService<DefaultFilesRootService>();
