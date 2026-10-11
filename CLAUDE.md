@@ -139,8 +139,7 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   `DefaultConfigurationInitializationService` (cold start; never reset - only the Standardized base resets it) while
   `IDefaultConfigurationCreatorService` is registered transient, so the event consumers and the retry loop get fresh instances
   with `false`. Cold start: thrown at the end of `SetupTenantAsync`; lifecycle events and retries: after `RefreshTenantStateAsync` (the TenantMode
-  force-refresh, which the base skips when the setup throws), on the cold-start iteration at the end of
-  `SetupTenantAsync`. Exception: the **system tenant** only logs the error - its setup is unguarded in the host start,
+  force-refresh, which the base skips when the setup throws). Exception: the **system tenant** only logs the error - its setup is unguarded in the host start,
   a throw would fail the whole service.
 - **Edge**: edge clusters run the communication operator and adapters only; the tenant database, asset-repo and
   platform-services are central, so edge pools use the System.Files of the central tenant. A self-contained
