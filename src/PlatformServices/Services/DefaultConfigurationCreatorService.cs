@@ -136,11 +136,20 @@ internal sealed class DefaultConfigurationCreatorService : DefaultConfigurationC
 
         if (filesFailure != null)
         {
-            // The system tenant's setup is not guarded by the cold-start loop (a failure there fails the host start and
-            // would take System.UI and everything else down), so it only logs; child tenants throw.
+            // AB#6576: the system tenant fails hard. Without System.Files the file capability answers
+            // SYSTEM_FILES_MISSING for EVERY tenant, so a silent failure here would hide a broken release. The
+            // system tenant's setup is deliberately unguarded in the host start (DefaultConfigurationInitializationService),
+            // so the throw fails the service start visibly (host not ready, crash-loop instead of a rollout that looks
+            // healthy). System.UI and System.TenantMode were applied above. The original exception is preserved; child
+            // tenants keep the retry path below.
             if (tenantId == _systemContext.TenantId)
             {
-                return;
+                _logger.LogCritical(filesFailure,
+                    "System.Files could not be set up in the SYSTEM tenant '{TenantId}'; failing the setup so the service start fails visibly",
+                    tenantId);
+                MarkAsFilesFailure(tenantId, filesFailure);
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(filesFailure).Throw();
+                return; // not reached: Throw() rethrows with the original stack trace
             }
 
             if (DeferTenantStart)

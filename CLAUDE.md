@@ -116,6 +116,7 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   cold-start iteration of **all** tenants including the system tenant; a CacheOnly update skips the setup (shared
   consumer, AB#5497) and the nightly TenantMode re-apply only force-applies the `System.TenantMode` blueprint, so
   neither touches System.Files.
+- **Observable**: `DefaultFilesRootService` logs at Information `Ensuring default file root 'Files' for tenant ...` at the start, `Default file root already exists for tenant ...: N root(s), rtId ...` on the exists path and `Created the default file root ...` when it seeds one, so a tenant without a root can be told from a healthy one in the logs (AB#6482 finding on test-2).
 - **Idempotent**: one indexed query when the root exists (matched case-insensitively on the well-known name, as the
   file API resolves roots). Every pod runs the setup, so two pods can seed `Files` at once (no unique index on
   well-known names): the root wins that the file API answers (exact-case `Files` first, then the oldest - the order of
@@ -146,14 +147,22 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   `DefaultConfigurationInitializationService` (cold start; never reset - only the Standardized base resets it) while
   `IDefaultConfigurationCreatorService` is registered transient, so the event consumers and the retry loop get fresh instances
   with `false`. Cold start: thrown at the end of `SetupTenantAsync`; lifecycle events and retries: after `RefreshTenantStateAsync` (the TenantMode
-  force-refresh, which the base skips when the setup throws). Exception: the **system tenant** only logs the error - its setup is unguarded in the host start,
-  a throw would fail the whole service.
+  force-refresh, which the base skips when the setup throws). **System tenant fails hard (AB#6576, Gerald's decision 2026-10-11):** without System.Files the file capability answers
+  `SYSTEM_FILES_MISSING` for every tenant, so a System.Files failure in the **system tenant** is thrown (after System.UI / System.TenantMode
+  were applied) - `SystemFilesSetupException`, original exception preserved, message names System.Files, `System.Files-1.0.0` and the
+  system tenant. The system tenant's setup is unguarded in the host start (`DefaultConfigurationInitializationService`, collected by
+  `HostedInitializer`), so the **service start fails**: the process exits before Kestrel serves anything, `/healthz/live` and `/healthz/ready` never
+  answer (pod not ready, crash-loop; Kubernetes keeps the previous ReplicaSet in a rolling update). What the operator sees: a CRITICAL log line
+  "System.Files could not be set up in the SYSTEM tenant ..." plus the host start error. Recovery: fix the cause named in the message (usually a
+  System model older than System-2.5.0 or an unreachable/readonly tenant database) and restart/roll out again; an already installed
+  `System.Files-1.0.0` is untouched and a healthy system tenant starts as before. Child tenants keep the retry path above (60 s / 10 attempts, other
+  tenants and the host are not blocked).
 - **Edge**: edge clusters run the communication operator and adapters only; the tenant database, asset-repo and
   platform-services are central, so edge pools use the System.Files of the central tenant. A self-contained
   installation with asset-repo but `platformServices.deploy: false` never gets System.Files
   (`SYSTEM_FILES_MISSING` in the file API) - deploy platform-services or import the model with octo-cli.
 - Tests: `tests/PlatformServices.IntegrationTests` (Testcontainers MongoDB): install-once + root for a new and for
-  the system tenant, idempotent repeated setup, tenant that already has the model and a root (left untouched), failing install (setup throws, retry recorded, System.UI and the TenantMode refresh still run, another tenant unaffected, retry succeeds once the model is resolvable, cold-start path, system-tenant exemption), concurrent pods, duplicate clean-up.
+  the system tenant, idempotent repeated setup, tenant that already has the model and a root (left untouched), failing install (setup throws, retry recorded, System.UI and the TenantMode refresh still run, another tenant unaffected, retry succeeds once the model is resolvable, cold-start path, system tenant fails hard / healthy system tenant starts), concurrent pods, duplicate clean-up.
 
 ### `System.TenantMode` blueprint (1.1.0, AB#5497)
 

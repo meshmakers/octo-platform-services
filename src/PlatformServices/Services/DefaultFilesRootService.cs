@@ -81,6 +81,9 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
     /// </summary>
     public async Task EnsureDefaultRootAsync(ITenantContext tenantContext)
     {
+        logger.LogInformation("Ensuring default file root '{RootName}' for tenant '{TenantId}'",
+            DefaultRootName, tenantContext.TenantId);
+
         await EnsureModelInstalledAsync(tenantContext).ConfigureAwait(false);
 
         try
@@ -96,6 +99,9 @@ internal sealed class DefaultFilesRootService(ISystemContext systemContext, ILog
 
             if (existing.Count > 0)
             {
+                logger.LogInformation(
+                    "Default file root already exists for tenant '{TenantId}': {RootCount} root(s), rtId '{RootRtId}'",
+                    tenantContext.TenantId, existing.Count, existing[0].RtId);
                 return;
             }
 
