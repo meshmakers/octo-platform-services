@@ -116,6 +116,7 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   cold-start iteration of **all** tenants including the system tenant; a CacheOnly update skips the setup (shared
   consumer, AB#5497) and the nightly TenantMode re-apply only force-applies the `System.TenantMode` blueprint, so
   neither touches System.Files.
+- **Observable**: `DefaultFilesRootService` logs at Information `Ensuring default file root 'Files' for tenant ...` at the start, `Default file root already exists for tenant ...: N root(s), rtId ...` on the exists path and `Created the default file root ...` when it seeds one, so a tenant without a root can be told from a healthy one in the logs (AB#6482 finding on test-2).
 - **Idempotent**: one indexed query when the root exists (matched case-insensitively on the well-known name, as the
   file API resolves roots). Every pod runs the setup, so two pods can seed `Files` at once (no unique index on
   well-known names): the root wins that the file API answers (exact-case `Files` first, then the oldest - the order of

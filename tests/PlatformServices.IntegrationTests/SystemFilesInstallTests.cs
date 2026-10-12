@@ -73,6 +73,12 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
         (await fixture.GetCkModelRecordsAsync(tenantId, FilesModel)).Should().ContainSingle();
         var roots = await fixture.GetFileSystemEntitiesAsync(tenantId);
         roots.Should().ContainSingle().Which["_id"].Should().Be(rootBefore["_id"], "the root is not recreated");
+
+        // The "exists" path is observable too (test-2 AB#6482: a silent path cannot tell good from bad tenants).
+        var infos = fixture.Logs.Entries.Where(e => e.Level == LogLevel.Information && e.Message.Contains(tenantId)).Select(e => e.Message).ToList();
+        infos.Should().Contain(m => m.StartsWith("Ensuring default file root"));
+        infos.Should().Contain(m => m.StartsWith("Default file root already exists") && m.Contains("1 root(s)"));
+        infos.Should().NotContain(m => m.StartsWith("Created the default file root"), "the root already existed");
         fixture.Logs.Entries.Count(e => IsFilesImport(e.Message)).Should().Be(0);
         FilesErrors().Should().BeEmpty();
     }
