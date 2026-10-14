@@ -46,7 +46,7 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
         await fixture.Creator.SetupAsync(tenantId);
 
         (await fixture.GetCkModelRecordsAsync(tenantId, FilesModel)).Should().ContainSingle()
-            .Which.ToJson().Should().Contain("System.Files-1.0.0");
+            .Which.ToJson().Should().Contain(SystemFilesCkIds.CkModelId.ToString());
         var roots = await fixture.GetFileSystemEntitiesAsync(tenantId);
         var root = roots.Should().ContainSingle().Subject;
         root["ckTypeId"].AsString.Should().StartWith("System.Files/FolderRoot");
@@ -86,7 +86,7 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
     [Fact]
     public async Task Setup_TenantWithSystemFilesAndRootFromTheAssetRepository_IsLeftUntouched()
     {
-        // State of test-2, staging-1, prod-1 and prod-2 today: the asset repository (r3.5.11) imported System.Files-1.0.0
+        // State of test-2, staging-1, prod-1 and prod-2 today: the asset repository (r3.5.11) imported System.Files (then 1.0.0)
         // and seeded the root with a random rtId.
         var tenantId = await fixture.CreateTenantAsync();
         var tenantContext = await fixture.SystemContext.FindTenantContextAsync(tenantId); // installs via the descriptor
@@ -131,7 +131,7 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
         fixture.Logs.Clear();
 
         var failure = await Assert.ThrowsAsync<SystemFilesSetupException>(() => creator.SetupAsync(failing));
-        failure.Message.Should().Contain(failing).And.Contain("System.Files-1.0.0").And.Contain("System.Files could not be set up");
+        failure.Message.Should().Contain(failing).And.Contain(SystemFilesCkIds.CkModelId.ToString()).And.Contain("System.Files could not be set up");
 
         // Recorded for the durable retry queue (the background loop re-runs SetupAsync).
         var store = withoutFiles.GetRequiredService<ITenantSetupRetryStore>();
@@ -253,7 +253,7 @@ public class SystemFilesInstallTests(PlatformServicesFixture fixture)
 
         var ex = await Assert.ThrowsAsync<SystemFilesSetupException>(() => creator.SetupAsync(systemContext.TenantId));
 
-        ex.Message.Should().Contain("System.Files").And.Contain("System.Files-1.0.0").And.Contain(systemContext.TenantId);
+        ex.Message.Should().Contain("System.Files").And.Contain(SystemFilesCkIds.CkModelId.ToString()).And.Contain(systemContext.TenantId);
         (await systemContext.IsCkModelSatisfiedAsync(SystemFilesCkIds.CkModelId)).Should().BeFalse();
         // The other steps were not skipped: they run before the throw.
         (await fixture.GetCkModelRecordsAsync(systemContext.TenantId, "System.UI")).Should().NotBeEmpty();

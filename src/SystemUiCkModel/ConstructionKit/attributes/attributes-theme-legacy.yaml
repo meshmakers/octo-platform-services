@@ -1,0 +1,27 @@
+"$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
+attributes:
+  # DEPRECATED legacy theme colors of System.UI 2.0.0 (AB#6691). Superseded by Branding.LightTheme / Branding.DarkTheme
+  # (ThemePalette). They were dropped silently in a 2.x release; published models that still reference them
+  # (EnergyCommunity-2.0.0 uses System.UI-2.0.0/Theme.Colors-1, EnergyCommunity.Registration through it) would break with every
+  # new System.UI version (ValidateCascade: "does not define"). Kept, unchanged, so the bump stays a MINOR. New models use ThemePalette.
+  - id: PrimaryColor
+    valueType: String
+    ownership: SeedOwned
+    description: "DEPRECATED (use ThemePalette.PrimaryColor). The primary color of the theme."
+  - id: SecondaryColor
+    valueType: String
+    ownership: SeedOwned
+    description: "DEPRECATED (use ThemePalette.SecondaryColor). The secondary color of the theme."
+  - id: TertiaryColor
+    valueType: String
+    ownership: SeedOwned
+    description: "DEPRECATED (use ThemePalette.TertiaryColor). The tertiary color of the theme."
+  - id: NeutralColor
+    valueType: String
+    ownership: SeedOwned
+    description: "DEPRECATED (use ThemePalette.NeutralColor). The neutral color of the theme."
+  - id: Theme.Colors
+    valueType: Record
+    valueCkRecordId: ${this}/Theme.Colors
+    ownership: SeedOwned
+    description: "DEPRECATED (use Branding.LightTheme / Branding.DarkTheme). Theme color configuration for an application."

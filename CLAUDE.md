@@ -67,7 +67,7 @@ src/PlatformServices/
 ├── nlog.config
 └── Properties/launchSettings.json                 # 5024 http / 5025 https
 src/SystemUiCkModel/                               # System.UI CK model + 4 service-managed blueprints (moved from admin-panel)
-├── ConstructionKit/                               # System.UI-2.10.0 model YAML, System floor [2.5,3.0) since 2.7.0 (AB#5528, wave-1 System 2.5.0 repin): UIElement, Dashboard, ProcessDiagram, SymbolLibrary/SymbolDefinition, Branding, TreeNavigationConfiguration (Roles + Perspectives), MappingCoverageConfiguration (per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage'), EntityForm (+ records EntityFormSection/Field/Column, AB#5521), Folder + association roles FolderItem/FolderParent (Studio library folders, 2.10.0, AB#3444)
+├── ConstructionKit/                               # System.UI-2.11.0 model YAML, System floor [2.5,3.0) since 2.7.0 (AB#5528, wave-1 System 2.5.0 repin): UIElement, Dashboard, ProcessDiagram, SymbolLibrary/SymbolDefinition, Branding, TreeNavigationConfiguration (Roles + Perspectives), MappingCoverageConfiguration (per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage'), EntityForm (+ records EntityFormSection/Field/Column, AB#5521), Folder + association roles FolderItem/FolderParent (Studio library folders, 2.10.0, AB#3444)
 └── Blueprints/{System.UI.SystemCockpit,System.UI.TenantCockpit,System.UI.EntityForms,System.TenantMode}/
 ```
 
@@ -236,6 +236,16 @@ dashboard policy decision pending)": the app blueprints seed dashboards, so a se
 customised. Changing them is a behaviour change (System.UI minor) and belongs to AB#6328.
 **Review question for every new attribute:** could an operator or user type this value in the product? Yes → `TenantOwned`
 (or `Secret` for a credential); a service writes it → `RuntimeState`; the product ships and corrects it → `SeedOwned`.
+
+### Deprecated `Theme.Colors` (System.UI 2.11.0, AB#6691)
+
+`System.UI-2.0.0` defined the record `Theme.Colors` (attributes `PrimaryColor`, `SecondaryColor`, `TertiaryColor`, `NeutralColor`) and the
+record-valued attribute `Theme.Colors`; a 2.x release dropped them silently (2.2.0 and every later published version lack them; superseded by
+`Branding.LightTheme` / `ThemePalette`). The published, exact-pinned `EnergyCommunity-2.0.0` (and `EnergyCommunity.Registration-2.8.0` through it)
+still references `System.UI-2.0.0/Theme.Colors-1`, so the cascade check (`ValidateCascade`, CI step "CK cascade check") reports `Breaks` for every
+**new** System.UI version (an already published, unchanged version is skipped with `-sp`, which is why 2.10.0 never failed). The elements are
+back, unchanged in shape and marked DEPRECATED (`attributes/attributes-theme-legacy.yaml`, `records/themeColors.yaml`): purely additive, so the bump
+stays MINOR. Do not remove them again without a major bump; new models use `ThemePalette`.
 
 ### `System.UI/Folder` + `System.UI/FolderItem` / `System.UI/FolderParent` (System.UI 2.10.0, AB#3444)
 
