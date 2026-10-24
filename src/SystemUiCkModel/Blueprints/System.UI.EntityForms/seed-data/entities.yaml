@@ -14,7 +14,8 @@ $schema: https://schemas.meshmakers.cloud/runtime-model.schema.json
 # Fixed rtIds 6703000000000000000000xx: 01 = form-default, 1x = wave-1 connection forms,
 # 2x = wave-3 connection forms (1.1.0), 3x = wave-2 connection forms, 4x = AI forms,
 # 5x = tenant forms (1.2.0, AB#5524), 6x = runtime-object detail forms (1.3.0, AB#5547; Helm picker display
-# attributes since 1.4.0; 64 = form-deployment-site since 1.5.0, AB#5884).
+# attributes since 1.4.0; 64 = form-deployment-site since 1.5.0, AB#5884; form-adapter and form-application get the
+# "Resources" section (CpuRequest/CpuLimit/MemoryRequest/MemoryLimit, System.Communication 4.10.0) in 1.6.0, AB#7421).
 #
 # System.Communication 3.x / 4.x (1.5.0, AB#5884): 4.0.0 renamed Pool -> DeploymentSite and
 # Manages/ManagedBy -> Hosts/HostedBy. The adapter and application forms carry BOTH reference
@@ -2145,15 +2146,22 @@ entities:
           - { id: System.UI/EntityFormSection.Columns, value: 2 }
         - ckRecordId: System.UI/EntityFormSection
           attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "resources" }
+          - { id: System.UI/EntityFormSection.Title, value: "Resources" }
+          - { id: System.UI/EntityFormSection.Description, value: "CPU and memory of the workload. Empty fields use the chart default; an explicit values.yaml or value override wins over these fields." }
+          - { id: System.UI/EntityFormSection.Order, value: 2 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
           - { id: System.UI/EntityFormSection.Key, value: "helm" }
           - { id: System.UI/EntityFormSection.Title, value: "Helm deployment" }
-          - { id: System.UI/EntityFormSection.Order, value: 2 }
+          - { id: System.UI/EntityFormSection.Order, value: 3 }
           - { id: System.UI/EntityFormSection.Columns, value: 2 }
         - ckRecordId: System.UI/EntityFormSection
           attributes:
           - { id: System.UI/EntityFormSection.Key, value: "ingress" }
           - { id: System.UI/EntityFormSection.Title, value: "Ingress" }
-          - { id: System.UI/EntityFormSection.Order, value: 3 }
+          - { id: System.UI/EntityFormSection.Order, value: 4 }
           - { id: System.UI/EntityFormSection.Columns, value: 2 }
         - ckRecordId: System.UI/EntityFormSection
           attributes:
@@ -2227,6 +2235,46 @@ entities:
           - { id: System.UI/EntityFormField.AssociationRoleId, value: "System.Communication/Hosts" }
         - ckRecordId: System.UI/EntityFormField
           attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "CpuRequest" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "resources" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "CPU request" }
+          - { id: System.UI/EntityFormField.Help, value: "Cores or millicores, e.g. 250m or 0.5. Empty = chart default." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "chart default" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: '(\d+(\.\d*)?|\.\d+)(Ki|Mi|Gi|Ti|Pi|Ei|n|u|m|k|M|G|T|P|E|[eE][+-]?\d+)?' }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "CpuLimit" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "resources" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "CPU limit" }
+          - { id: System.UI/EntityFormField.Help, value: "Cores or millicores, e.g. 250m or 0.5. Empty = chart default." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "chart default" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: '(\d+(\.\d*)?|\.\d+)(Ki|Mi|Gi|Ti|Pi|Ei|n|u|m|k|M|G|T|P|E|[eE][+-]?\d+)?' }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "MemoryRequest" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "resources" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Memory request" }
+          - { id: System.UI/EntityFormField.Help, value: "Bytes with a suffix, e.g. 512Mi or 1Gi. Empty = chart default." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "chart default" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: '(\d+(\.\d*)?|\.\d+)(Ki|Mi|Gi|Ti|Pi|Ei|n|u|m|k|M|G|T|P|E|[eE][+-]?\d+)?' }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "MemoryLimit" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "resources" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Memory limit" }
+          - { id: System.UI/EntityFormField.Help, value: "Bytes with a suffix, e.g. 512Mi or 1Gi. Empty = chart default." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "chart default" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: '(\d+(\.\d*)?|\.\d+)(Ki|Mi|Gi|Ti|Pi|Ei|n|u|m|k|M|G|T|P|E|[eE][+-]?\d+)?' }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "HelmRepository" }
           - { id: System.UI/EntityFormField.SectionKey, value: "helm" }
           - { id: System.UI/EntityFormField.Order, value: 0 }
@@ -2298,6 +2346,10 @@ entities:
         - ckRecordId: System.UI/EntityFormField
           attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "LastDeploymentErrorTimestamp" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "LastDeploymentWarning" }
           - { id: System.UI/EntityFormField.Hidden, value: true }
         - ckRecordId: System.UI/EntityFormField
           attributes:
@@ -2630,6 +2682,13 @@ entities:
           - { id: System.UI/EntityFormSection.Columns, value: 2 }
         - ckRecordId: System.UI/EntityFormSection
           attributes:
+          - { id: System.UI/EntityFormSection.Key, value: "resources" }
+          - { id: System.UI/EntityFormSection.Title, value: "Resources" }
+          - { id: System.UI/EntityFormSection.Description, value: "CPU and memory of the workload. Empty fields use the chart default; an explicit values.yaml or value override wins over these fields." }
+          - { id: System.UI/EntityFormSection.Order, value: 1 }
+          - { id: System.UI/EntityFormSection.Columns, value: 2 }
+        - ckRecordId: System.UI/EntityFormSection
+          attributes:
           - { id: System.UI/EntityFormSection.Key, value: "helm" }
           - { id: System.UI/EntityFormSection.Title, value: "Helm deployment" }
           - { id: System.UI/EntityFormSection.Order, value: 2 }
@@ -2681,6 +2740,46 @@ entities:
           - { id: System.UI/EntityFormField.Editor, value: "reference" }
           - { id: System.UI/EntityFormField.ReferenceCkTypeId, value: "System.Communication/DeploymentSite" }
           - { id: System.UI/EntityFormField.AssociationRoleId, value: "System.Communication/Hosts" }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "CpuRequest" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "resources" }
+          - { id: System.UI/EntityFormField.Order, value: 0 }
+          - { id: System.UI/EntityFormField.Label, value: "CPU request" }
+          - { id: System.UI/EntityFormField.Help, value: "Cores or millicores, e.g. 250m or 0.5. Empty = chart default." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "chart default" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: '(\d+(\.\d*)?|\.\d+)(Ki|Mi|Gi|Ti|Pi|Ei|n|u|m|k|M|G|T|P|E|[eE][+-]?\d+)?' }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "CpuLimit" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "resources" }
+          - { id: System.UI/EntityFormField.Order, value: 1 }
+          - { id: System.UI/EntityFormField.Label, value: "CPU limit" }
+          - { id: System.UI/EntityFormField.Help, value: "Cores or millicores, e.g. 250m or 0.5. Empty = chart default." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "chart default" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: '(\d+(\.\d*)?|\.\d+)(Ki|Mi|Gi|Ti|Pi|Ei|n|u|m|k|M|G|T|P|E|[eE][+-]?\d+)?' }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "MemoryRequest" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "resources" }
+          - { id: System.UI/EntityFormField.Order, value: 2 }
+          - { id: System.UI/EntityFormField.Label, value: "Memory request" }
+          - { id: System.UI/EntityFormField.Help, value: "Bytes with a suffix, e.g. 512Mi or 1Gi. Empty = chart default." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "chart default" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: '(\d+(\.\d*)?|\.\d+)(Ki|Mi|Gi|Ti|Pi|Ei|n|u|m|k|M|G|T|P|E|[eE][+-]?\d+)?' }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "MemoryLimit" }
+          - { id: System.UI/EntityFormField.SectionKey, value: "resources" }
+          - { id: System.UI/EntityFormField.Order, value: 3 }
+          - { id: System.UI/EntityFormField.Label, value: "Memory limit" }
+          - { id: System.UI/EntityFormField.Help, value: "Bytes with a suffix, e.g. 512Mi or 1Gi. Empty = chart default." }
+          - { id: System.UI/EntityFormField.Placeholder, value: "chart default" }
+          - { id: System.UI/EntityFormField.Width, value: "half" }
+          - { id: System.UI/EntityFormField.Pattern, value: '(\d+(\.\d*)?|\.\d+)(Ki|Mi|Gi|Ti|Pi|Ei|n|u|m|k|M|G|T|P|E|[eE][+-]?\d+)?' }
         - ckRecordId: System.UI/EntityFormField
           attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "HelmRepository" }
@@ -2754,6 +2853,10 @@ entities:
         - ckRecordId: System.UI/EntityFormField
           attributes:
           - { id: System.UI/EntityFormField.AttributePath, value: "LastDeploymentErrorTimestamp" }
+          - { id: System.UI/EntityFormField.Hidden, value: true }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "LastDeploymentWarning" }
           - { id: System.UI/EntityFormField.Hidden, value: true }
         - ckRecordId: System.UI/EntityFormField
           attributes:
