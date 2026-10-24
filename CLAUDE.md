@@ -272,7 +272,7 @@ Engine behaviour (verified in `octo-construction-kit-engine`, `GraphRuleEngine`)
 - **Studio "Export Query"** exports edges only when both ends are exported, so folder membership does not
   travel with a query (intended: imported queries land in "no folder").
 
-### `System.UI.EntityForms` blueprint (1.5.0, AB#5521 / AB#5523 / AB#5524 / AB#5547 / AB#5528 / AB#5884)
+### `System.UI.EntityForms` blueprint (1.6.0, AB#5521 / AB#5523 / AB#5524 / AB#5547 / AB#5528 / AB#5884 / AB#7421)
 
 `System.UI/EntityForm` (System.UI **2.8.0**, Minor, no migration; 2.9.0 adds
 `EntityFormField.ReferenceDisplayAttributes`, Minor, no migration — both shifted one minor up behind
@@ -354,6 +354,18 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   no `Hosts`/`Manages` field on the site/pool form. Still no `System.Communication` dependency — and none may
   be added: it would have to admit both majors. The Studio snapshot `entity-forms-seed-1.4.1.snapshot.ts`
   needs refreshing to 1.5.0.
+- **1.6.0 (AB#7421)** adds the **"Resources"** section (`resources`, 2 columns) to `form-adapter` (after "Runtime", order 2;
+  "Helm deployment" / "Ingress" move to 3 / 4) and `form-application` (after "General", order 1), with the four
+  `DeployableWorkload` attributes of System.Communication 4.10.0 (AB#7426): `CpuRequest`, `CpuLimit`, `MemoryRequest`,
+  `MemoryLimit` (reading order request | limit per resource, `Width: half`, `Placeholder: "chart default"`, help text with
+  `250m` / `512Mi` / `1Gi`). Each carries the Kubernetes quantity `Pattern` (same grammar as the controller's
+  `KubernetesQuantity`, AB#7427: number plus `Ki..Ei`, `n u m k M G T P E` or an exponent; case-sensitive, so `512 MB` and `1gi`
+  fail); the exact controller texts and the request <= limit rule are added by the Studio host (cross-field validator, AB#7422).
+  The runtime attribute `LastDeploymentWarning` (AB#7428) is listed `Hidden`. **No System.Communication dependency was
+  added** (the blueprint must admit 3.x and 4.x tenants): the Studio resolver silently skips a field whose attribute the type
+  lacks, and a section without fields is dropped, so a tenant below 4.10.0 shows no Resources section. The pool form is
+  unchanged (a pool is sized by `PoolMember*`; the controller rejects the inherited fields on a pool). The Studio snapshot
+  `entity-forms-seed-1.6.0.snapshot.ts` replaces the 1.5.0 one.
 - **Naming.** `rtWellKnownName` = `form-<kebab-type>`, e.g. `form-sftp-configuration` (no colon).
 - **Tenant overrides.** A tenant customises a delivered form by creating its **own** `EntityForm` for the same
   `TargetCkTypeId` (empty `rtBlueprintSource`). Never edit a delivered `form-*` entity: a blueprint re-apply

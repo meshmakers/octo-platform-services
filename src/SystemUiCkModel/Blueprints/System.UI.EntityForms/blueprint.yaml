@@ -1,5 +1,5 @@
 $schema: https://schemas.meshmakers.cloud/blueprint-meta.schema.json
-blueprintId: System.UI.EntityForms-1.5.0
+blueprintId: System.UI.EntityForms-1.6.0
 description: |
   Service-managed blueprint seeding the platform's System.UI/EntityForm entities
   (AB#5521) on every tenant. Ships "form-default" — the form on System/Entity with
@@ -28,6 +28,12 @@ description: |
   whose association role is absent from the tenant's type, so exactly one renders — and
   the new form-deployment-site targets System.Communication/DeploymentSite (TargetCkTypeId
   is a single type id, so form-pool keeps its stable name and stays unchanged for 3.x).
+  1.6.0 (AB#7421) adds a "Resources" section (CPU request / limit, memory request / limit: CpuRequest, CpuLimit,
+  MemoryRequest, MemoryLimit of System.Communication 4.10.0, AB#7426) to form-adapter and form-application, with the
+  Kubernetes quantity pattern, the placeholder "chart default" and the quantity examples as help text; the new
+  runtime attribute LastDeploymentWarning is listed hidden. The forms need no System.Communication dependency: the
+  Studio resolver skips a field whose attribute the tenant's type does not have, so a tenant on System.Communication
+  below 4.10.0 simply shows no Resources section.
 
   Target types are referenced by their CK type id as a plain string
   (TargetCkTypeId), so this blueprint needs no System.Communication dependency; a
