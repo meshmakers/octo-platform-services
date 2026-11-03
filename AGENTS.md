@@ -3,7 +3,7 @@
 Instructions for coding agents in this repository. Detail lives in `docs/`; read the matching file
 before changing the code it covers.
 
-## Repository Overview
+## What this repo is
 
 **octo-platform-services** is an ASP.NET Core service that (1) serves the public, tenant-scoped `_configuration`
 discovery endpoint for OctoMesh's external clients (Refinery Studio, Office Integration, PowerBI / Power Query),
