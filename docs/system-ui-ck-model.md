@@ -5,22 +5,22 @@ applies_to: src/SystemUiCkModel/ConstructionKit/**, src/SystemUiCkModel/SystemUi
 
 # The System.UI CK model
 
-## Ownership markers are enforced by the build (AB#6327)
+## Ownership markers are enforced by the build
 
 `SystemUiCkModel.csproj` sets `OctoEnforceRuntimeStateMarkers=true`: the `CkLintRuntimeStateMarkers` task (CK MsBuildTasks
 package) fails the build with `OCTO-CK001` when an attribute in `ConstructionKit/attributes/*.yaml` declares no `ownership`
-(or the deprecated `isRuntimeState`). AB#6327 restated the existing behaviour: all 128 attributes got `ownership: SeedOwned`.
+(or the deprecated `isRuntimeState`). Introducing the markers restated the existing behaviour: all 128 attributes got `ownership: SeedOwned`.
 Same resolved ownership, so `octo-ckc ValidateVersion` reports "no bump required" and System.UI stays 2.10.0.
-The 12 `Dashboard.*` / `DashboardWidget.*` attributes carry the inline comment "ownership under review in AB#6328 (audit F9,
-dashboard policy decision pending)": the app blueprints seed dashboards, so a seed version bump resets a board a tenant
-customised. Changing them is a behaviour change (System.UI minor) and belongs to AB#6328.
+The 12 `Dashboard.*` / `DashboardWidget.*` attributes carry an inline comment that their ownership is under review (audit F9,
+dashboard policy decision pending): the app blueprints seed dashboards, so a seed version bump resets a board a tenant
+customised. Changing them is a behaviour change (System.UI minor) and belongs to that review.
 **Review question for every new attribute:** could an operator or user type this value in the product? Yes → `TenantOwned`
 (or `Secret` for a credential); a service writes it → `RuntimeState`; the product ships and corrects it → `SeedOwned`.
 
-## System.UI on ckLanguage 2 (System.UI 2.12.0, AB#8601)
+## System.UI on ckLanguage 2 (System.UI 2.12.0)
 
-2.12.0 is the first `ckLanguage: 2` release of System.UI (Feature AB#5697 F4.3, Epic AB#5584), a **Minor** against the published
-2.11.0. Same pattern as System.Bot 3.6.0 (AB#8593) and System.StreamData 1.23.0 (AB#8597).
+2.12.0 is the first `ckLanguage: 2` release of System.UI (CK v2 migration), a **Minor** against the published
+2.11.0. Same pattern as System.Bot 3.6.0 and System.StreamData 1.23.0.
 
 - **`derivable: Any` on every type and record.** ckLanguage 2 flips the default of `derivable` from `Any` to `Model`, which is a
   Major of its own (row T6 of `octo-construction-kit-engine/docs/ck-semver-rules.md`). All 11 types (the abstract base `UIElement`
@@ -46,7 +46,7 @@ customised. Changing them is a behaviour change (System.UI minor) and belongs to
 - **Cascade.** `ValidateCascade`: `EnergyCommunity.Registration` 2.10.0/3.1.0 Compatible; the exact-pinned legacy
   `EnergyCommunity-2.0.0` reports `NeedsRepin` exactly as for the unchanged 2.11.0 (it pins `System.UI-2.0.0`).
 
-## Deprecated `Theme.Colors` (System.UI 2.11.0, AB#6691)
+## Deprecated `Theme.Colors` (System.UI 2.11.0)
 
 `System.UI-2.0.0` defined the record `Theme.Colors` (attributes `PrimaryColor`, `SecondaryColor`, `TertiaryColor`, `NeutralColor`) and the
 record-valued attribute `Theme.Colors`; a 2.x release dropped them silently (2.2.0 and every later published version lack them; superseded by
@@ -56,7 +56,7 @@ still references `System.UI-2.0.0/Theme.Colors-1`, so the cascade check (`Valida
 back, unchanged in shape and marked DEPRECATED (`attributes/attributes-theme-legacy.yaml`, `records/themeColors.yaml`): purely additive, so the bump
 stays MINOR. Do not remove them again without a major bump; new models use `ThemePalette`.
 
-## `System.UI/Folder` + `System.UI/FolderItem` / `System.UI/FolderParent` (System.UI 2.10.0, AB#3444)
+## `System.UI/Folder` + `System.UI/FolderItem` / `System.UI/FolderParent` (System.UI 2.10.0)
 
 Folders of the Refinery Studio library (concept wave3-concepts/data-explorer-and-queries-concept.md §3.4, not in this repository).
 Minor, purely additive, no migration, System floor unchanged. `Folder` (derives from `UIElement`) has `Name`,

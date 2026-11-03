@@ -5,7 +5,7 @@ applies_to: src/PlatformServices/Program.cs, src/PlatformServices/Configuration/
 
 # HTTP surface: Swagger and CORS
 
-## Swagger UI / OpenAPI (AB#4388)
+## Swagger UI / OpenAPI
 
 The service exposes Swagger UI at `/swagger` via the shared `Meshmakers.Octo.Services.Swagger`
 package (same pattern as octo-mcp-service): `AddOctoApiVersioningAndDocumentation(...)` +
@@ -18,4 +18,4 @@ The UI's authorization-code+PKCE flow uses the `octo-platformServices-swagger` c
 
 ## CORS
 
-Anonymous endpoint hit from browser SPAs and Excel-hosted add-ins. No credentials in flight, so the global default policy is `AllowAnyOrigin / AllowAnyHeader / AllowAnyMethod`. Even though the service now references `Meshmakers.Octo.Services.Infrastructure` (for the tenant-event host), it deliberately does **not** activate that package's per-tenant `CorsPolicyProvider` — it keeps its own `AddCors` default policy, because the provider rebuilds policies per-tenant from `IdentityClient` origins and would break Office / PowerBI access ([[cors_policy_provider_overrides_named_policy]] in memory).
+Anonymous endpoint hit from browser SPAs and Excel-hosted add-ins. No credentials in flight, so the global default policy is `AllowAnyOrigin / AllowAnyHeader / AllowAnyMethod`. Even though the service now references `Meshmakers.Octo.Services.Infrastructure` (for the tenant-event host), it deliberately does **not** activate that package's per-tenant `CorsPolicyProvider` — it keeps its own `AddCors` default policy, because the provider rebuilds policies per-tenant from `IdentityClient` origins and would break Office / PowerBI access.

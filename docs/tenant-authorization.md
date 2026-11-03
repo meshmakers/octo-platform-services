@@ -5,11 +5,11 @@ applies_to: src/PlatformServices/Program.cs, src/PlatformServices/Controllers/**
 
 # Tenant authorization and audience validation
 
-## Tenant authorization: no gate here, on purpose (AB#5051)
+## Tenant authorization: no gate here, on purpose
 
 This service **does not** call `UseOctoTenantAuthorization()` / `AddOctoTenantAuthorization(...)`, and
 that is a decision, not an oversight. The shared gate (`TenantAuthorizationMiddleware` in
-octo-common-services, see that repo's CLAUDE.md) compares the `{tenantId}` **route value** against the
+octo-common-services, see `octo-common-services/docs/tenant-authorization.md`) compares the `{tenantId}` **route value** against the
 caller's `tenant_id` claim. Neither route shape here wants that:
 
 | Route | Why the gate does not apply |
@@ -35,7 +35,7 @@ shape every other service uses for its `system/v1/*` surface, so it is an estate
 rather than a platform-services outlier — closing it means requiring the caller's `tenant_id` to be
 the system tenant across the estate, which needs its own work item.
 
-## Audience validation (AB#5051)
+## Audience validation
 
 `options.Audience = CommonConstants.OctoApi` in `Program.cs` — the JWT bearer scheme **validates**
 `aud=octoAPI`. It used to be `ValidateAudience = false`, which combined with the missing tenant gate

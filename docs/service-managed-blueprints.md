@@ -1,11 +1,11 @@
 ---
 description: The System.TenantMode and System.UI cockpit blueprints: version bumps, roll-forward, force re-apply and the cockpit widget layout.
-applies_to: src/SystemUiCkModel/Blueprints/System.TenantMode/**, src/SystemUiCkModel/Blueprints/System.UI.TenantCockpit/**, src/SystemUiCkModel/Blueprints/System.UI.SystemCockpit/**, src/PlatformServices/Services/DefaultConfigurationCreatorService.cs
+applies_to: src/SystemUiCkModel/Blueprints/System.TenantMode/**, src/SystemUiCkModel/Blueprints/*Cockpit/**, src/PlatformServices/Services/DefaultConfiguration*.cs
 ---
 
 # Service-managed blueprints: TenantMode and cockpits
 
-## `System.TenantMode` blueprint (1.1.0, AB#5497)
+## `System.TenantMode` blueprint (1.1.0)
 
 `src/SystemUiCkModel/Blueprints/System.TenantMode/` seeds the singleton `System/TenantModeConfiguration`
 (`rtWellKnownName TenantMode`) on every tenant. Since **1.1.0** the seed also writes
@@ -13,7 +13,7 @@ applies_to: src/SystemUiCkModel/Blueprints/System.TenantMode/**, src/SystemUiCkM
 default is "observability on" (the System CK defaults both to `false` so a forgotten test tenant costs
 nothing — on a platform that left every new tenant dark until an operator remembered the switch). Done in
 the service-managed seed on purpose: a System CK bump forces a re-release of every externally built
-adapter (AB#5491). The `ckModelDependencies` floor is `System-[2.3,3.0)` — 2.3.0 (AB#5432) is the first
+adapter. The `ckModelDependencies` floor is `System-[2.3,3.0)` — 2.3.0 is the first
 System version carrying the two attributes; keep it in step with `seed-data/entities.yaml` `dependencies`.
 
 - **Version bump = `blueprintId` in `blueprint.yaml` only.** The `BlueprintSourceGenerator` keys the DI
@@ -27,18 +27,18 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   / full `PosUpdateTenant`) applies with `force:true`, and the Upsert import rewrites every seeded attribute
   that is not `isRuntimeState` in the System CK: `MaintenanceLevel` back to Off, both observability
   switches back to true. Edits survive only the non-force same-version re-apply (cold start). Until
-  AB#5497's follow-up stamps the attributes `isRuntimeState` on the System CK, this is the trade-off.
-- **Nightly reset bug (the AB#5497 incident).** bot-services' `AttributeValueAggregatorJob` publishes
+  a follow-up stamps the attributes `isRuntimeState` on the System CK, this is the trade-off.
+- **Nightly reset bug.** bot-services' `AttributeValueAggregatorJob` publishes
   `PosUpdateTenant` with `TenantUpdateScope.CacheOnly` for every tenant at 00:00Z. Until
   octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
   night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
 
-## `System.UI.TenantCockpit` blueprint (1.3.0, AB#5558)
+## `System.UI.TenantCockpit` blueprint (1.3.0)
 
 Seeds the `cockpit` board (`System.UI/Dashboard`, rtWellKnownName `cockpit`, 6 columns) of every
 non-system tenant — the Refinery Studio's Home › Cockpit.
 
-- **1.1.0** adds the octo-meshboard cockpit widgets (`provideCockpitWidgets()`, AB#5558):
+- **1.1.0** adds the octo-meshboard cockpit widgets (`provideCockpitWidgets()`):
   `…5c` "Needs attention" (`attentionList`, row 1, full width, `{"maxItems":6}` = all checks),
   `…5d` "Adapters online" (`adapterStatus`), `…5e` "CK models" (`ckModelState`), `…5f` "Pipeline
   executions 24 h" (`pipelineExecutions`) in row 2 (2 columns each); the CK-model pie (`…5b`) moves

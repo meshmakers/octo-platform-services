@@ -7,6 +7,6 @@ applies_to: tests/**
 
 ## Tests
 
-`tests/PlatformServices.ContractTests/` snapshot-locks the rendered `TenantConfigurationDto` JSON (11-field set + JSON property names + trailing slashes) plus controller tests for the observability endpoints. Any DTO drift fails CI loudly — that is intentional. The baseline reflects the Phase 4 ten-field contract (the four OAuth client fields were removed) plus the additive `mcpServices` field (AB#4381).
+`tests/PlatformServices.ContractTests/` snapshot-locks the rendered `TenantConfigurationDto` JSON (11-field set + JSON property names + trailing slashes) plus controller tests for the observability endpoints. Any DTO drift fails CI loudly — that is intentional. The baseline reflects the Phase 4 ten-field contract (the four OAuth client fields were removed) plus the additive `mcpServices` field.
 
-`tests/PlatformServices.IntegrationTests/` (xUnit v3 + Testcontainers MongoDB, needs Docker) wires the same DI as `Program.cs` against a real replica set and runs the real `DefaultConfigurationCreatorService.SetupAsync` on fresh child tenants: System.Files install + default root (AB#6480). `dotnet test Octo.PlatformServices.sln -c DebugL`.
+`tests/PlatformServices.IntegrationTests/` (xUnit v3 + Testcontainers MongoDB, needs Docker) wires the same DI as `Program.cs` against a real replica set and runs the real `DefaultConfigurationCreatorService.SetupAsync` on fresh child tenants: System.Files install + default root. `dotnet test Octo.PlatformServices.sln -c DebugL`.

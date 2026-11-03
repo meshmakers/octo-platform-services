@@ -5,7 +5,7 @@ applies_to: src/PlatformServices/Services/**, tests/PlatformServices.Integration
 
 # System.Files install and default root
 
-## `System.Files` CK model install and the default root (AB#6480)
+## `System.Files` CK model install and the default root
 
 platform-services installs the **System.Files** CK model (platform file system; source in
 octo-construction-kit-engine, package `Meshmakers.Octo.ConstructionKit.Models.System.Files` from the libs train)
@@ -23,9 +23,9 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   mutation guard protects roots by type; owner = the admin session). It is what asset-repo created at its tenant start
   before. `SetupTenantAsync` runs for new tenants, attach/restore (PosCreate), full updates (PosUpdate), and the
   cold-start iteration of **all** tenants including the system tenant; a CacheOnly update skips the setup (shared
-  consumer, AB#5497) and the nightly TenantMode re-apply only force-applies the `System.TenantMode` blueprint, so
+  consumer) and the nightly TenantMode re-apply only force-applies the `System.TenantMode` blueprint, so
   neither touches System.Files.
-- **Observable**: `DefaultFilesRootService` logs at Information `Ensuring default file root 'Files' for tenant ...` at the start, `Default file root already exists for tenant ...: N root(s), rtId ...` on the exists path and `Created the default file root ...` when it seeds one, so a tenant without a root can be told from a healthy one in the logs (AB#6482 finding on test-2).
+- **Observable**: `DefaultFilesRootService` logs at Information `Ensuring default file root 'Files' for tenant ...` at the start, `Default file root already exists for tenant ...: N root(s), rtId ...` on the exists path and `Created the default file root ...` when it seeds one, so a tenant without a root can be told from a healthy one in the logs (a finding on test-2).
 - **Idempotent**: one indexed query when the root exists (matched case-insensitively on the well-known name, as the
   file API resolves roots). Every pod runs the setup, so two pods can seed `Files` at once (no unique index on
   well-known names): the root wins that the file API answers (exact-case `Files` first, then the oldest - the order of
@@ -43,7 +43,7 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   budget the entry stays for an operator (a new tenant event, a restart or a successful setup clears/resets it). No
   exponential backoff, no unbounded retry. One tenant never blocks another (the cold-start loop catches per tenant and
   records the retry). A tenant that no longer exists keeps its bare `TenantException` (`IsTenantNotFound`), so the retry loop
-  drops the entry (AB#4829) instead of retrying it 10 times.
+  drops the entry instead of retrying it 10 times.
 - **Only System.Files failures are retried.** The base records *every* exception of `SetupTenantAsync` in the store it gets, so
   the creator passes a `SystemFilesOnlyTenantSetupRetryStore` wrapper: `RecordFailureAsync` is forwarded for a System.Files
   failure (typed marker set right before the `SystemFilesSetupException` is thrown; the exception's message prefix as fallback)
@@ -56,7 +56,7 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   `DefaultConfigurationInitializationService` (cold start; never reset - only the Standardized base resets it) while
   `IDefaultConfigurationCreatorService` is registered transient, so the event consumers and the retry loop get fresh instances
   with `false`. Cold start: thrown at the end of `SetupTenantAsync`; lifecycle events and retries: after `RefreshTenantStateAsync` (the TenantMode
-  force-refresh, which the base skips when the setup throws). **System tenant fails hard (AB#6576, Gerald's decision 2026-10-11):** without System.Files the file capability answers
+  force-refresh, which the base skips when the setup throws). **System tenant fails hard (Gerald's decision 2026-10-11):** without System.Files the file capability answers
   `SYSTEM_FILES_MISSING` for every tenant, so a System.Files failure in the **system tenant** is thrown (after System.UI / System.TenantMode
   were applied) - `SystemFilesSetupException`, original exception preserved, message names System.Files, `System.Files-1.0.0` and the
   system tenant. The system tenant's setup is unguarded in the host start (`DefaultConfigurationInitializationService`, collected by

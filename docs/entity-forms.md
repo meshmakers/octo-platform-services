@@ -5,11 +5,11 @@ applies_to: src/SystemUiCkModel/Blueprints/System.UI.EntityForms/**
 
 # Entity forms
 
-## `System.UI.EntityForms` blueprint (1.6.0, AB#5521 / AB#5523 / AB#5524 / AB#5547 / AB#5528 / AB#5884 / AB#7421)
+## `System.UI.EntityForms` blueprint (1.6.0)
 
 `System.UI/EntityForm` (System.UI **2.8.0**, Minor, no migration; 2.9.0 adds
 `EntityFormField.ReferenceDisplayAttributes`, Minor, no migration — both shifted one minor up behind
-the System 2.5 repin release System.UI 2.7.0 from `main`, AB#5528, which has no EntityForm) describes how the Refinery Studio lists,
+the System 2.5 repin release System.UI 2.7.0 from `main`, which has no EntityForm) describes how the Refinery Studio lists,
 creates and edits entities of a CK type: sections, fields, list columns and capabilities, as flat record
 arrays `Sections` / `Fields` / `ListColumns` (records `EntityFormSection` / `EntityFormField` /
 `EntityFormColumn`). The Studio renders generic Settings pages from it instead of one hand-written page per
@@ -26,7 +26,7 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   cold start rolls the higher embedded version forward on every tenant (no `Program.cs` change, the DI
   extension is keyed on the major version). Until then the Studio still shows these types under
   Settings › Connections › *All configurations* (form-default).
-- **1.2.0 (AB#5524)** adds waves 2 and 4 and retires the last hand-written Studio configuration pages:
+- **1.2.0** adds waves 2 and 4 and retires the last hand-written Studio configuration pages:
   `…30`–`…34` SAP, Microsoft Graph, finAPI (`form-finapi-configuration`), Helm repository, Service
   accounts (`connections`); `…40`–`…42` AI configuration, AI agent configuration, AI quota limit (`ai`;
   agent config and quota limit are created by the AI service, so `CanCreate`/`CanDelete: false`);
@@ -48,7 +48,7 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
     by a cold start. Keep both in step when changing a wave-2/4 form here: the Studio checks its
     copies against a snapshot of this seed (`entity-forms-seed-1.4.1.snapshot.ts`), which must be
     regenerated too.
-- **1.3.0 (AB#5547)** moves the detail forms of the communication runtime objects into the seed:
+- **1.3.0** moves the detail forms of the communication runtime objects into the seed:
   `…60` `form-adapter`, `…61` `form-pool`, `…62` `form-application`, `…63` `form-data-flow` (targets
   `System.Communication/Adapter|Pool|Application|DataFlow`, `IncludeDerivedTypes: true`, no `Category` —
   they shape the Studio's detail pages, not Settings entries; `CanDelete`/`CanDuplicate`/`CanExport: false`,
@@ -65,16 +65,16 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   octo-communication-controller-services.
   - The Studio keeps identical built-in copies (`runtime-object-forms.ts`) as fallbacks only and checks
     them against the snapshot (`entity-forms-seed-1.4.1.snapshot.ts`).
-- **1.4.0 (AB#5547)** sets `ReferenceDisplayAttributes: "repositoryUrl,channel"` on the `HelmRepository`
+- **1.4.0** sets `ReferenceDisplayAttributes: "repositoryUrl,channel"` on the `HelmRepository`
   reference field of `form-adapter` and `form-application`, so the delivered forms' Helm repository picker
   shows `name · URL · channel` like the Studio fallbacks. Needs **System.UI 2.9.0**
   (`EntityFormField.ReferenceDisplayAttributes`, a comma-separated String — record values in blueprint seeds must be scalars, the seed's record converter cannot read a YAML sequence; the same applies to `RecordColumns` should a seed ever set it): the dependency floor in
   `blueprint.yaml` and the seed `dependencies` are 2.9.0. Entries are target attribute names in camelCase
   (the picker passes them verbatim as GraphQL `attributeNames`); list only non-secret attributes.
-- **1.4.1 (AB#5528)** only raises the System.UI floor (`blueprint.yaml` + seed `dependencies`) to 2.9.0
+- **1.4.1** only raises the System.UI floor (`blueprint.yaml` + seed `dependencies`) to 2.9.0
   after the studio-rebuild System.UI versions moved one minor up (2.7.0 is the System 2.5 repin
   release from `main`). The forms are unchanged; the patch bump rolls the new floor forward.
-- **1.5.0 (AB#5884)** makes the communication detail forms work on **System.Communication 3.x and 4.x**
+- **1.5.0** makes the communication detail forms work on **System.Communication 3.x and 4.x**
   (4.0.0 renamed `Pool` -> `DeploymentSite` and `Manages`/`ManagedBy` -> `Hosts`/`HostedBy`, no alias).
   `form-adapter` / `form-application` carry **both** reference fields in `general`, order 1: `ManagedBy`
   (`Pool`, role `System.Communication/Manages`) and `HostedBy` (`DeploymentSite`, role
@@ -87,14 +87,14 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   no `Hosts`/`Manages` field on the site/pool form. Still no `System.Communication` dependency — and none may
   be added: it would have to admit both majors. The Studio snapshot `entity-forms-seed-1.4.1.snapshot.ts`
   needs refreshing to 1.5.0.
-- **1.6.0 (AB#7421)** adds the **"Resources"** section (`resources`, 2 columns) to `form-adapter` (after "Runtime", order 2;
+- **1.6.0** adds the **"Resources"** section (`resources`, 2 columns) to `form-adapter` (after "Runtime", order 2;
   "Helm deployment" / "Ingress" move to 3 / 4) and `form-application` (after "General", order 1), with the four
-  `DeployableWorkload` attributes of System.Communication 4.10.0 (AB#7426): `CpuRequest`, `CpuLimit`, `MemoryRequest`,
+  `DeployableWorkload` attributes of System.Communication 4.10.0: `CpuRequest`, `CpuLimit`, `MemoryRequest`,
   `MemoryLimit` (reading order request | limit per resource, `Width: half`, `Placeholder: "chart default"`, help text with
   `250m` / `512Mi` / `1Gi`). Each carries the Kubernetes quantity `Pattern` (same grammar as the controller's
-  `KubernetesQuantity`, AB#7427: number plus `Ki..Ei`, `n u m k M G T P E` or an exponent; case-sensitive, so `512 MB` and `1gi`
-  fail); the exact controller texts and the request <= limit rule are added by the Studio host (cross-field validator, AB#7422).
-  The runtime attribute `LastDeploymentWarning` (AB#7428) is listed `Hidden`. **No System.Communication dependency was
+  `KubernetesQuantity`: number plus `Ki..Ei`, `n u m k M G T P E` or an exponent; case-sensitive, so `512 MB` and `1gi`
+  fail); the exact controller texts and the request <= limit rule are added by the Studio host (cross-field validator).
+  The runtime attribute `LastDeploymentWarning` is listed `Hidden`. **No System.Communication dependency was
   added** (the blueprint must admit 3.x and 4.x tenants): the Studio resolver silently skips a field whose attribute the type
   lacks, and a section without fields is dropped, so a tenant below 4.10.0 shows no Resources section. The pool form is
   unchanged (a pool is sized by `PoolMember*`; the controller rejects the inherited fields on a pool). The Studio snapshot
