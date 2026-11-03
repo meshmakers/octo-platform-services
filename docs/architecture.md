@@ -1,6 +1,6 @@
 ---
-description: Project layout, local-dev port table and package dependencies of platform-services.
-applies_to: src/PlatformServices/Program.cs, src/PlatformServices/PlatformServices.csproj, src/PlatformServices/Properties/launchSettings.json
+description: Project layout, local-dev ports, dependencies and the Phase 4 runtime footprint.
+applies_to: src/PlatformServices/Program.cs, src/PlatformServices/PlatformServices.csproj, src/**/launchSettings.json, src/PlatformServices/Services/DefaultConfiguration*.cs
 ---
 
 # Architecture
@@ -47,3 +47,18 @@ src/SystemUiCkModel/                               # System.UI CK model + 4 serv
 - `Meshmakers.Octo.Communication.Contracts` — `CommonConstants.OctoApiFullAccess` (admin policy), `CommonConstants.GetScopes`, and transitively `Meshmakers.Common.Shared` (for `EnsureEndsWith`).
 - `Meshmakers.Octo.Runtime.Engine.MongoDb` — CK runtime + Mongo blueprint support (`IBlueprintService`, `ISystemContext`, `ITenantBlueprintInstallations`) for both the observability endpoints and the System.UI blueprint apply.
 - `Meshmakers.Octo.Services.Infrastructure` — `AddOctoServiceInfrastructure` (distribution event hub tenant-event host + `IDefaultConfigurationCreatorService` lifecycle) and `InfrastructureCommon.ClaimScope`.
+
+## What changed in Phase 4
+
+The Phase-1 "slim, single-endpoint" framing no longer holds. Owning the blueprints means platform-services now:
+- depends on the CK runtime + MongoDB
+  (`AddRuntimeEngine().AddMongoDbRuntimeRepository().AddMongoBlueprintSupport()` — already present for the Phase-2
+  observability endpoints), and
+- runs the **distribution event hub** tenant-lifecycle host (`AddOctoServiceInfrastructure`) so it consumes
+  `PosCreateTenant` / `PosUpdateTenant` events and seeds the blueprints on tenant create / attach / restore. This
+  is the same runtime footprint the admin-panel backend had.
+
+It deliberately seeds **no identity data**: the `octo-admin-panel` OIDC client the admin-panel used to seed is dead
+(only the removed admin-panel UI authenticated with it), so `DefaultConfigurationCreatorService` is built on
+`DefaultConfigurationCreatorServiceBase` (no identity-data command client) rather than `…Standardized`. See
+`docs/concepts/phase-4-system-ui-ownership.md`.

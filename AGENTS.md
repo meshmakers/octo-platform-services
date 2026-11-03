@@ -22,27 +22,12 @@ Phase history:
   `octo-frontend-admin-panel` can be retired. The strategic direction is to manage CK models more centrally through
   platform-services going forward.
 
-## What changed in Phase 4
-
-The Phase-1 "slim, single-endpoint" framing no longer holds. Owning the blueprints means platform-services now:
-- depends on the CK runtime + MongoDB
-  (`AddRuntimeEngine().AddMongoDbRuntimeRepository().AddMongoBlueprintSupport()` — already present for the Phase-2
-  observability endpoints), and
-- runs the **distribution event hub** tenant-lifecycle host (`AddOctoServiceInfrastructure`) so it consumes
-  `PosCreateTenant` / `PosUpdateTenant` events and seeds the blueprints on tenant create / attach / restore. This
-  is the same runtime footprint the admin-panel backend had.
-
-It deliberately seeds **no identity data**: the `octo-admin-panel` OIDC client the admin-panel used to seed is dead
-(only the removed admin-panel UI authenticated with it), so `DefaultConfigurationCreatorService` is built on
-`DefaultConfigurationCreatorServiceBase` (no identity-data command client) rather than `…Standardized`. See
-`docs/concepts/phase-4-system-ui-ownership.md`.
-
 ## Read before you change
 
 <!-- >>> generated: routing -->
 | When you change | Read first |
 |---|---|
-| `src/PlatformServices/Program.cs`, `src/PlatformServices/PlatformServices.csproj`, `src/PlatformServices/Properties/launchSettings.json` | `docs/architecture.md` |
+| `src/PlatformServices/Program.cs`, `src/PlatformServices/PlatformServices.csproj`, `src/**/launchSettings.json`, `src/PlatformServices/Services/DefaultConfiguration*.cs` | `docs/architecture.md` |
 | `azure-pipelines.yml`, `src/PlatformServices/Dockerfile` | `docs/ci-cd.md` |
 | `src/PlatformServices/*/TenantConfiguration*.cs`, `src/PlatformServices/Options/**`, `tests/PlatformServices.ContractTests/TenantConfiguration*.cs` | `docs/configuration-contract.md` |
 | `src/SystemUiCkModel/Blueprints/System.UI.EntityForms/**` | `docs/entity-forms.md` |
