@@ -1,6 +1,7 @@
 "$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
 records:
   - recordId: EntityFormColumn
+    derivable: Any
     description: "One column of the entity list view for the form's target type, addressed by AttributePath. Absent / empty ListColumns = the list view derives its columns from CK metadata."
     attributes:
       - id: ${this}/EntityFormColumn.AttributePath

@@ -29,6 +29,10 @@
         <None Update="xunit.runner.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <!-- AB#8601: published CK model snapshots (provenance in testData/ck-models/README.md). -->
+        <None Update="testData\ck-models\*.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
 </Project>
