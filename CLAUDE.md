@@ -67,7 +67,7 @@ src/PlatformServices/
 ├── nlog.config
 └── Properties/launchSettings.json                 # 5024 http / 5025 https
 src/SystemUiCkModel/                               # System.UI CK model + 4 service-managed blueprints (moved from admin-panel)
-├── ConstructionKit/                               # System.UI-2.11.0 model YAML, System floor [2.5,3.0) since 2.7.0 (AB#5528, wave-1 System 2.5.0 repin): UIElement, Dashboard, ProcessDiagram, SymbolLibrary/SymbolDefinition, Branding, TreeNavigationConfiguration (Roles + Perspectives), MappingCoverageConfiguration (per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage'), EntityForm (+ records EntityFormSection/Field/Column, AB#5521), Folder + association roles FolderItem/FolderParent (Studio library folders, 2.10.0, AB#3444)
+├── ConstructionKit/                               # System.UI-2.12.0 model YAML (ckLanguage 2 since 2.12.0, AB#8601), System floor [2.5,3.0) since 2.7.0 (AB#5528, wave-1 System 2.5.0 repin): UIElement, Dashboard, ProcessDiagram, SymbolLibrary/SymbolDefinition, Branding, TreeNavigationConfiguration (Roles + Perspectives), MappingCoverageConfiguration (per-tenant source-catalogue types for the data-mappings Orphan Sources tab, singleton rtWellKnownName 'MappingCoverage'), EntityForm (+ records EntityFormSection/Field/Column, AB#5521), Folder + association roles FolderItem/FolderParent (Studio library folders, 2.10.0, AB#3444)
 └── Blueprints/{System.UI.SystemCockpit,System.UI.TenantCockpit,System.UI.EntityForms,System.TenantMode}/
 ```
 
@@ -236,6 +236,35 @@ dashboard policy decision pending)": the app blueprints seed dashboards, so a se
 customised. Changing them is a behaviour change (System.UI minor) and belongs to AB#6328.
 **Review question for every new attribute:** could an operator or user type this value in the product? Yes → `TenantOwned`
 (or `Secret` for a credential); a service writes it → `RuntimeState`; the product ships and corrects it → `SeedOwned`.
+
+### System.UI on ckLanguage 2 (System.UI 2.12.0, AB#8601)
+
+2.12.0 is the first `ckLanguage: 2` release of System.UI (Feature AB#5697 F4.3, Epic AB#5584), a **Minor** against the published
+2.11.0. Same pattern as System.Bot 3.6.0 (AB#8593) and System.StreamData 1.23.0 (AB#8597).
+
+- **`derivable: Any` on every type and record.** ckLanguage 2 flips the default of `derivable` from `Any` to `Model`, which is a
+  Major of its own (row T6 of `octo-construction-kit-engine/docs/ck-semver-rules.md`). All 11 types (the abstract base `UIElement`
+  included) and all 8 records therefore declare `derivable: Any`. **A new type or record defaults to `Model`**: declare
+  `derivable: Any` where another model should derive from it or use it.
+- **No System interfaces.** `Named-1`, `Describable-1` and `Hierarchical-1` live in `System` 2.7+. 2.11.0 resolved System 2.5.0, so
+  raising the floor of `System-[2.5,3.0)` to 2.7 is a Major (row D1). The folder tree uses `FolderParent`, not `System/ParentChild`,
+  so `Hierarchical-1` would not fit `Folder` anyway. Revisit with the next System.UI major.
+- **No access tightening.** All attributes are `SeedOwned` and written through the generic GraphQL API by Refinery Studio /
+  `@meshmakers/*` (meshboards: `meshboard-persistence.service.ts`, process diagrams, symbol libraries, library folders:
+  `query-folder.service.ts`, tree navigation settings, entity forms) or by the blueprints. None is service-written
+  (`RuntimeState`), none is a credential (`EntityFormField.Secret` is a boolean display flag) and none is `securitySensitive`, so
+  `ReadOnly`/`Hidden` would be a Major (row T7). 2.12.0 uses up the one-time T7a exception of System.UI without tightening anything.
+- **No methods.** platform-services has no write action for UI entities (no REST POST/PUT/PATCH/DELETE, no GraphQL mutation); Studio
+  writes them through the generic API, so there is no operation a CK method would replace.
+- **Engine and catalog.** The compiler stamps `minEngineVersion` 3.5.1 (unchanged from 2.11.0); the model is published under
+  `ck-models/v3/` only. A tenant on 2.11.0 moves to 2.12.0 by a service restart (service-managed descriptor, downgrade guard).
+- **Tests.** `tests/PlatformServices.ContractTests/CkModels/SystemUiCkLanguage2Tests.cs` (embedded model: version, language,
+  `minEngineVersion` pinned to 3.5.1, v3 root, System range unchanged, `derivable: Any` and `Public` on every element, nothing
+  tightened, implemented or declared as a method) and `tests/PlatformServices.IntegrationTests/SystemUiCkLanguage2UpgradeTests.cs`
+  (a tenant set up by a pod with the published 2.11.0 snapshot from `testData/ck-models/` moves to 2.12.0 by two restarts, no
+  `ResolveFailed`, `derivable: Any` survives the MongoDB round trip, the seeded UI entities stay).
+- **Cascade.** `ValidateCascade`: `EnergyCommunity.Registration` 2.10.0/3.1.0 Compatible; the exact-pinned legacy
+  `EnergyCommunity-2.0.0` reports `NeedsRepin` exactly as for the unchanged 2.11.0 (it pins `System.UI-2.0.0`).
 
 ### Deprecated `Theme.Colors` (System.UI 2.11.0, AB#6691)
 

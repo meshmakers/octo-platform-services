@@ -1,6 +1,7 @@
 "$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
 records:
   - recordId: TreeNavigationRoleConfig
+    derivable: Any
     description: "A single override rule for one association role of one source CK type (or all types via '*'). Matched by (SourceCkTypeId, RoleId); the most specific match wins (exact type over '*'). All presentational fields are optional and fall back to auto-discovery defaults."
     attributes:
       - id: ${this}/TreeNavigationRoleConfig.SourceCkTypeId

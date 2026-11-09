@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using Meshmakers.Octo.Backend.PlatformServices.Services;
+using Meshmakers.Octo.ConstructionKit.Contracts;
+using Meshmakers.Octo.ConstructionKit.Contracts.ModelCatalogs;
 using Meshmakers.Octo.ConstructionKit.Models.System.Files.Generated.System.Files.v1;
 using Meshmakers.Octo.Runtime.Contracts.Blueprints;
 using Meshmakers.Octo.Runtime.Contracts.MongoDb;
@@ -74,8 +76,13 @@ public sealed class PlatformServicesFixture : IAsyncLifetime
     ///     System.Files model and its descriptor: the service's catalog does not know the model, so every import of it fails
     ///     (the state of a tenant whose System.Files cannot be installed).
     /// </summary>
+    /// <remarks>
+    ///     <paramref name="previousSystemUi" /> true wires the pod of the previous release: System.UI is the published
+    ///     <c>System.UI-2.11.0</c> snapshot (<see cref="SystemUiSnapshotCkModel" />) instead of the model this service embeds
+    ///     (AB#8601 upgrade test).
+    /// </remarks>
     public ServiceProvider BuildProvider(bool includeSystemFiles, string? systemTenantId = null,
-        ITenantNotifications? tenantNotifications = null)
+        ITenantNotifications? tenantNotifications = null, bool previousSystemUi = false)
     {
         systemTenantId ??= SystemTenantId;
         var services = new ServiceCollection();
@@ -105,9 +112,18 @@ public sealed class PlatformServicesFixture : IAsyncLifetime
 
         // The same registrations as Program.cs.
         services.AddTransient<IDefaultConfigurationCreatorService, DefaultConfigurationCreatorService>();
-        services.AddCkModelSystemUIV2();
-        services.AddSingleton<IServiceManagedCkModelDescriptor>(_ =>
-            new ServiceManagedCkModelDescriptor(SystemUiCkModel.Generated.System.UI.v2.SystemUICkIds.CkModelId));
+        if (previousSystemUi)
+        {
+            services.AddTransient<ICkEmbeddedModel, SystemUiSnapshotCkModel>();
+            services.AddSingleton<IServiceManagedCkModelDescriptor>(_ =>
+                new ServiceManagedCkModelDescriptor(new CkModelId(SystemUiSnapshotCkModel.ModelFullName)));
+        }
+        else
+        {
+            services.AddCkModelSystemUIV2();
+            services.AddSingleton<IServiceManagedCkModelDescriptor>(_ =>
+                new ServiceManagedCkModelDescriptor(SystemUiCkModel.Generated.System.UI.v2.SystemUICkIds.CkModelId));
+        }
         if (includeSystemFiles)
         {
             services.AddCkModelSystemFilesV1();
@@ -165,6 +181,34 @@ public sealed class PlatformServicesFixture : IAsyncLifetime
         return all.Where(d => d.ToJson().Contains($"\"{modelName}-")
                               || (d.TryGetValue("_id", out var id) && id.ToString()!.StartsWith($"{modelName}-", StringComparison.Ordinal)))
             .ToList();
+    }
+
+    /// <summary>All installed CK model records of the tenant database (the data LibraryStatus reads).</summary>
+    public async Task<IReadOnlyList<BsonDocument>> GetAllCkModelRecordsAsync(string tenantId)
+    {
+        var database = new MongoClient(_container!.GetConnectionString()).GetDatabase(tenantId);
+        return await database.GetCollection<BsonDocument>("CkModel").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+    }
+
+    /// <summary>The ids of all runtime entities of the tenant whose CK type id starts with <paramref name="ckTypePrefix" />.</summary>
+    public async Task<IReadOnlyList<string>> GetRtEntityIdsAsync(string tenantId, string ckTypePrefix)
+    {
+        var database = new MongoClient(_container!.GetConnectionString()).GetDatabase(tenantId);
+        var ids = new List<string>();
+        foreach (var name in await (await database.ListCollectionNamesAsync()).ToListAsync())
+        {
+            if (!name.StartsWith("RtEntity_", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var documents = await database.GetCollection<BsonDocument>(name)
+                .Find(Builders<BsonDocument>.Filter.Regex("ckTypeId", new BsonRegularExpression("^" + System.Text.RegularExpressions.Regex.Escape(ckTypePrefix))))
+                .ToListAsync();
+            ids.AddRange(documents.Select(d => $"{d["ckTypeId"].AsString}@{d["_id"]}"));
+        }
+
+        return ids.Order(StringComparer.Ordinal).ToList();
     }
 
     /// <summary>The runtime entities of the System.Files collection of a tenant.</summary>

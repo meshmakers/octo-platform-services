@@ -1,6 +1,7 @@
 "$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
 records:
   - recordId: TreePerspectiveConfig
+    derivable: Any
     description: "A single switchable tree perspective for the entity trees (repository browser + communication data-mappings). A perspective defines its own root (the spatial ParentChild tree, or all instances of a CK type) and an optional primary/secondary navigation whitelist applied at the root level. Absent / empty Perspectives = only the built-in spatial perspective, i.e. today's behaviour."
     attributes:
       - id: ${this}/TreePerspectiveConfig.Key

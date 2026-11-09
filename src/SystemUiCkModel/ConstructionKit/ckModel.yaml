@@ -1,4 +1,14 @@
 $schema: https://schemas.meshmakers.cloud/construction-kit-meta.schema.json
-modelId: System.UI-2.11.0
+# 2.12.0 (AB#8601, Feature AB#5697 F4.3, Epic AB#5584) is the FIRST ckLanguage 2 release of System.UI, a Minor
+# against the published 2.11.0. Raising the language flips the `derivable` default of types and records from Any
+# to Model (a Major of its own, row T6 of docs/ck-semver-rules.md in octo-construction-kit-engine), so every
+# pre-existing type and record declares `derivable: Any` explicitly - UIElement above all, the base that other
+# models derive from. `visibility` and attribute `access` keep their classic defaults (Public, ReadWrite); no
+# access modifier is tightened and no System interface is implemented in this release, see CLAUDE.md
+# "System.UI on ckLanguage 2". The compiler stamps minEngineVersion and the model is published under
+# ck-models/v3/ only. New types and records default to `derivable: Model`; declare `derivable: Any` where
+# another model should derive from them.
+modelId: System.UI-2.12.0
+ckLanguage: 2
 dependencies:
   - System-[2.5,3.0)

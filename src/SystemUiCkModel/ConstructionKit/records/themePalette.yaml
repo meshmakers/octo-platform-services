@@ -1,6 +1,7 @@
 "$schema": "https://schemas.meshmakers.cloud/construction-kit-elements.schema.json"
 records:
   - recordId: ThemePalette
+    derivable: Any
     description: "Color palette consumed by ThemeService to generate the Kendo CSS variable set. All fields optional — consumers fall back to per-app defaults when absent."
     attributes:
       - id: ${this}/ThemePalette.PrimaryColor
