@@ -62,6 +62,12 @@ public class SystemUiCkLanguage2UpgradeTests(PlatformServicesFixture fixture)
                 cache.GetRtCkType(tenantId, new RtCkId<CkTypeId>(typeId)).Derivable
                     .Should().Be(CkDerivableDto.Any, $"{restart}: {typeId}");
             }
+
+            foreach (var recordId in new[] { "System.UI/ThemePalette", "System.UI/EntityFormField" })
+            {
+                cache.GetRtCkRecord(tenantId, new RtCkId<CkRecordId>(recordId)).Derivable
+                    .Should().Be(CkDerivableDto.Any, $"{restart}: {recordId}");
+            }
         }
 
         (await fixture.GetRtEntityIdsAsync(tenantId, "System.UI/"))
