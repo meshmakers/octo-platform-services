@@ -1,6 +1,6 @@
 ---
 description: How platform-services installs the System.Files CK model and seeds the default root 'Files', including the retry and the system-tenant fail-hard rule.
-applies_to: src/PlatformServices/Services/**, tests/PlatformServices.IntegrationTests/**, tests/PlatformServices.ContractTests/SystemFilesOnlyTenantSetupRetryStoreTests.cs
+applies_to: src/PlatformServices/Program.cs, src/PlatformServices/Services/**, tests/PlatformServices.IntegrationTests/**, tests/**/SystemFilesOnly*Tests.cs
 ---
 
 # System.Files install and default root
@@ -30,7 +30,7 @@ into every tenant and creates its default root `Files`. asset-repo and report-se
   file API resolves roots). Every pod runs the setup, so two pods can seed `Files` at once (no unique index on
   well-known names): the root wins that the file API answers (exact-case `Files` first, then the oldest - the order of
   asset-repo's `FindRootAsync`), empty others are erased (also on a later run), a duplicate with content is kept and
-  logged; a failed clean-up only logs.
+  logged; a failed deletion only logs, but a failure of the clean-up's own queries propagates as a setup failure.
 - **A failed install is fatal for that tenant's setup (Gerald's decision).** The engine's descriptor import logs its
   cause and does not throw (missing dependency, `ResolveFailed`), so `DefaultFilesRootService` checks
   `IsCkModelSatisfiedAsync(System.Files-1.0.0)` afterwards, imports again if it is missing (`ImportCkModelWithDowngradeGuardAsync`:

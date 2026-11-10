@@ -10,11 +10,11 @@ applies_to: src/PlatformServices/Program.cs, src/PlatformServices/PlatformServic
 ```
 src/PlatformServices/
 ├── Controllers/TenantConfigurationController.cs   # GET {tenantId}/_configuration
-├── Controllers/{Tenants,Blueprints,Services}Controller.cs  # /system/v1 observability (admin-only)
+├── Controllers/{Tenants,Blueprints,Services}Controller.cs  # /system/v1 observability (PlatformServicesAdminPolicy: authenticated + octo_api scope)
 ├── Dto/TenantConfigurationDto.cs                  # 11-field response (OAuth client fields dropped in Phase 4; mcpServices added later)
 ├── Options/PlatformServiceUrlsOptions.cs          # bound from OCTO_PLATFORMSERVICES__* (URLs + broker)
 ├── Configuration/ConfigureDistributionEventHubOptions.cs  # broker wiring for the tenant-event host
-├── Services/DefaultConfigurationCreatorService.cs # blueprint-only tenant bootstrap (System.UI.* + TenantMode)
+├── Services/DefaultConfigurationCreatorService.cs # tenant bootstrap: System.UI.* + TenantMode blueprints, System.Files install + default root
 ├── Program.cs                                     # Observability + CORS + RuntimeEngine + ServiceInfrastructure + blueprints
 ├── Dockerfile                                     # mcr.microsoft.com/dotnet/aspnet:10.0-noble
 ├── appsettings.json

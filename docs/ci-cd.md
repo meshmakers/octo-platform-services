@@ -1,5 +1,5 @@
 ---
-description: Helm deployment of the service, the CI pipeline and the explicit release decision for publishing the System.UI CK model.
+description: Helm deployment of the service, the CI pipeline and the automatic publishing of the System.UI CK model from main.
 applies_to: azure-pipelines.yml, src/PlatformServices/Dockerfile
 ---
 

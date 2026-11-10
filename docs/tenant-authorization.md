@@ -15,7 +15,7 @@ caller's `tenant_id` claim. Neither route shape here wants that:
 | Route | Why the gate does not apply |
 |---|---|
 | `GET {tenantId}/_configuration` | `[AllowAnonymous]` public discovery — Studio / Office / PowerBI read it *before* they have a token. The middleware skips anonymous endpoints, so wiring it would cover nothing. |
-| `GET system/v1/tenants/{tenantId}/blueprints`, `…/ck-models` | Cross-tenant **operator** routes. The tenant id is the *subject being inspected*, not the tenant being addressed; the caller is a system-tenant admin enumerating child tenants. `GetTenantId()` reads the route value regardless of the `system/` prefix, and the middleware's **user-token path is unconditional** (only the *service*-token path is staged behind `LogOnly`) — so wiring the gate would 403 exactly the use case these endpoints exist for. |
+| `GET system/v1/tenants/{tenantId}/blueprints`, `…/ck-models` | Cross-tenant **operator** routes. The tenant id is the *subject being inspected*, not the tenant being addressed; the caller is meant to be a system-tenant operator enumerating child tenants; `PlatformServicesAdminPolicy` itself checks only an authenticated user with the `octo_api` scope, not the caller's tenant. `GetTenantId()` reads the route value regardless of the `system/` prefix, and the middleware's **user-token path is unconditional** (only the *service*-token path is staged behind `LogOnly`) — so wiring the gate would 403 exactly the use case these endpoints exist for. |
 
 platform-services is the only service in the estate with a `system/.../{tenantId}/...` route shape;
 identity, asset-repo, bot, communication-controller and MCP all keep `{tenantId}` strictly as the

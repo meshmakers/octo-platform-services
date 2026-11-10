@@ -85,8 +85,7 @@ configuration type (concept: `octo-frontend-refinery-studio/docs/concepts/studio
   `DeploymentSite`: the new `…64` `form-deployment-site` (same fields) does; only the form whose type exists
   in the tenant resolves. Neither form has an association field (the Studio fallback has none either), so
   no `Hosts`/`Manages` field on the site/pool form. Still no `System.Communication` dependency — and none may
-  be added: it would have to admit both majors. The Studio snapshot `entity-forms-seed-1.4.1.snapshot.ts`
-  needs refreshing to 1.5.0.
+  be added: it would have to admit both majors.
 - **1.6.0** adds the **"Resources"** section (`resources`, 2 columns) to `form-adapter` (after "Runtime", order 2;
   "Helm deployment" / "Ingress" move to 3 / 4) and `form-application` (after "General", order 1), with the four
   `DeployableWorkload` attributes of System.Communication 4.10.0: `CpuRequest`, `CpuLimit`, `MemoryRequest`,

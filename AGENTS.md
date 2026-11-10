@@ -29,11 +29,11 @@ Phase history:
 |---|---|
 | `src/PlatformServices/Program.cs`, `src/PlatformServices/PlatformServices.csproj`, `src/**/launchSettings.json`, `src/PlatformServices/Services/DefaultConfiguration*.cs` | `docs/architecture.md` |
 | `azure-pipelines.yml`, `src/PlatformServices/Dockerfile` | `docs/ci-cd.md` |
-| `src/PlatformServices/*/TenantConfiguration*.cs`, `src/PlatformServices/Options/**`, `tests/PlatformServices.ContractTests/TenantConfiguration*.cs` | `docs/configuration-contract.md` |
+| `src/PlatformServices/Options/**`, `src/PlatformServices/appsettings*.json`, `**/TenantConfiguration*.cs` | `docs/configuration-contract.md` |
 | `src/SystemUiCkModel/Blueprints/System.UI.EntityForms/**` | `docs/entity-forms.md` |
 | `src/PlatformServices/Program.cs`, `src/PlatformServices/Configuration/ConfigureOctoOpenApiOptions.cs`, `src/PlatformServices/wwwroot/**` | `docs/http-surface.md` |
 | `src/SystemUiCkModel/Blueprints/System.TenantMode/**`, `src/SystemUiCkModel/Blueprints/*Cockpit/**`, `src/PlatformServices/Services/DefaultConfiguration*.cs` | `docs/service-managed-blueprints.md` |
-| `src/PlatformServices/Services/**`, `tests/PlatformServices.IntegrationTests/**`, `tests/PlatformServices.ContractTests/SystemFilesOnlyTenantSetupRetryStoreTests.cs` | `docs/system-files.md` |
+| `src/PlatformServices/Program.cs`, `src/PlatformServices/Services/**`, `tests/PlatformServices.IntegrationTests/**`, `tests/**/SystemFilesOnly*Tests.cs` | `docs/system-files.md` |
 | `src/SystemUiCkModel/ConstructionKit/**`, `src/SystemUiCkModel/SystemUiCkModel.csproj` | `docs/system-ui-ck-model.md` |
 | `src/PlatformServices/Program.cs`, `src/PlatformServices/Controllers/**` | `docs/tenant-authorization.md` |
 | `tests/**` | `docs/testing.md` |

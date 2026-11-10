@@ -1,6 +1,6 @@
 ---
 description: The public _configuration discovery endpoint: the 11-field TenantConfigurationDto, empty-string semantics and the contract snapshot test.
-applies_to: src/PlatformServices/*/TenantConfiguration*.cs, src/PlatformServices/Options/**, tests/PlatformServices.ContractTests/TenantConfiguration*.cs
+applies_to: src/PlatformServices/Options/**, src/PlatformServices/appsettings*.json, **/TenantConfiguration*.cs
 ---
 
 # The `_configuration` contract

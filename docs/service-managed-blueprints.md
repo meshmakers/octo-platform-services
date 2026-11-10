@@ -28,10 +28,9 @@ System version carrying the two attributes; keep it in step with `seed-data/enti
   that is not `isRuntimeState` in the System CK: `MaintenanceLevel` back to Off, both observability
   switches back to true. Edits survive only the non-force same-version re-apply (cold start). Until
   a follow-up stamps the attributes `isRuntimeState` on the System CK, this is the trade-off.
-- **Nightly reset bug.** bot-services' `AttributeValueAggregatorJob` publishes
-  `PosUpdateTenant` with `TenantUpdateScope.CacheOnly` for every tenant at 00:00Z. Until
-  octo-common-services honoured the scope, that ran `SetupAsync` → `RefreshTenantStateAsync` here every
-  night and reset the opt-in; all `octo.workload.*` / `octo.pipeline.*` metrics went dark on prod-1.
+- **Nightly cache-only update.** bot-services' `AttributeValueAggregatorJob` publishes
+  `PosUpdateTenant` with `TenantUpdateScope.CacheOnly` for every tenant at 00:00Z. octo-common-services honours the scope
+  and does not run `SetupAsync` → `RefreshTenantStateAsync` for it, so the opt-in is not reset.
 
 ## `System.UI.TenantCockpit` blueprint (1.3.0)
 
