@@ -80,5 +80,5 @@ $true -excludeAdditional $true` from `octo-tools` to distribute the updated NuGe
   validation** (`docs/tenant-authorization.md`).
 - **Keep the service's own CORS default policy**; do not activate the per-tenant `CorsPolicyProvider`
   (`docs/http-surface.md`).
-- **A merge to `main` does not publish `System.UI`** to the CK catalogs; publishing is an explicit
-  release decision (`docs/ci-cd.md`).
+- **A merge to `main` publishes `System.UI`** to the private CK catalog by default; a pipeline run can
+  switch it off (`docs/ci-cd.md`).
