@@ -5,6 +5,14 @@ applies_to: src/PlatformServices/Program.cs, src/PlatformServices/Controllers/**
 
 # Tenant authorization and audience validation
 
+## Agent tokens are refused (AB#6054)
+
+`Program.cs` calls `UseOctoAgentTokenRefusal()` right after `UseAuthorization()`: a token whose scope contains
+`octo_agent` (an agent's token) gets `403` with the error code `AgentTokenNotAccepted` on every route here, like on
+every OctoMesh API but the MCP agent endpoint (`octo-common-services/docs/tenant-authorization.md`). The routes already
+require `octo_api` and the audience `octoAPI`; the refusal also covers a token that carries `octo_agent` beside
+`octo_api`. `UseOctoTenantAuthorization()` would include it, but this host has no tenant gate (next section).
+
 ## Tenant authorization: no gate here, on purpose
 
 This service **does not** call `UseOctoTenantAuthorization()` / `AddOctoTenantAuthorization(...)`, and
