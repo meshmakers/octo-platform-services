@@ -12,6 +12,7 @@ using Meshmakers.Octo.Runtime.Contracts.MongoDb.Extensions;
 using Meshmakers.Octo.Runtime.Contracts.MongoDb.Services;
 using Meshmakers.Octo.Runtime.Engine.Configuration.DependencyInjection;
 using Meshmakers.Octo.Services.Infrastructure;
+using Meshmakers.Octo.Services.Infrastructure.Configuration;
 using Meshmakers.Octo.Services.Infrastructure.Services;
 using Meshmakers.Octo.Services.Observability;
 using Meshmakers.Octo.Services.Swagger.Configuration;
@@ -191,6 +192,10 @@ try
     app.UseRouting();
     app.UseAuthentication();
     app.UseAuthorization();
+    // AB#6054: agent tokens (scope octo_agent) are refused with 403 AgentTokenNotAccepted on every route here, like on
+    // every OctoMesh API but the MCP agent endpoint. UseOctoTenantAuthorization() includes this refusal; this host has no
+    // tenant gate (below), so it adds the refusal on its own.
+    app.UseOctoAgentTokenRefusal();
     // AB#5051: deliberately NO UseOctoTenantAuthorization(). The shared transport tenant gate
     // compares the {tenantId} route value with the caller's tenant_id claim, and neither route
     // shape here wants that:
